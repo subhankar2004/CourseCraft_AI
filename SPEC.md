@@ -4,7 +4,7 @@
 > B.Tech minor project (Project-I), Dept. of CSE, VSSUT Burla, 2025–26
 > Report authors: Subhankar Patra (2302080033), Shibani Taria (2302080001) · Supervisor: Dr. Sucheta Panda
 > Implementation: Subhankar Patra, working with Claude Code as AI pair programmer. Shibani Taria is no longer working on the build, so the Table 2 work split in the report no longer applies.
-> Source of truth for requirements: `CourseCraftAI.pdf` (project report). This spec turns that report into a buildable plan.
+> Source of truth for requirements: [`docs/report/CourseCraftAI.pdf`](docs/report/CourseCraftAI.pdf) (project report). This spec turns that report into a buildable plan.
 
 ---
 
@@ -17,6 +17,7 @@ Beginners in computer science face plenty of free YouTube content, but it is uno
 Content hierarchy: **Domain → Course → Module → Lesson**.
 
 ### Expected outcomes (from the report, §5.1)
+
 1. A responsive web app that ingests YouTube links and generates coherent course hierarchies.
 2. A **split-view learning interface**: video playback synchronized with AI-generated Markdown notes.
 3. A **context-grounded RAG chatbot** with minimal hallucination, answering only from the course's content.
@@ -26,30 +27,33 @@ Content hierarchy: **Domain → Course → Module → Lesson**.
 ## 2. Scope
 
 ### In scope (MVP)
-| # | Feature | Notes |
-|---|---------|-------|
-| F1 | Auth (register/login, JWT) | Roles: `STUDENT`, `ADMIN` (curator who generates courses) |
-| F2 | Domain catalog | e.g. Web Dev, DSA, ML, DBMS. Admin CRUD |
-| F3 | Course generation from YouTube URLs / playlist | Async job with live progress |
-| F4 | Transcript ingestion | `youtube-transcript-api` first, then `yt-dlp` subtitles, then Whisper fallback |
-| F5 | Semantic chunking | Overlapping, timestamp-preserving chunks (LangChain) |
-| F6 | Embeddings → Pinecone | One namespace per course |
-| F7 | AI notes generation | Markdown per lesson, sections anchored to video timestamps |
-| F8 | Hierarchical structuring | LLM groups lessons into ordered modules; stored in PostgreSQL |
-| F9 | Course discovery & navigation UI | Domain → Course → Module → Lesson views |
-| F10 | Split-view lesson page | YouTube player + notes; clicking a timestamp seeks the video |
-| F11 | Course-aware RAG chatbot | Streaming answers with citations (lesson + timestamp); refuses off-course questions |
-| F12 | Progress tracking + rule-based "next lesson" pathing | Enrollment, per-lesson completion, resume position |
-| F13 | Quality evaluation | Faithfulness, answer relevance, cognitive load index (see §9) |
-| F14 | Model provider switch | OpenAI `gpt-4o-mini` (default) or local Ollama, chosen by env config |
+
+| #   | Feature                                              | Notes                                                                               |
+| --- | ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| F1  | Auth (register/login, JWT)                           | Roles: `STUDENT`, `ADMIN` (curator who generates courses)                           |
+| F2  | Domain catalog                                       | e.g. Web Dev, DSA, ML, DBMS. Admin CRUD                                             |
+| F3  | Course generation from YouTube URLs / playlist       | Async job with live progress                                                        |
+| F4  | Transcript ingestion                                 | `youtube-transcript-api` first, then `yt-dlp` subtitles, then Whisper fallback      |
+| F5  | Semantic chunking                                    | Overlapping, timestamp-preserving chunks (LangChain)                                |
+| F6  | Embeddings → Pinecone                                | One namespace per course                                                            |
+| F7  | AI notes generation                                  | Markdown per lesson, sections anchored to video timestamps                          |
+| F8  | Hierarchical structuring                             | LLM groups lessons into ordered modules; stored in PostgreSQL                       |
+| F9  | Course discovery & navigation UI                     | Domain → Course → Module → Lesson views                                             |
+| F10 | Split-view lesson page                               | YouTube player + notes; clicking a timestamp seeks the video                        |
+| F11 | Course-aware RAG chatbot                             | Streaming answers with citations (lesson + timestamp); refuses off-course questions |
+| F12 | Progress tracking + rule-based "next lesson" pathing | Enrollment, per-lesson completion, resume position                                  |
+| F13 | Quality evaluation                                   | Faithfulness, answer relevance, cognitive load index (see §9)                       |
+| F14 | Model provider switch                                | OpenAI `gpt-4o-mini` (default) or local Ollama, chosen by env config                |
 
 ### Out of scope (Future Work, report §5.2)
+
 - Fully agentic architecture (LangGraph Strategist / Designer / Coach agents)
 - Reinforcement-learning-based adaptive pathing
 - Educational Knowledge Graph visualization
 - Multi-modal (frame/visual) video indexing à la VideoRAG
 
 ### Stretch (only if MVP is done)
+
 - Auto-generated quizzes per lesson that feed into the rule-based pathing
 - Splitting long videos into multiple lessons using YouTube chapters
 - Export notes as PDF
@@ -73,31 +77,33 @@ Content hierarchy: **Domain → Course → Module → Lesson**.
 ```
 
 ### 3.1 Responsibilities by component
-| Component | Owns | Does not do |
-|-----------|------|-------------|
-| **Web** (Next.js) | UI, client validation (Zod), auth cookie handling, SSE consumption | Call the AI service or the DB directly |
-| **API** (NestJS) | Auth, REST API, **only writer to PostgreSQL** (Prisma), job orchestration (BullMQ), progress, chat history | LLM calls, embeddings |
-| **AI Service** (FastAPI) | Transcript fetching, chunking, embeddings, Pinecone read/write, LLM generation, RAG, evaluation metrics | Touch PostgreSQL; it is stateless and returns results to the API |
+
+| Component                | Owns                                                                                                       | Does not do                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **Web** (Next.js)        | UI, client validation (Zod), auth cookie handling, SSE consumption                                         | Call the AI service or the DB directly                           |
+| **API** (NestJS)         | Auth, REST API, **only writer to PostgreSQL** (Prisma), job orchestration (BullMQ), progress, chat history | LLM calls, embeddings                                            |
+| **AI Service** (FastAPI) | Transcript fetching, chunking, embeddings, Pinecone read/write, LLM generation, RAG, evaluation metrics    | Touch PostgreSQL; it is stateless and returns results to the API |
 
 ### 3.2 Key decision: a separate Python AI service
+
 The report lists LangChain, `youtube-transcript-api`, `yt-dlp`, and Whisper. All of these are Python-native, and so is the evaluation tooling (RAGAS, textstat). Figure 2 of the report already shows the "LangChain AI Pipeline" as its own block. So the AI pipeline runs as a small FastAPI service, and NestJS stays the single public API and the single database owner.
 
-*Alternative considered:* LangChain.js inside NestJS. It means one less service, but transcript fetching and Whisper would need workarounds and there is no RAGAS. This can be revisited if running two runtimes becomes a burden.
+_Alternative considered:_ LangChain.js inside NestJS. It means one less service, but transcript fetching and Whisper would need workarounds and there is no RAGAS. This can be revisited if running two runtimes becomes a burden.
 
 ---
 
 ## 4. Tech Stack
 
-| Layer | Technologies |
-|-------|-------------|
-| Frontend | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, Zod, TanStack Query, react-markdown + remark-gfm + rehype-highlight, react-youtube |
-| API server | Node.js, NestJS, TypeScript, Prisma ORM, Passport-JWT, class-validator, BullMQ |
+| Layer      | Technologies                                                                                                                                                                                                          |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend   | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, Zod, TanStack Query, react-markdown + remark-gfm + rehype-highlight, react-youtube                                                                         |
+| API server | Node.js, NestJS, TypeScript, Prisma ORM, Passport-JWT, class-validator, BullMQ                                                                                                                                        |
 | AI service | Python 3.11+, FastAPI, Pydantic v2, LangChain (`langchain`, `langchain-openai`, `langchain-ollama`, `langchain-pinecone`), youtube-transcript-api, yt-dlp, openai-whisper / faster-whisper, tiktoken, ragas, textstat |
-| Data | PostgreSQL 16, Pinecone (serverless index), Redis 7 |
-| LLMs | `gpt-4o-mini` (default), Ollama (`llama3.1:8b` or similar) |
-| Embeddings | `text-embedding-3-small` (1536-d). Ollama alternative: `nomic-embed-text` (768-d), which needs a **separate Pinecone index** because the dimension differs |
-| Infra | Docker Compose (local), AWS EC2 or Railway (deploy), AWS S3 + Cloudflare CDN |
-| Tooling | pnpm workspaces, ESLint + Prettier, Ruff + mypy, Jest (API), Vitest/Playwright (web), pytest (AI) |
+| Data       | PostgreSQL 16, Pinecone (serverless index), Redis 7                                                                                                                                                                   |
+| LLMs       | `gpt-4o-mini` (default), Ollama (`llama3.1:8b` or similar)                                                                                                                                                            |
+| Embeddings | `text-embedding-3-small` (1536-d). Ollama alternative: `nomic-embed-text` (768-d), which needs a **separate Pinecone index** because the dimension differs                                                            |
+| Infra      | Docker Compose (local), AWS EC2 or Railway (deploy), AWS S3 + Cloudflare CDN                                                                                                                                          |
+| Tooling    | Node 24 LTS, pnpm 12 workspaces, ESLint + Prettier, Ruff + mypy, Jest (API), Vitest/Playwright (web), pytest (AI)                                                                                                     |
 
 ---
 
@@ -107,7 +113,7 @@ The report lists LangChain, `youtube-transcript-api`, `yt-dlp`, and Whisper. All
 CourseCraft_AI/
 ├── AGENTS.md                 # working agreement for humans + AI agents
 ├── SPEC.md                   # this file
-├── CourseCraftAI.pdf         # project report (requirements source)
+├── README.md
 ├── docker-compose.yml        # postgres, redis (+ ollama optional)
 ├── .env.example
 ├── pnpm-workspace.yaml
@@ -127,7 +133,11 @@ CourseCraft_AI/
 │       └── tests/
 ├── packages/
 │   └── shared/               # shared TS types + Zod schemas (web <-> api)
-└── docs/                     # diagrams, report assets, eval results
+├── scripts/                  # repo automation (GitHub issue generator)
+└── docs/
+    ├── ISSUES.md             # 50-issue roadmap
+    ├── report/               # CourseCraftAI.pdf (requirements source)
+    └── eval/                 # evaluation results
 ```
 
 ---
@@ -302,6 +312,7 @@ model EvaluationRun {
 ```
 
 ### Pinecone layout
+
 - Index: `coursecraft-<embeddingModel>` (one per embedding dimension), cosine metric.
 - **Namespace = `courseId`**. This is what makes the chatbot course-aware: a query can only reach its own course's vectors.
 - Vector id = `Chunk.id`. Metadata: `{courseId, moduleId, lessonId, videoId, youtubeId, startSec, endSec, lessonTitle, text}`.
@@ -311,76 +322,83 @@ model EvaluationRun {
 ## 7. Pipelines
 
 ### 7.1 Course generation (report §3.3, Fig. 1)
+
 Triggered by `POST /courses/generate`. NestJS creates `Course(GENERATING)` and an `IngestionJob`, then enqueues a BullMQ job. The worker calls the AI service step by step and persists results, updating `stage` and `progress` at each step.
 
-| Step | Stage | What happens | Where |
-|------|-------|--------------|-------|
-| 1 | `METADATA` | Resolve playlist → video ids; fetch title, channel, duration, thumbnail via `yt-dlp` (no download) | AI |
-| 2 | `TRANSCRIPT` | `youtube-transcript-api` (manual subtitles > auto, prefer `en`) → `yt-dlp` subtitles → **Whisper** fallback (download audio to S3/tmp, transcribe) | AI |
-| 3 | `CHUNKING` | Build chunks **from transcript segments**, so each chunk keeps `startSec/endSec`. Target ~800 tokens, ~120-token overlap (LangChain `RecursiveCharacterTextSplitter` with a tiktoken length fn). | AI |
-| 4 | `EMBEDDING` | Embed chunks and upsert to Pinecone namespace `courseId`. Return chunk records. | AI |
-| 5 | `NOTES` | Per video, **map-reduce**: chunk → partial notes; reduce → one lesson Markdown (title, summary, key concepts, sections with `[▶ mm:ss]` timestamp anchors, code blocks where relevant, recap). | AI |
-| 6 | `STRUCTURING` | Given all lesson titles and summaries, the LLM returns (as structured Pydantic output) the course title, description, level, and **modules with ordered lessons**. | AI |
-| 7 | `EVALUATION` | Compute cognitive load per lesson. If over threshold, regenerate once with a "simplify" prompt (§9). | AI |
-| 8 | `DONE` | API writes Module / Lesson / Video / Chunk rows in one transaction and sets `Course.status = DRAFT` for admin review, then the admin publishes it | API |
+| Step | Stage         | What happens                                                                                                                                                                                     | Where |
+| ---- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
+| 1    | `METADATA`    | Resolve playlist → video ids; fetch title, channel, duration, thumbnail via `yt-dlp` (no download)                                                                                               | AI    |
+| 2    | `TRANSCRIPT`  | `youtube-transcript-api` (manual subtitles > auto, prefer `en`) → `yt-dlp` subtitles → **Whisper** fallback (download audio to S3/tmp, transcribe)                                               | AI    |
+| 3    | `CHUNKING`    | Build chunks **from transcript segments**, so each chunk keeps `startSec/endSec`. Target ~800 tokens, ~120-token overlap (LangChain `RecursiveCharacterTextSplitter` with a tiktoken length fn). | AI    |
+| 4    | `EMBEDDING`   | Embed chunks and upsert to Pinecone namespace `courseId`. Return chunk records.                                                                                                                  | AI    |
+| 5    | `NOTES`       | Per video, **map-reduce**: chunk → partial notes; reduce → one lesson Markdown (title, summary, key concepts, sections with `[▶ mm:ss]` timestamp anchors, code blocks where relevant, recap).   | AI    |
+| 6    | `STRUCTURING` | Given all lesson titles and summaries, the LLM returns (as structured Pydantic output) the course title, description, level, and **modules with ordered lessons**.                               | AI    |
+| 7    | `EVALUATION`  | Compute cognitive load per lesson. If over threshold, regenerate once with a "simplify" prompt (§9).                                                                                             | AI    |
+| 8    | `DONE`        | API writes Module / Lesson / Video / Chunk rows in one transaction and sets `Course.status = DRAFT` for admin review, then the admin publishes it                                                | API   |
 
 Rules:
-- Each video is processed independently and idempotently. If a video fails, it is skipped and recorded in the job; the job only fails if *every* video fails.
+
+- Each video is processed independently and idempotently. If a video fails, it is skipped and recorded in the job; the job only fails if _every_ video fails.
 - `Video` rows are cached by `youtubeId`, so re-using a video does not re-fetch the transcript.
 - Long LLM calls time out with retry and backoff (3 attempts).
 
 ### 7.2 RAG chat (report Fig. 3)
+
 `POST /courses/:id/chat` (SSE stream):
+
 1. API checks enrollment, loads the last N messages, and calls AI `/rag/answer`.
 2. AI: (optionally) condense the follow-up into a standalone question → embed it → Pinecone query in namespace `courseId`, `top_k=6`.
 3. **Grounding gate**: if the best score is below `RAG_MIN_SCORE` (start at 0.35 and tune), reply with a fixed message ("This isn't covered in this course…") and set `grounded=false`. No LLM generation happens in that case.
-4. Otherwise, prompt the LLM with the retrieved context. The system prompt says: *answer only from the context; if the context is insufficient, say so; cite sources as [n]*.
+4. Otherwise, prompt the LLM with the retrieved context. The system prompt says: _answer only from the context; if the context is insufficient, say so; cite sources as [n]_.
 5. Stream the tokens back and send a final event with `citations[]` (lesson title, timestamp → deep link into the split view).
 6. API saves both messages.
 
 ### 7.3 Rule-based adaptive pathing (MVP)
+
 - `GET /courses/:id/next`: returns the first lesson, in module/lesson order, that is not `COMPLETED`.
 - A lesson is auto-marked `IN_PROGRESS` when it is opened. It becomes `COMPLETED` when the user clicks "Mark complete" or watches 90% of the video.
 - Course progress % = completed lessons / total lessons.
-- *(Stretch)* If a lesson quiz score is below 60%, recommend reviewing it before moving on.
+- _(Stretch)_ If a lesson quiz score is below 60%, recommend reviewing it before moving on.
 
 ---
 
 ## 8. API Surface
 
 ### 8.1 Public REST API (NestJS, prefix `/api/v1`)
-| Method | Path | Auth | Purpose |
-|--------|------|------|---------|
-| POST | `/auth/register` · `/auth/login` | – | Returns JWT (httpOnly cookie) |
-| GET | `/auth/me` | user | Current user |
-| GET | `/domains` · `/domains/:slug` | – | Catalog |
-| POST/PATCH/DELETE | `/domains[/:id]` | admin | Manage domains |
-| GET | `/courses?domain=&q=&level=` | – | List published courses |
-| GET | `/courses/:slug` | – | Course + modules + lesson titles |
-| POST | `/courses/generate` | admin | `{domainId, urls[] \| playlistUrl, titleHint?}` → `{courseId, jobId}` |
-| GET | `/jobs/:id` · `/jobs/:id/events` (SSE) | admin | Job status / live progress |
-| PATCH | `/courses/:id` · `/courses/:id/publish` | admin | Edit metadata, reorder, publish |
-| PATCH | `/lessons/:id` | admin | Edit notes Markdown |
-| GET | `/lessons/:id` | user | Lesson + notes + video info |
-| POST | `/courses/:id/enroll` | user | Enroll |
-| GET | `/me/courses` | user | Enrolled courses + progress |
-| PUT | `/lessons/:id/progress` | user | `{status?, lastPositionSec}` |
-| GET | `/courses/:id/next` | user | Next recommended lesson |
-| POST | `/courses/:id/chat` | user | `{sessionId?, message}` → SSE stream |
-| GET | `/courses/:id/chat/sessions[/:sid]` | user | Chat history |
-| POST | `/courses/:id/evaluate` | admin | Run the RAG eval set → `EvaluationRun` |
+
+| Method            | Path                                    | Auth  | Purpose                                                               |
+| ----------------- | --------------------------------------- | ----- | --------------------------------------------------------------------- |
+| POST              | `/auth/register` · `/auth/login`        | –     | Returns JWT (httpOnly cookie)                                         |
+| GET               | `/auth/me`                              | user  | Current user                                                          |
+| GET               | `/domains` · `/domains/:slug`           | –     | Catalog                                                               |
+| POST/PATCH/DELETE | `/domains[/:id]`                        | admin | Manage domains                                                        |
+| GET               | `/courses?domain=&q=&level=`            | –     | List published courses                                                |
+| GET               | `/courses/:slug`                        | –     | Course + modules + lesson titles                                      |
+| POST              | `/courses/generate`                     | admin | `{domainId, urls[] \| playlistUrl, titleHint?}` → `{courseId, jobId}` |
+| GET               | `/jobs/:id` · `/jobs/:id/events` (SSE)  | admin | Job status / live progress                                            |
+| PATCH             | `/courses/:id` · `/courses/:id/publish` | admin | Edit metadata, reorder, publish                                       |
+| PATCH             | `/lessons/:id`                          | admin | Edit notes Markdown                                                   |
+| GET               | `/lessons/:id`                          | user  | Lesson + notes + video info                                           |
+| POST              | `/courses/:id/enroll`                   | user  | Enroll                                                                |
+| GET               | `/me/courses`                           | user  | Enrolled courses + progress                                           |
+| PUT               | `/lessons/:id/progress`                 | user  | `{status?, lastPositionSec}`                                          |
+| GET               | `/courses/:id/next`                     | user  | Next recommended lesson                                               |
+| POST              | `/courses/:id/chat`                     | user  | `{sessionId?, message}` → SSE stream                                  |
+| GET               | `/courses/:id/chat/sessions[/:sid]`     | user  | Chat history                                                          |
+| POST              | `/courses/:id/evaluate`                 | admin | Run the RAG eval set → `EvaluationRun`                                |
 
 ### 8.2 Internal AI service API (FastAPI, reachable only from the API; protected by a shared `X-Internal-Key`)
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/health` | Liveness + configured providers |
-| POST | `/ingest/metadata` | `{urls \| playlistUrl}` → video metadata list |
-| POST | `/ingest/transcript` | `{youtubeId}` → `{source, language, segments[]}` |
-| POST | `/process/lesson` | `{courseId, youtubeId, segments}` → chunks (embedded + upserted) + notes Markdown + summary + key concepts + cognitive load |
-| POST | `/process/structure` | `{lessons:[{ref,title,summary}]}` → course outline |
-| POST | `/rag/answer` | `{courseId, question, history[]}` → SSE tokens + citations |
-| POST | `/eval/rag` | `{courseId, qa:[{question, reference?}]}` → faithfulness / relevance scores |
-| DELETE | `/vectors/{courseId}` | Delete a course namespace |
+
+| Method | Path                  | Purpose                                                                                                                     |
+| ------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/health`             | Liveness + configured providers                                                                                             |
+| POST   | `/ingest/metadata`    | `{urls \| playlistUrl}` → video metadata list                                                                               |
+| POST   | `/ingest/transcript`  | `{youtubeId}` → `{source, language, segments[]}`                                                                            |
+| POST   | `/process/lesson`     | `{courseId, youtubeId, segments}` → chunks (embedded + upserted) + notes Markdown + summary + key concepts + cognitive load |
+| POST   | `/process/structure`  | `{lessons:[{ref,title,summary}]}` → course outline                                                                          |
+| POST   | `/rag/answer`         | `{courseId, question, history[]}` → SSE tokens + citations                                                                  |
+| POST   | `/eval/rag`           | `{courseId, qa:[{question, reference?}]}` → faithfulness / relevance scores                                                 |
+| DELETE | `/vectors/{courseId}` | Delete a course namespace                                                                                                   |
 
 Shared request/response contracts: Zod schemas live in `packages/shared` (web↔api), Pydantic models in `services/ai/app/schemas.py`. **When a contract changes, update both sides in the same change.**
 
@@ -388,12 +406,12 @@ Shared request/response contracts: Zod schemas live in `packages/shared` (web↔
 
 ## 9. Quality & Evaluation (report Table 3)
 
-| Metric | Measures | How it's computed | Target (proposed) |
-|--------|----------|-------------------|-------------------|
-| **Faithfulness** | Chatbot answers are supported by the retrieved context (hallucination guard) | RAGAS `faithfulness` on a 30-question set per demo course | ≥ 0.85 avg |
-| **Relevance & Coherence** | Answers address the question without going off-topic | RAGAS `answer_relevancy` + `context_precision` | ≥ 0.80 avg |
-| **Off-scope refusal** | Out-of-course questions are refused | 10 off-topic questions per course; % with `grounded=false` | ≥ 90% |
-| **Cognitive Load Index** | How readable / dense the generated notes are | `CLI = w1·norm(Flesch-Kincaid grade) + w2·norm(avg sentence length) + w3·norm(concept density: key terms per 100 words)`, scaled 0–100 using textstat | ≤ 60. If above, regenerate once with the "simplify" prompt |
+| Metric                    | Measures                                                                     | How it's computed                                                                                                                                     | Target (proposed)                                          |
+| ------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| **Faithfulness**          | Chatbot answers are supported by the retrieved context (hallucination guard) | RAGAS `faithfulness` on a 30-question set per demo course                                                                                             | ≥ 0.85 avg                                                 |
+| **Relevance & Coherence** | Answers address the question without going off-topic                         | RAGAS `answer_relevancy` + `context_precision`                                                                                                        | ≥ 0.80 avg                                                 |
+| **Off-scope refusal**     | Out-of-course questions are refused                                          | 10 off-topic questions per course; % with `grounded=false`                                                                                            | ≥ 90%                                                      |
+| **Cognitive Load Index**  | How readable / dense the generated notes are                                 | `CLI = w1·norm(Flesch-Kincaid grade) + w2·norm(avg sentence length) + w3·norm(concept density: key terms per 100 words)`, scaled 0–100 using textstat | ≤ 60. If above, regenerate once with the "simplify" prompt |
 
 Eval datasets live in `services/ai/eval/datasets/<course-slug>.jsonl`. Results are stored in `EvaluationRun` and exported to `docs/eval/` for the final report.
 
@@ -401,23 +419,24 @@ Eval datasets live in `services/ai/eval/datasets/<course-slug>.jsonl`. Results a
 
 ## 10. Frontend Pages (apps/web)
 
-| Route | Page |
-|-------|------|
-| `/` | Landing: problem statement, featured domains/courses |
-| `/login` · `/register` | Auth |
-| `/domains` · `/domains/[slug]` | Domain grid → courses in the domain |
-| `/courses/[slug]` | Course overview: description, module accordion, enroll / continue button, progress |
+| Route                            | Page                                                                                                                                                                                                                                                                                                                                                                          |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                              | Landing: problem statement, featured domains/courses                                                                                                                                                                                                                                                                                                                          |
+| `/login` · `/register`           | Auth                                                                                                                                                                                                                                                                                                                                                                          |
+| `/domains` · `/domains/[slug]`   | Domain grid → courses in the domain                                                                                                                                                                                                                                                                                                                                           |
+| `/courses/[slug]`                | Course overview: description, module accordion, enroll / continue button, progress                                                                                                                                                                                                                                                                                            |
 | `/learn/[courseSlug]/[lessonId]` | **Split view**: left = YouTube player (resumes from `lastPositionSec`), right = notes (Markdown, code highlighting, clickable `[▶ mm:ss]` anchors that seek the player). Collapsible sidebar with the module/lesson tree. Floating **chat drawer** (course-scoped) with citations that jump to lesson + timestamp. Prev / next / mark complete. Mobile: tabs instead of split |
-| `/dashboard` | My courses, progress, "continue where you left off" |
-| `/admin/courses/new` | Paste URLs/playlist + pick domain → live job progress (SSE stepper over the stages) |
-| `/admin/courses/[id]` | Review the generated outline, reorder modules/lessons, edit notes, publish, run eval |
-| `/admin/domains` | Domain CRUD |
+| `/dashboard`                     | My courses, progress, "continue where you left off"                                                                                                                                                                                                                                                                                                                           |
+| `/admin/courses/new`             | Paste URLs/playlist + pick domain → live job progress (SSE stepper over the stages)                                                                                                                                                                                                                                                                                           |
+| `/admin/courses/[id]`            | Review the generated outline, reorder modules/lessons, edit notes, publish, run eval                                                                                                                                                                                                                                                                                          |
+| `/admin/domains`                 | Domain CRUD                                                                                                                                                                                                                                                                                                                                                                   |
 
 UI conventions: shadcn/ui components, dark/light themes, loading skeletons, every form validated with Zod.
 
 ---
 
 ## 11. Non-Functional Requirements
+
 - **Security**: bcrypt password hashing; JWT in an httpOnly cookie; role guards; rate limits on chat and generate endpoints; the AI service is never publicly exposed; secrets only in env; validate that YouTube URLs really are YouTube.
 - **Performance**: catalog pages are SSR/ISR; chat first token < 3 s with OpenAI; generating a 10-video course < 15 min.
 - **Cost control**: `gpt-4o-mini` by default; cache transcripts/videos; `MAX_VIDEOS_PER_COURSE=25`; log token usage per job.
@@ -427,6 +446,7 @@ UI conventions: shadcn/ui components, dark/light themes, loading skeletons, ever
 ---
 
 ## 12. Configuration (`.env.example`)
+
 ```
 # api
 DATABASE_URL=postgresql://coursecraft:coursecraft@localhost:5432/coursecraft
@@ -464,20 +484,21 @@ The phases are broken into 50 GitHub issues (one PR each) in [docs/ISSUES.md](do
 
 All phases are built by Subhankar with Claude Code. Because there is now one developer, each phase is a **vertical slice**: the backend, AI and UI for that phase are finished together before the next phase starts. This way something demo-able exists after every phase.
 
-| Phase | Deliverable | Done when |
-|-------|-------------|-----------|
-| **P0 Setup** | Monorepo, docker-compose (Postgres, Redis), lint/format, `.env.example`, CI lint+test | `pnpm dev` starts web+api; `uvicorn` starts ai; health checks green |
-| **P1 Core** | Prisma schema + migrations, auth, domains/courses CRUD, seed data; web layout, auth pages, catalog browsing | Can register, log in, and browse the seeded catalog in the browser |
-| **P2 Ingestion** | AI: metadata + transcript (with fallbacks) + chunking + embeddings | pytest on 3 real videos (manual subs, auto subs, no subs → Whisper) |
-| **P3 Generation** | Notes map-reduce, structuring, BullMQ job, SSE progress, admin generate + review UI | A playlist URL → a reviewed, published course |
-| **P4 Learning UX** | Split-view lesson page, timestamp seeking, progress, next-lesson, dashboard | Resume, complete, and next flow works end-to-end |
-| **P5 RAG chat** | `/rag/answer`, grounding gate, citations, chat drawer UI | Answers cite lessons; off-topic questions are refused |
-| **P6 Evaluation** | Eval datasets, RAGAS + CLI runner, admin "run eval", results in docs | Table 3 metrics produced for ≥ 2 demo courses |
-| **P7 Deploy & report** | AWS deploy (EC2 + RDS), S3+CDN, demo data, screenshots, final report updates | Public demo URL + report results section filled |
+| Phase                  | Deliverable                                                                                                 | Done when                                                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **P0 Setup**           | Monorepo, docker-compose (Postgres, Redis), lint/format, `.env.example`, CI lint+test                       | `pnpm dev` starts web+api; `uvicorn` starts ai; health checks green |
+| **P1 Core**            | Prisma schema + migrations, auth, domains/courses CRUD, seed data; web layout, auth pages, catalog browsing | Can register, log in, and browse the seeded catalog in the browser  |
+| **P2 Ingestion**       | AI: metadata + transcript (with fallbacks) + chunking + embeddings                                          | pytest on 3 real videos (manual subs, auto subs, no subs → Whisper) |
+| **P3 Generation**      | Notes map-reduce, structuring, BullMQ job, SSE progress, admin generate + review UI                         | A playlist URL → a reviewed, published course                       |
+| **P4 Learning UX**     | Split-view lesson page, timestamp seeking, progress, next-lesson, dashboard                                 | Resume, complete, and next flow works end-to-end                    |
+| **P5 RAG chat**        | `/rag/answer`, grounding gate, citations, chat drawer UI                                                    | Answers cite lessons; off-topic questions are refused               |
+| **P6 Evaluation**      | Eval datasets, RAGAS + CLI runner, admin "run eval", results in docs                                        | Table 3 metrics produced for ≥ 2 demo courses                       |
+| **P7 Deploy & report** | AWS deploy (EC2 + RDS), S3+CDN, demo data, screenshots, final report updates                                | Public demo URL + report results section filled                     |
 
 **Scope guard for a single developer:** P0–P5 is the must-have demo, because it covers all three expected outcomes in §1. P6 is needed for the report's results section. If time runs short, cut these in order: Whisper fallback (show "no transcript available" instead), S3/CDN (serve YouTube thumbnails directly), and the admin notes editor.
 
 ## 14. Open Questions
+
 1. Can students generate their own courses, or only admins? (Assumed: admin only for MVP.)
 2. Which demo domains/courses will be used for the final evaluation? (Suggest 2–3 short beginner playlists, e.g. DBMS basics, Intro to NLP.)
 3. ~~Deployment target~~ **Decided: AWS.** EC2 runs the Docker stack, RDS runs PostgreSQL, S3 + Cloudflare CDN serve media (issues #48–#50).
