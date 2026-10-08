@@ -445,36 +445,22 @@ UI conventions: shadcn/ui components, dark/light themes, loading skeletons, ever
 
 ---
 
-## 12. Configuration (`.env.example`)
+## 12. Configuration
 
-```
-# api
-DATABASE_URL=postgresql://coursecraft:coursecraft@localhost:5432/coursecraft
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=change-me
-AI_SERVICE_URL=http://localhost:8000
-INTERNAL_API_KEY=change-me
-# ai
-LLM_PROVIDER=openai            # openai | ollama
-OPENAI_API_KEY=
-OPENAI_CHAT_MODEL=gpt-4o-mini
-OPENAI_EMBED_MODEL=text-embedding-3-small
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_CHAT_MODEL=llama3.1:8b
-OLLAMA_EMBED_MODEL=nomic-embed-text
-PINECONE_API_KEY=
-PINECONE_INDEX=coursecraft-te3s
-WHISPER_MODEL=base
-RAG_TOP_K=6
-RAG_MIN_SCORE=0.35
-CLI_MAX=60
-# storage
-AWS_S3_BUCKET=
-AWS_REGION=ap-south-1
-CDN_BASE_URL=
-# web
-NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
-```
+There is a single root `.env`, copied from [`.env.example`](.env.example). That file is the full, commented list of variables, so this section only gives the groups. Every new variable must be added to `.env.example` in the same PR.
+
+| Group                 | Variables                                                                                                                                                                                                                                                |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| General               | `NODE_ENV`                                                                                                                                                                                                                                               |
+| Local infra (compose) | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `REDIS_PORT`, `OLLAMA_PORT`                                                                                                                                                        |
+| API                   | `API_PORT`, `DATABASE_URL`, `TEST_DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`🔒, `JWT_EXPIRES_IN`, `WEB_ORIGIN`, `AI_SERVICE_URL`, `INTERNAL_API_KEY`🔒, `MAX_VIDEOS_PER_COURSE`                                                                            |
+| AI service            | `AI_PORT`, `LLM_PROVIDER`, `OPENAI_API_KEY`🔒, `OPENAI_CHAT_MODEL`, `OPENAI_EMBED_MODEL`, `OLLAMA_BASE_URL`, `OLLAMA_CHAT_MODEL`, `OLLAMA_EMBED_MODEL`, `PINECONE_API_KEY`🔒, `PINECONE_INDEX`, `WHISPER_MODEL`, `RAG_TOP_K`, `RAG_MIN_SCORE`, `CLI_MAX` |
+| Storage               | `AWS_REGION`, `AWS_S3_BUCKET`, `CDN_BASE_URL`, `AWS_PROFILE` (local only; production uses an IAM role)                                                                                                                                                   |
+| Web                   | `NEXT_PUBLIC_API_URL` (anything prefixed `NEXT_PUBLIC_` is visible in the browser, so never put secrets there)                                                                                                                                           |
+
+🔒 = secret. Locally these live in `.env`. In production they live in AWS SSM Parameter Store / GitHub Actions secrets (#50).
+
+Local infrastructure is defined in `docker-compose.yml` and documented in [docs/setup.md](docs/setup.md). It starts PostgreSQL 16 (with an extra `coursecraft_test` database for tests) and Redis 7. Ollama is optional, behind the `ollama` profile.
 
 ---
 
