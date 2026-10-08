@@ -12,6 +12,7 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@coursecraft/shared": "workspace:*",
     "@tanstack/react-query": "^5.104.1",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",

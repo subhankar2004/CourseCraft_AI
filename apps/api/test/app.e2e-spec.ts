@@ -1,5 +1,6 @@
 import { Body, Controller, Get, type INestApplication, Module, Post } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { apiHealthSchema, errorResponseSchema } from '@coursecraft/shared';
 import { IsInt, IsString, Min } from 'class-validator';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
@@ -50,7 +51,7 @@ describe('API (e2e)', () => {
   describe('GET /api/v1/health', () => {
     it('returns ok', async () => {
       const res = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
-      expect(res.body).toMatchObject({ status: 'ok' });
+      expect(apiHealthSchema.parse(res.body).status).toBe('ok');
     });
 
     it('is only served under the /api/v1 prefix', async () => {
@@ -82,6 +83,7 @@ describe('API (e2e)', () => {
   describe('error shape', () => {
     it('returns the standard body for unknown routes', async () => {
       const res = await request(app.getHttpServer()).get('/api/v1/nope').expect(404);
+      expect(errorResponseSchema.safeParse(res.body).success).toBe(true);
       expect(res.body).toMatchObject({
         statusCode: 404,
         error: 'Not Found',

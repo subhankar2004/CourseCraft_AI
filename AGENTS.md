@@ -22,7 +22,7 @@ Since there is no second human reviewer, every change touching more than one pac
 
 Track progress here. Update this section at the end of every working session.
 
-- [ ] P0 Setup — monorepo, docker-compose, lint, env, health checks
+- [x] P0 Setup — monorepo, docker-compose, lint, env, health checks, shared contracts, CI (#1–#6)
 - [ ] P1 Core — Prisma schema, auth, domains/courses CRUD, seed + web layout, auth pages, catalog browsing
 - [ ] P2 Ingestion — metadata, transcripts (+ Whisper fallback), chunking, embeddings
 - [ ] P3 Generation — notes map-reduce, structuring, job + SSE progress, admin UI
@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #6, shared contracts package and CI pipeline (completes P0).
+**Next up:** Issue #7, database schema with Prisma (starts P1).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -44,22 +44,35 @@ Track progress here. Update this section at the end of every working session.
 
 ## Commands
 
-_Planned. Fill these in as each piece is scaffolded, and keep them accurate._
+Run from the repo root. The full guide is [docs/setup.md](docs/setup.md).
 
 ```bash
-cp .env.example .env                 # once; single root .env for all services
-pnpm infra:up                        # postgres + redis (docker compose up -d --wait)
-pnpm infra:down | infra:reset        # stop | stop + wipe volumes
-pnpm install
-pnpm --filter web dev                # http://localhost:3000 (needs the API running for the status dot)
+# One-time setup
+cp .env.example .env                 # single root .env for all services; replace change-me secrets
+pnpm install                         # JS deps; also builds packages/shared (prepare script)
+pnpm ai:sync                         # Python 3.12 venv for services/ai (uv)
+
+# Infrastructure
+pnpm infra:up                        # postgres + redis, waits until healthy
+pnpm infra:down | pnpm infra:reset   # stop | stop and wipe volumes
+
+# Run (separate terminals)
 pnpm --filter api dev                # http://localhost:4000/api/v1/health
-pnpm --filter api test               # vitest: unit (src/**/*.spec.ts) + e2e (test/**/*.e2e-spec.ts)
-pnpm --filter api prisma migrate dev
-pnpm --filter api prisma db seed
-pnpm ai:sync                         # uv sync (Python 3.12 venv in services/ai/.venv)
-pnpm ai:dev                          # http://localhost:8000/health (docs at /docs outside production)
-pnpm lint && pnpm test               # JS/TS
-pnpm ai:lint && pnpm ai:typecheck && pnpm ai:test   # ruff, mypy --strict, pytest (-m network for live tests)
+pnpm --filter web dev                # http://localhost:3000
+pnpm ai:dev                          # http://localhost:8000/health (+ /docs outside production)
+pnpm dev                             # web + api + shared (watch) together; AI service via ai:dev
+
+# Quality (the same checks CI runs: .github/workflows/ci.yml)
+pnpm format:check
+pnpm lint                            # oxlint (api) + eslint (web) + ruff (ai)
+pnpm typecheck                       # tsc (all TS packages) + mypy --strict (ai)
+pnpm test                            # vitest (shared, api) + pytest (ai)
+pnpm build
+
+# Per package
+pnpm --filter api test               # unit (src/**/*.spec.ts) + e2e (test/**/*.e2e-spec.ts)
+pnpm --filter shared build           # rebuild contracts after editing packages/shared
+uv --directory services/ai run pytest -m network   # opt-in live-API tests
 ```
 
 ## Conventions

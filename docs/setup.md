@@ -114,3 +114,13 @@ pnpm ai:lint && pnpm ai:typecheck
 | `Cannot connect to the Docker daemon`       | Start Docker Desktop                                                                                                                        |
 | `coursecraft_test` database missing         | The init script only runs on an empty volume: `pnpm infra:reset && pnpm infra:up`                                                           |
 | Changed `POSTGRES_PASSWORD` but login fails | Postgres keeps the password from first start: `pnpm infra:reset`                                                                            |
+
+## 7. Checks (same as CI)
+
+```bash
+pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
+```
+
+`lint`, `typecheck` and `test` cover both the JS packages and the Python service. CI (`.github/workflows/ci.yml`) runs them on every pull request in two jobs: **Node** (with PostgreSQL and Redis service containers) and **Python** (uv).
+
+`packages/shared` (shared Zod schemas and types) is built automatically by `pnpm install`. If you edit it, run `pnpm --filter shared build`, or keep `pnpm dev` running, which watches it.

@@ -1,16 +1,14 @@
 'use client';
 
+import { apiHealthSchema } from '@coursecraft/shared';
 import { useQuery } from '@tanstack/react-query';
-import { z } from 'zod';
 import { api } from '@/lib/api';
-
-const healthSchema = z.object({ status: z.string() });
 
 /** Small live indicator that the web app can reach the API (exercises the API client + CORS). */
 export function ApiStatus() {
   const { data, isPending, isError } = useQuery({
     queryKey: ['health'],
-    queryFn: () => api('health', { schema: healthSchema }),
+    queryFn: () => api('health', { schema: apiHealthSchema }),
     refetchInterval: 30_000,
   });
 
