@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #2, local infrastructure (Docker Compose + env).
+**Next up:** Issue #3, scaffold the NestJS API.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -47,7 +47,9 @@ Track progress here. Update this section at the end of every working session.
 _Planned. Fill these in as each piece is scaffolded, and keep them accurate._
 
 ```bash
-docker compose up -d                 # postgres + redis
+cp .env.example .env                 # once; single root .env for all services
+pnpm infra:up                        # postgres + redis (docker compose up -d --wait)
+pnpm infra:down | infra:reset        # stop | stop + wipe volumes
 pnpm install
 pnpm --filter web dev                # http://localhost:3000
 pnpm --filter api dev                # http://localhost:4000
@@ -88,7 +90,7 @@ cd services/ai && uv run ruff check . && uv run pytest
 
 **Git**
 
-- Branches: `feat/<area>-<short>`, `fix/...`, `chore/...`. Areas: `web`, `api`, `ai`, `infra`, `docs`.
+- Branches: `<type>/<issue>-<slug>` (e.g. `feat/9-auth-api`, `chore/2-local-infra`). Types: `feat`, `fix`, `chore`, `test`, `docs`.
 - Commits: Conventional Commits (`feat(ai): add whisper fallback`).
 - `main` must always build. Work on a branch per phase or feature, run lint + tests + a self-review (`/code-review`), then merge.
 

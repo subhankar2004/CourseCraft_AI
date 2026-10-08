@@ -64,10 +64,13 @@ nvm use                 # or install Node 24 another way
 npm install -g pnpm@12  # or: brew install pnpm
 
 pnpm install            # installs root tooling and all workspace packages
-pnpm format:check       # verify formatting
+cp .env.example .env    # then replace the change-me secrets
+pnpm infra:up           # PostgreSQL + Redis in Docker
 ```
 
-The commands for running the services will be added as they are built: Docker Compose in #2, the API in #3, the web app in #4, the AI service in #5. Every environment variable will be documented in `.env.example`. Never commit real secrets.
+Full setup guide: [docs/setup.md](docs/setup.md).
+
+The commands for running the services will be added as they are built: the API in #3, the web app in #4, the AI service in #5. Every environment variable is documented in `.env.example`. Never commit real secrets.
 
 ## Contributing workflow
 

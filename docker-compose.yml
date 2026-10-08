@@ -1,0 +1,58 @@
+# Local development infrastructure for CourseCraft AI.
+#   docker compose up -d                     -> postgres + redis
+#   docker compose --profile ollama up -d    -> also starts a local Ollama LLM server
+# Values come from the root .env (copy .env.example); the defaults below are for local dev only.
+# Ports bind to 127.0.0.1 so dev databases are never exposed to the local network.
+name: coursecraft
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-coursecraft}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-coursecraft}
+      POSTGRES_DB: ${POSTGRES_DB:-coursecraft}
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '127.0.0.1:${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:0.40.1
+    profiles: ['ollama']
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${OLLAMA_PORT:-11434}:11434'
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ['CMD', 'ollama', 'list']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres-data:
+  redis-data:
+  ollama-data:
