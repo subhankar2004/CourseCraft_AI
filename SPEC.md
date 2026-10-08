@@ -96,7 +96,7 @@ _Alternative considered:_ LangChain.js inside NestJS. It means one less service,
 
 | Layer      | Technologies                                                                                                                                                                                                          |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frontend   | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, Zod, TanStack Query, react-markdown + remark-gfm + rehype-highlight, react-youtube                                                                         |
+| Frontend   | Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind CSS 4, shadcn/ui (Radix), Zod, TanStack Query, Sonner, react-markdown + remark-gfm + rehype-highlight, react-youtube                        |
 | API server | Node.js, NestJS, TypeScript, Prisma ORM, Passport-JWT, class-validator, BullMQ                                                                                                                                        |
 | AI service | Python 3.11+, FastAPI, Pydantic v2, LangChain (`langchain`, `langchain-openai`, `langchain-ollama`, `langchain-pinecone`), youtube-transcript-api, yt-dlp, openai-whisper / faster-whisper, tiktoken, ragas, textstat |
 | Data       | PostgreSQL 16, Pinecone (serverless index), Redis 7                                                                                                                                                                   |

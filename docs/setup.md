@@ -82,7 +82,17 @@ pnpm --filter api test      # unit + e2e tests (no database needed yet)
 
 The API validates its environment at startup. If a variable is missing or invalid (e.g. a `change-me` secret), it exits immediately and lists every problem.
 
-How to run the web app and AI service will be added here as each one is built (issues #4 and #5).
+## 5. Run the web app
+
+```bash
+pnpm --filter web dev       # http://localhost:3000
+```
+
+- The web app reads `NEXT_PUBLIC_API_URL` from the root `.env`. Because `NEXT_PUBLIC_*` values are **inlined into the browser bundle at build time**, restart `dev` (or rebuild) after changing them, and never put secrets in a `NEXT_PUBLIC_` variable.
+- The footer's status dot shows **API online** when the API from step 4 is running.
+- Theme: light / dark / system, from the toggle in the header (saved in `localStorage`).
+
+How to run the AI service will be added here when it is built (issue #5).
 
 ## Troubleshooting
 
