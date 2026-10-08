@@ -103,7 +103,7 @@ _Alternative considered:_ LangChain.js inside NestJS. It means one less service,
 | LLMs       | `gpt-4o-mini` (default), Ollama (`llama3.1:8b` or similar)                                                                                                                                                            |
 | Embeddings | `text-embedding-3-small` (1536-d). Ollama alternative: `nomic-embed-text` (768-d), which needs a **separate Pinecone index** because the dimension differs                                                            |
 | Infra      | Docker Compose (local), AWS EC2 or Railway (deploy), AWS S3 + Cloudflare CDN                                                                                                                                          |
-| Tooling    | Node 24 LTS, pnpm 12 workspaces, ESLint + Prettier, Ruff + mypy, Jest (API), Vitest/Playwright (web), pytest (AI)                                                                                                     |
+| Tooling    | Node 24 LTS, pnpm 12 workspaces, Prettier, oxlint + Vitest (API, NestJS 12 ESM defaults), ESLint + Vitest/Playwright (web), Ruff + mypy + pytest (AI)                                                                 |
 
 ---
 
@@ -453,7 +453,7 @@ There is a single root `.env`, copied from [`.env.example`](.env.example). That 
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | General               | `NODE_ENV`                                                                                                                                                                                                                                               |
 | Local infra (compose) | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `REDIS_PORT`, `OLLAMA_PORT`                                                                                                                                                        |
-| API                   | `API_PORT`, `DATABASE_URL`, `TEST_DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`🔒, `JWT_EXPIRES_IN`, `WEB_ORIGIN`, `AI_SERVICE_URL`, `INTERNAL_API_KEY`🔒, `MAX_VIDEOS_PER_COURSE`                                                                            |
+| API                   | `API_PORT`, `LOG_LEVEL`, `DATABASE_URL`, `TEST_DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`🔒, `JWT_EXPIRES_IN`, `WEB_ORIGIN`, `AI_SERVICE_URL`, `INTERNAL_API_KEY`🔒, `MAX_VIDEOS_PER_COURSE`                                                               |
 | AI service            | `AI_PORT`, `LLM_PROVIDER`, `OPENAI_API_KEY`🔒, `OPENAI_CHAT_MODEL`, `OPENAI_EMBED_MODEL`, `OLLAMA_BASE_URL`, `OLLAMA_CHAT_MODEL`, `OLLAMA_EMBED_MODEL`, `PINECONE_API_KEY`🔒, `PINECONE_INDEX`, `WHISPER_MODEL`, `RAG_TOP_K`, `RAG_MIN_SCORE`, `CLI_MAX` |
 | Storage               | `AWS_REGION`, `AWS_S3_BUCKET`, `CDN_BASE_URL`, `AWS_PROFILE` (local only; production uses an IAM role)                                                                                                                                                   |
 | Web                   | `NEXT_PUBLIC_API_URL` (anything prefixed `NEXT_PUBLIC_` is visible in the browser, so never put secrets there)                                                                                                                                           |

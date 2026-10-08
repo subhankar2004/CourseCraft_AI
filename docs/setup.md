@@ -73,7 +73,16 @@ nvm use
 pnpm install
 ```
 
-How to run the API, web app and AI service will be added here as each one is built (issues #3, #4 and #5).
+## 4. Run the API
+
+```bash
+pnpm --filter api dev       # http://localhost:4000/api/v1/health
+pnpm --filter api test      # unit + e2e tests (no database needed yet)
+```
+
+The API validates its environment at startup. If a variable is missing or invalid (e.g. a `change-me` secret), it exits immediately and lists every problem.
+
+How to run the web app and AI service will be added here as each one is built (issues #4 and #5).
 
 ## Troubleshooting
 

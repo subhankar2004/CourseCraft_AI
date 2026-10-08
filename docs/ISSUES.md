@@ -45,7 +45,7 @@ Meta: phase=P0 | area=api | type=chore | depends=1,2
 - [ ] Global `ValidationPipe` (whitelist, transform), global exception filter with a consistent error shape
 - [ ] Structured JSON logging (pino) with a request-id middleware
 - [ ] `GET /api/v1/health` (with DB/Redis checks stubbed for now), CORS configured for the web origin
-- [ ] Jest set up with one e2e test for `/health`
+- [ ] Test runner set up with one e2e test for `/health` (Vitest, the NestJS 12 default)
 
 **Done when:** `pnpm --filter api dev` serves `/api/v1/health` and `pnpm --filter api test` passes.
 
