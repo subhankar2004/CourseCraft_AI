@@ -94,16 +94,16 @@ _Alternative considered:_ LangChain.js inside NestJS. It means one less service,
 
 ## 4. Tech Stack
 
-| Layer      | Technologies                                                                                                                                                                                                          |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Frontend   | Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind CSS 4, shadcn/ui (Radix), Zod, TanStack Query, Sonner, react-markdown + remark-gfm + rehype-highlight, react-youtube                        |
-| API server | Node.js, NestJS, TypeScript, Prisma ORM, Passport-JWT, class-validator, BullMQ                                                                                                                                        |
-| AI service | Python 3.11+, FastAPI, Pydantic v2, LangChain (`langchain`, `langchain-openai`, `langchain-ollama`, `langchain-pinecone`), youtube-transcript-api, yt-dlp, openai-whisper / faster-whisper, tiktoken, ragas, textstat |
-| Data       | PostgreSQL 16, Pinecone (serverless index), Redis 7                                                                                                                                                                   |
-| LLMs       | `gpt-4o-mini` (default), Ollama (`llama3.1:8b` or similar)                                                                                                                                                            |
-| Embeddings | `text-embedding-3-small` (1536-d). Ollama alternative: `nomic-embed-text` (768-d), which needs a **separate Pinecone index** because the dimension differs                                                            |
-| Infra      | Docker Compose (local), AWS EC2 or Railway (deploy), AWS S3 + Cloudflare CDN                                                                                                                                          |
-| Tooling    | Node 24 LTS, pnpm 12 workspaces, Prettier, oxlint + Vitest (API, NestJS 12 ESM defaults), ESLint + Vitest/Playwright (web), Ruff + mypy + pytest (AI)                                                                 |
+| Layer      | Technologies                                                                                                                                                                                                                                           |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Frontend   | Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind CSS 4, shadcn/ui (Radix), Zod, TanStack Query, Sonner, react-markdown + remark-gfm + rehype-highlight, react-youtube                                                         |
+| API server | Node.js, NestJS, TypeScript, Prisma ORM, Passport-JWT, class-validator, BullMQ                                                                                                                                                                         |
+| AI service | Python 3.12 (uv), FastAPI, Uvicorn, Pydantic v2 + pydantic-settings, LangChain (`langchain`, `langchain-openai`, `langchain-ollama`, `langchain-pinecone`), youtube-transcript-api, yt-dlp, openai-whisper / faster-whisper, tiktoken, ragas, textstat |
+| Data       | PostgreSQL 16, Pinecone (serverless index), Redis 7                                                                                                                                                                                                    |
+| LLMs       | `gpt-4o-mini` (default), Ollama (`llama3.1:8b` or similar)                                                                                                                                                                                             |
+| Embeddings | `text-embedding-3-small` (1536-d). Ollama alternative: `nomic-embed-text` (768-d), which needs a **separate Pinecone index** because the dimension differs                                                                                             |
+| Infra      | Docker Compose (local), AWS EC2 or Railway (deploy), AWS S3 + Cloudflare CDN                                                                                                                                                                           |
+| Tooling    | Node 24 LTS, pnpm 12 workspaces, Prettier, oxlint + Vitest (API, NestJS 12 ESM defaults), ESLint + Vitest/Playwright (web), Ruff + mypy + pytest (AI)                                                                                                  |
 
 ---
 

@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #5, scaffold the FastAPI AI service.
+**Next up:** Issue #6, shared contracts package and CI pipeline (completes P0).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -56,9 +56,10 @@ pnpm --filter api dev                # http://localhost:4000/api/v1/health
 pnpm --filter api test               # vitest: unit (src/**/*.spec.ts) + e2e (test/**/*.e2e-spec.ts)
 pnpm --filter api prisma migrate dev
 pnpm --filter api prisma db seed
-cd services/ai && uv sync && uv run uvicorn app.main:app --reload --port 8000
+pnpm ai:sync                         # uv sync (Python 3.12 venv in services/ai/.venv)
+pnpm ai:dev                          # http://localhost:8000/health (docs at /docs outside production)
 pnpm lint && pnpm test               # JS/TS
-cd services/ai && uv run ruff check . && uv run pytest
+pnpm ai:lint && pnpm ai:typecheck && pnpm ai:test   # ruff, mypy --strict, pytest (-m network for live tests)
 ```
 
 ## Conventions
@@ -66,7 +67,8 @@ cd services/ai && uv run ruff check . && uv run pytest
 **General**
 
 - TypeScript `strict` everywhere. No `any` without a comment explaining why.
-- Python: type hints everywhere, Pydantic v2 models for all I/O, formatted with `ruff format`.
+- Python: type hints everywhere (`mypy --strict`), Pydantic v2 models for all I/O, formatted with `ruff format`. JSON contracts are camelCase (`CamelModel` in `app/schemas.py`) to match the TypeScript side.
+- AI service routes: only `/health` is public. Every other router must be included on the `internal` router in `create_app()`, so it requires `X-Internal-Key`. A test checks this through the OpenAPI schema.
 - Secrets come only from env vars. Never commit `.env`. Add every new variable to `.env.example` and SPEC §12.
 - **Next.js 16 is newer than most training data:** before writing web code, read [apps/web/AGENTS.md](apps/web/AGENTS.md) and the bundled docs in `apps/web/node_modules/next/dist/docs/` (e.g. error boundaries take `retry`, not `reset`).
 - Keep the code idiomatic for each framework: NestJS modules/controllers/services/DTOs (ESM: relative imports end in `.js`); Next.js App Router with server components by default; FastAPI routers per feature folder.
