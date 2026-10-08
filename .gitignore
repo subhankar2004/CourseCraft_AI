@@ -1,1 +1,63 @@
+# OS / editors
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Environment & secrets (never commit real values; see .env.example)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Node
+node_modules/
+.pnpm-store/
+npm-debug.log*
+pnpm-debug.log*
+*.tsbuildinfo
+coverage/
+dist/
+build/
+.turbo/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# AI pipeline artifacts (model weights, downloaded media, large transcripts)
+*.pt
+*.bin
+*.gguf
+*.safetensors
+*.mp3
+*.m4a
+*.wav
+*.webm
+*.mp4
+services/ai/tmp/
+services/ai/.cache/
+
+# Playwright
+playwright-report/
+test-results/
+
+# Logs
+logs/
+*.log

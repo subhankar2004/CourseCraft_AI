@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+LICENSE
+docs/report/
+services/ai/
+**/node_modules/
+**/.next/
+**/dist/
+**/coverage/

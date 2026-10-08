@@ -4,9 +4,10 @@
 Usage:
   python3 scripts/create_issues.py --dry-run     # parse and print, no GitHub calls
   python3 scripts/create_issues.py               # create on GitHub (needs `gh auth login`)
+  python3 scripts/create_issues.py --update      # also re-sync bodies/labels of existing issues
 
 Idempotent: existing labels/milestones are reused and issues whose title already
-exists are skipped. Aborts if a new issue's number doesn't match its roadmap number,
+exists are skipped (or updated in place with --update). Aborts if a new issue's number doesn't match its roadmap number,
 because the "Depends on #N" references rely on that.
 """
 import argparse
@@ -69,6 +70,7 @@ def parse() -> list[dict]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--update", action="store_true", help="re-sync body and labels of existing issues")
     args = ap.parse_args()
     issues = parse()
     labels = sorted({l for x in issues for l in x["labels"]})
@@ -89,7 +91,15 @@ def main() -> None:
         gh("issue", "list", "-R", REPO, "--state", "all", "--limit", "500", "--json", "title,number"))}
     for x in issues:
         if x["title"] in existing:
-            print(f"skip #{existing[x['title']]} {x['title']} (exists)")
+            num = existing[x["title"]]
+            if args.update:
+                cmd = ["issue", "edit", str(num), "-R", REPO, "--body", x["body"]]
+                for l in x["labels"]:
+                    cmd += ["--add-label", l]
+                gh(*cmd)
+                print(f"updated #{num} {x['title']}")
+            else:
+                print(f"skip #{num} {x['title']} (exists)")
             continue
         cmd = ["issue", "create", "-R", REPO, "--title", x["title"], "--body", x["body"],
                "--milestone", MILESTONES[x["phase"]][0]]

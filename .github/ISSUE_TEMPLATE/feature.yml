@@ -1,0 +1,37 @@
+name: Feature / task
+description: A unit of work that will be delivered in a single pull request.
+labels: []
+body:
+  - type: input
+    id: phase
+    attributes:
+      label: Phase
+      description: Roadmap phase (P0–P7), see SPEC §13.
+      placeholder: P3
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What this delivers and why.
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: Concrete, verifiable acceptance criteria.
+    validations:
+      required: true
+  - type: input
+    id: depends
+    attributes:
+      label: Depends on
+      placeholder: '#7, #9'
