@@ -70,7 +70,7 @@ pnpm infra:up           # PostgreSQL + Redis in Docker
 
 Full setup guide: [docs/setup.md](docs/setup.md).
 
-The commands for running the services will be added as they are built: the API in #3, the web app in #4, the AI service in #5. Every environment variable is documented in `.env.example`. Never commit real secrets.
+Run the API with `pnpm --filter api dev` (health check at `http://localhost:4000/api/v1/health`). The commands for the web app (#4) and the AI service (#5) will be added as they are built. Every environment variable is documented in `.env.example`. Never commit real secrets.
 
 ## Contributing workflow
 

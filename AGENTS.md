@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #3, scaffold the NestJS API.
+**Next up:** Issue #4, scaffold the Next.js web app.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -52,7 +52,8 @@ pnpm infra:up                        # postgres + redis (docker compose up -d --
 pnpm infra:down | infra:reset        # stop | stop + wipe volumes
 pnpm install
 pnpm --filter web dev                # http://localhost:3000
-pnpm --filter api dev                # http://localhost:4000
+pnpm --filter api dev                # http://localhost:4000/api/v1/health
+pnpm --filter api test               # vitest: unit (src/**/*.spec.ts) + e2e (test/**/*.e2e-spec.ts)
 pnpm --filter api prisma migrate dev
 pnpm --filter api prisma db seed
 cd services/ai && uv sync && uv run uvicorn app.main:app --reload --port 8000
@@ -67,7 +68,7 @@ cd services/ai && uv run ruff check . && uv run pytest
 - TypeScript `strict` everywhere. No `any` without a comment explaining why.
 - Python: type hints everywhere, Pydantic v2 models for all I/O, formatted with `ruff format`.
 - Secrets come only from env vars. Never commit `.env`. Add every new variable to `.env.example` and SPEC §12.
-- Keep the code idiomatic for each framework: NestJS modules/controllers/services/DTOs; Next.js App Router with server components by default; FastAPI routers per feature folder.
+- Keep the code idiomatic for each framework: NestJS modules/controllers/services/DTOs (ESM: relative imports end in `.js`); Next.js App Router with server components by default; FastAPI routers per feature folder.
 
 **API contracts**
 
