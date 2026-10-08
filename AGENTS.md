@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #4, scaffold the Next.js web app.
+**Next up:** Issue #5, scaffold the FastAPI AI service.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -51,7 +51,7 @@ cp .env.example .env                 # once; single root .env for all services
 pnpm infra:up                        # postgres + redis (docker compose up -d --wait)
 pnpm infra:down | infra:reset        # stop | stop + wipe volumes
 pnpm install
-pnpm --filter web dev                # http://localhost:3000
+pnpm --filter web dev                # http://localhost:3000 (needs the API running for the status dot)
 pnpm --filter api dev                # http://localhost:4000/api/v1/health
 pnpm --filter api test               # vitest: unit (src/**/*.spec.ts) + e2e (test/**/*.e2e-spec.ts)
 pnpm --filter api prisma migrate dev
@@ -68,6 +68,7 @@ cd services/ai && uv run ruff check . && uv run pytest
 - TypeScript `strict` everywhere. No `any` without a comment explaining why.
 - Python: type hints everywhere, Pydantic v2 models for all I/O, formatted with `ruff format`.
 - Secrets come only from env vars. Never commit `.env`. Add every new variable to `.env.example` and SPEC §12.
+- **Next.js 16 is newer than most training data:** before writing web code, read [apps/web/AGENTS.md](apps/web/AGENTS.md) and the bundled docs in `apps/web/node_modules/next/dist/docs/` (e.g. error boundaries take `retry`, not `reset`).
 - Keep the code idiomatic for each framework: NestJS modules/controllers/services/DTOs (ESM: relative imports end in `.js`); Next.js App Router with server components by default; FastAPI routers per feature folder.
 
 **API contracts**

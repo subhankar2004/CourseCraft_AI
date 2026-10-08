@@ -10,12 +10,13 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ## Summary
 
-| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                  |
-| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | -------------------------------------------------------- |
-| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report |
-| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions             |
-| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env   |
-| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging |
+| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                   |
+| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | --------------------------------------------------------- |
+| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report  |
+| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions              |
+| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env    |
+| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging  |
+| 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages |
 
 ---
 
@@ -121,17 +122,53 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 4 — Next.js web shell (Issue #4, PR #55, 2026-10-09)
+
+**What:** `apps/web`, built on **Next.js 16** [R50] (App Router, Cache Components, Turbopack), **React 19** [R61], TypeScript strict [R49], **Tailwind CSS 4** [R51] and **shadcn/ui** [R52] on **Radix UI** primitives [R63]:
+
+| Concern       | Method                                                                                                                                                                                                                          | Ref                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| Design system | shadcn/ui components (Button, Card, Input, Dialog, Sheet, Skeleton, Dropdown menu), toasts with Sonner [R65], Lucide icons [R64], CSS-variable design tokens                                                                    | [R52][R63][R64][R65] |
+| Theming       | Light / dark / system. An **inline script in `<head>` applies the saved theme before first paint**, so there is no flash. React stays in sync through `useSyncExternalStore`. System mode follows the OS `prefers-color-scheme` | [R66][R67]           |
+| Layout        | Root layout with sticky header (navigation, theme toggle, sign-in placeholder), footer, a `not-found` page and two error boundaries (`error`, `global-error`)                                                                   | [R50]                |
+| Data access   | Typed `api()` client: sends cookies, maps the API's standard error body to `ApiError`, optional Zod response validation [R44]. **TanStack Query** [R62] handles server state (no retries on 4xx)                                | [R44][R62]           |
+| Configuration | `NEXT_PUBLIC_API_URL` comes from the shared root `.env` and is inlined at build time; secrets can never be exposed this way                                                                                                     | [R36][R50]           |
+
+**Problems and resolutions:**
+
+- **Next.js 16 differs from older versions.** The generated `AGENTS.md` warns about breaking changes, so we read the docs bundled in `node_modules/next/dist/docs` before writing code. Example: error boundaries now receive `retry()` instead of `reset()`.
+- **`next-themes` dropped (D9).** It renders a `<script>` from a Client Component, which React 19 warns about in the console, and the issue requires a clean console. We followed the official Next.js "preventing flash before hydration" pattern instead, which also removes a dependency.
+- **A Server Component can't import a constant from a `'use client'` module** (it would receive a client reference). The theme script and constants were moved to a module without the directive (`theme-script.ts`).
+- **Root `.env` not reaching the browser (D10).** Next.js only reads `.env` from the app folder. A first attempt with `@next/env`'s `loadEnvConfig` failed silently because it caches the first directory it loads. We found this with a headless-browser test: the status showed "API offline" and no request was made. Fixed by reading the root file with Node's built-in `util.parseEnv` and passing `NEXT_PUBLIC_*` values through `next.config` `env`.
+- **Lucide removed brand icons** (no `YoutubeIcon`); a generic `MonitorPlayIcon` is used instead.
+- shadcn now uses the `cn` package (from the shadcn-ui organisation) in place of `clsx` + `tailwind-merge`. We checked who publishes it before accepting the dependency.
+
+**Verification:**
+
+- Root `lint`, `typecheck`, `test` and `build` all pass. Both routes prerender as static pages.
+- **Headless Chrome smoke test** (Playwright [R57], run outside the repo) with the API and web dev servers running:
+  - OS light → light theme; OS dark → dark theme applied before hydration.
+  - Choosing Dark in the toggle persists across a reload, and System restores the OS theme.
+  - The footer shows "API online", which proves the client, CORS and env wiring work end to end.
+  - `/does-not-exist` returns 404 with the custom page.
+  - At 360 px width there is no horizontal overflow.
+  - **There were no console errors or warnings**, apart from the browser's own expected log line for the 404 resource.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
 
-| ID  | Date       | Decision                                                                                            | Rationale                                                                                                                                                                                                 |
-| --- | ---------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1  | 2026-10-08 | AI pipeline runs as a separate **Python FastAPI** service                                           | The transcript tools, Whisper [R6] and RAGAS [R9] are Python-native. Figure 2 of the report already shows the AI pipeline as its own block. NestJS stays the only public API and the only database writer |
-| D2  | 2026-10-08 | **One Pinecone namespace per course**                                                               | Retrieval can only return chunks from the course being studied. This is the "course-aware" property and limits hallucination [R1][R7]                                                                     |
-| D3  | 2026-10-08 | Chunks keep **video timestamps** (`startSec`, `endSec`)                                             | Answers and notes can cite and seek to the exact moment in the video, which enables the split-view sync                                                                                                   |
-| D4  | 2026-10-08 | RAG **grounding gate**: refuse when the best retrieval score < `RAG_MIN_SCORE`                      | If retrieval finds nothing relevant, the LLM is never called, so it can't hallucinate an answer [R7][R8]                                                                                                  |
-| D5  | 2026-10-08 | **Cognitive Load Index** = weighted Flesch-Kincaid grade, sentence length and concept density       | Turns the report's "cognitive load" metric into something measurable with established readability formulas [R11][R12], motivated by cognitive load theory [R10]                                           |
-| D6  | 2026-10-09 | API uses NestJS 12 defaults: **ESM + Vitest + oxlint** (replacing Jest/ESLint in the original SPEC) | Follow the framework's supported defaults instead of retrofitting older tooling                                                                                                                           |
-| D7  | 2026-10-09 | **Fail-fast, schema-validated configuration**                                                       | A misconfiguration is found at startup, not at the first request. Placeholder secrets can't reach production [R36][R38]                                                                                   |
-| D8  | 2026-10-09 | Dev infrastructure ports bound to **localhost only**                                                | Defence in depth: dev databases use weak default credentials [R38]                                                                                                                                        |
+| ID  | Date       | Decision                                                                                                                 | Rationale                                                                                                                                                                                                 |
+| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | 2026-10-08 | AI pipeline runs as a separate **Python FastAPI** service                                                                | The transcript tools, Whisper [R6] and RAGAS [R9] are Python-native. Figure 2 of the report already shows the AI pipeline as its own block. NestJS stays the only public API and the only database writer |
+| D2  | 2026-10-08 | **One Pinecone namespace per course**                                                                                    | Retrieval can only return chunks from the course being studied. This is the "course-aware" property and limits hallucination [R1][R7]                                                                     |
+| D3  | 2026-10-08 | Chunks keep **video timestamps** (`startSec`, `endSec`)                                                                  | Answers and notes can cite and seek to the exact moment in the video, which enables the split-view sync                                                                                                   |
+| D4  | 2026-10-08 | RAG **grounding gate**: refuse when the best retrieval score < `RAG_MIN_SCORE`                                           | If retrieval finds nothing relevant, the LLM is never called, so it can't hallucinate an answer [R7][R8]                                                                                                  |
+| D5  | 2026-10-08 | **Cognitive Load Index** = weighted Flesch-Kincaid grade, sentence length and concept density                            | Turns the report's "cognitive load" metric into something measurable with established readability formulas [R11][R12], motivated by cognitive load theory [R10]                                           |
+| D6  | 2026-10-09 | API uses NestJS 12 defaults: **ESM + Vitest + oxlint** (replacing Jest/ESLint in the original SPEC)                      | Follow the framework's supported defaults instead of retrofitting older tooling                                                                                                                           |
+| D7  | 2026-10-09 | **Fail-fast, schema-validated configuration**                                                                            | A misconfiguration is found at startup, not at the first request. Placeholder secrets can't reach production [R36][R38]                                                                                   |
+| D8  | 2026-10-09 | Dev infrastructure ports bound to **localhost only**                                                                     | Defence in depth: dev databases use weak default credentials [R38]                                                                                                                                        |
+| D9  | 2026-10-09 | Own ~60-line theme store + inline pre-paint script instead of `next-themes`                                              | Avoids React 19's console warning for scripts rendered by Client Components. Follows the official Next.js 16 guide. No flash, and one less dependency [R50]                                               |
+| D10 | 2026-10-09 | Web reads the shared root `.env` via `node:util` `parseEnv` and exposes only `NEXT_PUBLIC_*` through `next.config` `env` | Keeps one `.env` for the whole monorepo [R36]. `@next/env` caches the first directory it loads, so it can't be used for this. Real environment variables still take precedence                            |

@@ -55,8 +55,8 @@ Meta: phase=P0 | area=web | type=chore | depends=1
 **Goal:** A frontend shell with the design system ready.
 **Tasks**
 
-- [ ] Next.js App Router, TypeScript strict, Tailwind CSS, shadcn/ui initialized (Button, Card, Input, Dialog, Sheet, Skeleton, Toast)
-- [ ] Dark/light theme toggle (next-themes), base typography, app font
+- [ ] Next.js App Router, TypeScript strict, Tailwind CSS, shadcn/ui initialized (Button, Card, Input, Dialog, Sheet, Skeleton, Sonner toasts, Dropdown menu)
+- [ ] Dark/light/system theme toggle (inline pre-paint script per the Next.js 16 guide), base typography, app font
 - [ ] Root layout with header/footer placeholders, 404 and error pages
 - [ ] API client wrapper (`lib/api.ts`) using `NEXT_PUBLIC_API_URL` and credentials `include`; TanStack Query provider
 

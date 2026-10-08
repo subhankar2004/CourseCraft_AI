@@ -1,3 +1,8 @@
 packages:
   - apps/*
   - packages/*
+
+# Dependencies allowed (true) or denied (false) to run install scripts.
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
