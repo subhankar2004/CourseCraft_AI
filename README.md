@@ -81,6 +81,8 @@ One issue → one branch → one pull request:
 3. Open a PR with `Closes #<issue>` and fill in the PR template.
 4. Merge only after review and green CI.
 
+Every PR also updates the research record: the development log [docs/PROGRESS.md](docs/PROGRESS.md) and the IEEE-style citations [docs/REFERENCES.md](docs/REFERENCES.md) / [docs/references.bib](docs/references.bib).
+
 See [AGENTS.md](AGENTS.md) for coding conventions, which apply to both human contributors and AI coding agents.
 
 ## Team
