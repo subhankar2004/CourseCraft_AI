@@ -56,7 +56,7 @@ scripts/           Repo automation (e.g. GitHub issue generator)
 
 ## Getting started
 
-Prerequisites: **Node.js 24 LTS** (see `.nvmrc`), **pnpm 12**, **Python 3.11+** with [uv](https://docs.astral.sh/uv/), and **Docker**.
+Prerequisites: **Node.js 24 LTS** (see `.nvmrc`), **pnpm 12**, **Python 3.12** (installed automatically by [uv](https://docs.astral.sh/uv/)), and **Docker**.
 
 ```bash
 # Node + pnpm (pnpm version is pinned in package.json "packageManager")
@@ -70,7 +70,7 @@ pnpm infra:up           # PostgreSQL + Redis in Docker
 
 Full setup guide: [docs/setup.md](docs/setup.md).
 
-Run the API with `pnpm --filter api dev` (health check at `http://localhost:4000/api/v1/health`). Run the web app with `pnpm --filter web dev` (http://localhost:3000). The AI service command (#5) will be added when it is built. Every environment variable is documented in `.env.example`. Never commit real secrets.
+Run the API with `pnpm --filter api dev` (health check at `http://localhost:4000/api/v1/health`). Run the web app with `pnpm --filter web dev` (http://localhost:3000). Run the AI service with `pnpm ai:dev` (http://localhost:8000/health). Every environment variable is documented in `.env.example`. Never commit real secrets.
 
 ## Contributing workflow
 

@@ -30,7 +30,7 @@ Meta: phase=P0 | area=infra | type=chore | depends=1
 
 - [ ] `docker-compose.yml`: PostgreSQL 16 and Redis 7 with named volumes and healthchecks; optional `ollama` service behind a compose profile
 - [ ] `.env.example` with every variable from SPEC §12, grouped and commented
-- [ ] `docs/setup.md`: prerequisites (Node, pnpm, Python 3.11+, uv, Docker, ffmpeg)
+- [ ] `docs/setup.md`: prerequisites (Node, pnpm, Python 3.12, uv, Docker, ffmpeg)
 
 **Done when:** `docker compose up -d` gives two healthy containers, and `docker compose --profile ollama up` also starts Ollama.
 
@@ -68,7 +68,7 @@ Meta: phase=P0 | area=ai | type=chore | depends=1
 **Goal:** A Python service skeleton matching SPEC §5's folder layout.
 **Tasks**
 
-- [ ] `uv` project, Python 3.11+, FastAPI and uvicorn, `pydantic-settings` config loaded from env
+- [ ] `uv` project, Python 3.12, FastAPI and uvicorn, `pydantic-settings` config loaded from env
 - [ ] Package layout: `ingestion/`, `processing/`, `generation/prompts/`, `rag/`, `evaluation/`, `schemas.py`
 - [ ] `X-Internal-Key` dependency applied to every route except `/health`
 - [ ] `GET /health` reports the configured LLM and embedding providers

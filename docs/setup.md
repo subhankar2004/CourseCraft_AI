@@ -2,15 +2,15 @@
 
 ## Prerequisites
 
-| Tool                                                              | Version | Why                                | Install (macOS)                           |
-| ----------------------------------------------------------------- | ------- | ---------------------------------- | ----------------------------------------- |
-| [Node.js](https://nodejs.org)                                     | 24 LTS  | web + api (version in `.nvmrc`)    | `brew install nvm` then `nvm install`     |
-| [pnpm](https://pnpm.io)                                           | 12      | JS package manager (monorepo)      | `npm i -g pnpm@12` or `brew install pnpm` |
-| [Python](https://www.python.org)                                  | 3.11+   | AI service                         | `brew install python@3.12`                |
-| [uv](https://docs.astral.sh/uv/)                                  | latest  | Python env + dependency manager    | `brew install uv`                         |
-| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | latest  | PostgreSQL, Redis (and Ollama)     | `brew install --cask docker`              |
-| [ffmpeg](https://ffmpeg.org)                                      | any     | audio extraction for Whisper (#19) | `brew install ffmpeg`                     |
-| [Ollama](https://ollama.com) _(optional)_                         | latest  | run LLMs locally instead of OpenAI | `brew install ollama` (see note below)    |
+| Tool                                                              | Version | Why                                                  | Install (macOS)                            |
+| ----------------------------------------------------------------- | ------- | ---------------------------------------------------- | ------------------------------------------ |
+| [Node.js](https://nodejs.org)                                     | 24 LTS  | web + api (version in `.nvmrc`)                      | `brew install nvm` then `nvm install`      |
+| [pnpm](https://pnpm.io)                                           | 12      | JS package manager (monorepo)                        | `npm i -g pnpm@12` or `brew install pnpm`  |
+| [Python](https://www.python.org)                                  | 3.12    | AI service (pinned in `services/ai/.python-version`) | installed by uv (`uv python install 3.12`) |
+| [uv](https://docs.astral.sh/uv/)                                  | latest  | Python env + dependency manager                      | `brew install uv`                          |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | latest  | PostgreSQL, Redis (and Ollama)                       | `brew install --cask docker`               |
+| [ffmpeg](https://ffmpeg.org)                                      | any     | audio extraction for Whisper (#19)                   | `brew install ffmpeg`                      |
+| [Ollama](https://ollama.com) _(optional)_                         | latest  | run LLMs locally instead of OpenAI                   | `brew install ollama` (see note below)     |
 
 On Linux, use your distro's packages or the official installers. On Windows, use WSL2.
 
@@ -92,7 +92,19 @@ pnpm --filter web dev       # http://localhost:3000
 - The footer's status dot shows **API online** when the API from step 4 is running.
 - Theme: light / dark / system, from the toggle in the header (saved in `localStorage`).
 
-How to run the AI service will be added here when it is built (issue #5).
+## 6. Run the AI service
+
+```bash
+pnpm ai:sync        # creates services/ai/.venv with Python 3.12 (uv downloads it if needed)
+pnpm ai:dev         # http://localhost:8000/health · interactive docs at http://localhost:8000/docs
+pnpm ai:test        # pytest (live-network tests are opt-in: uv --directory services/ai run pytest -m network)
+pnpm ai:lint && pnpm ai:typecheck
+```
+
+- Configuration comes from the same root `.env`. At startup the service validates it and refuses to boot with a list of problems, e.g. a `change-me` `INTERNAL_API_KEY`.
+- `/health` is public and shows which LLM and vector-store providers are configured (it never shows keys). `configured: false` is expected until `OPENAI_API_KEY` and `PINECONE_API_KEY` are set (#16, #21).
+- Every other endpoint requires the `X-Internal-Key` header. Only the NestJS API calls this service; browsers never do.
+- `/docs` is disabled when `NODE_ENV=production`.
 
 ## Troubleshooting
 

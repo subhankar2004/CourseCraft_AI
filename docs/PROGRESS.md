@@ -10,13 +10,14 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ## Summary
 
-| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                   |
-| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | --------------------------------------------------------- |
-| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report  |
-| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions              |
-| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env    |
-| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging  |
-| 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages |
+| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                        |
+| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | -------------------------------------------------------------- |
+| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report       |
+| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions                   |
+| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env         |
+| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging       |
+| 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages      |
+| 5   | 2026-10-09 | [#5](https://github.com/subhankar2004/CourseCraft_AI/issues/5) / [#56](https://github.com/subhankar2004/CourseCraft_AI/pull/56) | P0    | FastAPI AI service skeleton: config, internal-key auth, health |
 
 ---
 
@@ -156,6 +157,42 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 5 — FastAPI AI service skeleton (Issue #5, PR #56, 2026-10-09)
+
+**What:** `services/ai`, a **Python 3.12** [R75] service on **FastAPI** [R25] / Starlette [R73] served by **Uvicorn** (ASGI) [R72], managed with **uv** [R68]. The folders follow SPEC §5 (`ingestion/`, `processing/`, `generation/prompts/`, `rag/`, `evaluation/`).
+
+| Concern                 | Method                                                                                                                                                                                      | Ref         |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Configuration           | **pydantic-settings** [R28] model reading the shared root `.env`. Fail-fast validation with a readable list of problems. Secrets typed as `SecretStr`, so they are masked in logs and reprs | [R28][R36]  |
+| Service-to-service auth | Every route except `/health` requires an `X-Internal-Key` header, checked with a **constant-time comparison** (`secrets.compare_digest`) to prevent timing attacks                          | [R76][R38]  |
+| Contracts               | Pydantic models with **camelCase** JSON aliases to match the TypeScript side. Errors use **the same body as the NestJS API** (`statusCode, error, message, path, timestamp, requestId`)     | [R28]       |
+| Observability           | `x-request-id` is propagated from the API (or generated and sanitised) and attached to every **JSON log line** with method, path, status and duration                                       | [R37]       |
+| Health                  | Public `GET /health` reports the selected LLM/embedding provider and vector store and whether each is configured, **without network calls or secrets**                                      |             |
+| API docs                | OpenAPI 3.1 [R74] / Swagger UI at `/docs`, **disabled in production**                                                                                                                       | [R74]       |
+| Quality gates           | **Ruff** [R69] (lint + format, including Bandit-derived security rules), **mypy `--strict`** [R70][R77], **pytest** [R71] with a `network` marker so live-API tests are opt-in              | [R69]–[R71] |
+
+**Problems and resolutions:**
+
+- **Python version (D11).** The only local interpreters were 3.14 (Homebrew) and 3.9 (system). The AI libraries planned for later issues (CTranslate2/faster-whisper, RAGAS, LangChain, Pinecone SDK) publish wheels for established versions first, so the service pins **3.12** through uv. uv downloads and manages that interpreter, leaving the system Python untouched.
+- `uv init` generated a packaged `src/` layout. It was replaced with an application layout (`[tool.uv] package = false`) to match SPEC and `uvicorn app.main:app`. The generated `authors` entry (personal email) was removed so it isn't published.
+- **FastAPI 0.143 changed router internals.** Included routers are now `_IncludedRouter` objects, which broke a test that walked `app.routes`. It was rewritten against the **public OpenAPI schema**, where every protected operation declares the `X-Internal-Key` security scheme.
+- **Starlette 1.7 deprecates `httpx`** for its test client. Switched to `httpx2`.
+- The 500 handler runs outside the request middleware, after the context variable has been reset, so the request ID is also stored on `request.state`.
+
+**Verification:**
+
+- **24 pytest tests**, with 1 network test correctly deselected:
+  - configuration defaults, coercion and fail-fast cases; secrets masked;
+  - `/health` public, with no secrets;
+  - internal-key reject/accept, and a check through OpenAPI that every non-public route is protected;
+  - request-ID generation, propagation and sanitising;
+  - 404, 422 and 500 error shapes (500 hides details);
+  - docs disabled in production.
+- `ruff check`, `ruff format --check` and `mypy --strict` are clean.
+- `uvicorn app.main:app` with the real `.env`: `/health` → 200 with providers (`configured: false` until the keys are set) and an `x-request-id` header; `/nope` → 404 in the shared error shape; one JSON log line per request. With invalid env (`INTERNAL_API_KEY=change-me`, `LLM_PROVIDER=gemini`) the service exits and lists both problems.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -172,3 +209,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D8  | 2026-10-09 | Dev infrastructure ports bound to **localhost only**                                                                     | Defence in depth: dev databases use weak default credentials [R38]                                                                                                                                        |
 | D9  | 2026-10-09 | Own ~60-line theme store + inline pre-paint script instead of `next-themes`                                              | Avoids React 19's console warning for scripts rendered by Client Components. Follows the official Next.js 16 guide. No flash, and one less dependency [R50]                                               |
 | D10 | 2026-10-09 | Web reads the shared root `.env` via `node:util` `parseEnv` and exposes only `NEXT_PUBLIC_*` through `next.config` `env` | Keeps one `.env` for the whole monorepo [R36]. `@next/env` caches the first directory it loads, so it can't be used for this. Real environment variables still take precedence                            |
+| D11 | 2026-10-09 | AI service pinned to **Python 3.12**, managed by uv                                                                      | The planned ML/AI dependencies publish wheels for established Python versions first. uv makes the interpreter reproducible without touching the system Python [R68]                                       |
+| D12 | 2026-10-09 | AI service mirrors the API's **error shape, camelCase JSON and `x-request-id`**                                          | One error format and one correlation ID across services make debugging and the API's AI client (#26) simpler [R37]                                                                                        |
+| D13 | 2026-10-09 | Internal-key auth uses **constant-time comparison**; only `/health` is public; OpenAPI docs off in production            | Prevents timing side channels [R76] and reduces exposed surface. Protection is checked automatically through the OpenAPI schema                                                                           |

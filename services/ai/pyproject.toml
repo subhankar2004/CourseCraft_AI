@@ -1,0 +1,53 @@
+[project]
+name = "coursecraft-ai"
+version = "0.1.0"
+description = "CourseCraft AI pipeline service: transcripts, chunking, embeddings, notes, RAG, evaluation"
+license = "Apache-2.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.143.0",
+    "pydantic-settings>=2.15.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[tool.uv]
+# An application, not a library: no build step, run from source.
+package = false
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "ruff>=0.16.10",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+  "E", "W", "F",   # pycodestyle, pyflakes
+  "I",             # import sorting
+  "B",             # bugbear
+  "UP",            # pyupgrade
+  "S",             # bandit security checks
+  "ASYNC",         # async pitfalls
+  "RUF",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]  # asserts and dummy secrets are fine in tests
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Tests that hit real external services (YouTube, OpenAI, Pinecone) are opt-in:
+#   uv run pytest -m network
+addopts = "-m 'not network' --strict-markers"
+markers = ["network: needs real network access and API keys (deselected by default)"]

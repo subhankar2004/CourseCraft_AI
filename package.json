@@ -21,7 +21,13 @@
     "infra:down": "docker compose --profile ollama down",
     "infra:reset": "docker compose --profile ollama down -v",
     "infra:ps": "docker compose --profile ollama ps",
-    "infra:logs": "docker compose --profile ollama logs -f"
+    "infra:logs": "docker compose --profile ollama logs -f",
+    "ai:sync": "uv --directory services/ai sync",
+    "ai:dev": "uv --directory services/ai run uvicorn app.main:app --reload --port 8000",
+    "ai:lint": "uv --directory services/ai run ruff check . && uv --directory services/ai run ruff format --check .",
+    "ai:format": "uv --directory services/ai run ruff format . && uv --directory services/ai run ruff check --fix .",
+    "ai:typecheck": "uv --directory services/ai run mypy app tests",
+    "ai:test": "uv --directory services/ai run pytest"
   },
   "devDependencies": {
     "prettier": "3.9.9"
