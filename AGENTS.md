@@ -103,9 +103,12 @@ cd services/ai && uv run ruff check . && uv run pytest
 4. Run lint + tests for the affected package before declaring a task done, and report failures honestly.
 5. Do not add new dependencies or services beyond SPEC §4 without asking.
 6. Never commit secrets, `.env`, model weights, downloaded audio, or large transcripts.
-7. At the end of a session, update **Current status** and **Next up** above.
+7. **Every PR keeps the research record current** (it feeds the project report and paper):
+   - [docs/PROGRESS.md](docs/PROGRESS.md): add an entry with what was built, why, the methods used, problems and how they were solved, verification results, and any new decision (D-number) in the decision log.
+   - [docs/REFERENCES.md](docs/REFERENCES.md) + [docs/references.bib](docs/references.bib): add every new technology, library, method, standard or paper, in IEEE style. Mark planned entries ✅ when they are used. Never invent citation details; mark anything unverified with ⚠ verify.
+8. At the end of a session, update **Current status** and **Next up** above.
 
 ## Key references
 
 - Report: [docs/report/CourseCraftAI.pdf](docs/report/CourseCraftAI.pdf). Fig. 1 = workflow, Fig. 2 = architecture, Fig. 3 = RAG loop, Table 3 = evaluation metrics
-- Literature cited: VideoRAG (Wang et al., 2025), hierarchical tree-structured KGs (Liu et al., 2024), multi-agent adaptive e-learning (El Fazazi et al., 2021)
+- All citations: [docs/REFERENCES.md](docs/REFERENCES.md). Development history and decisions: [docs/PROGRESS.md](docs/PROGRESS.md)

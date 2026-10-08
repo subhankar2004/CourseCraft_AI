@@ -27,3 +27,5 @@ Closes #
 - [ ] No secrets, `.env` files, model weights or media committed
 - [ ] New env vars added to `.env.example` and SPEC §12
 - [ ] SPEC.md / AGENTS.md updated if behaviour, contracts or commands changed
+- [ ] docs/PROGRESS.md entry added (what, why, method, problems, verification)
+- [ ] New technologies/methods cited in docs/REFERENCES.md + docs/references.bib
