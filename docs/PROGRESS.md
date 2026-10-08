@@ -227,7 +227,7 @@ A running record of what was built, why, and how it was verified. It is written 
 - Locally: `pnpm install` rebuilds `packages/shared/dist` through `prepare`, and the shared package's 5 contract tests pass.
 - Root `lint`, `typecheck`, `test` and `build` pass for both JS and Python.
 - The compiled API (`node dist/main.js`) runs and returns the shared error shape.
-- **CI results are recorded in PR #57** (first run of the workflow).
+- **GitHub Actions, first run on PR #57: both jobs green.** Node job (format → lint → typecheck → test → build, with Postgres and Redis service containers) took 1 min 3 s. Python job (uv → Ruff → mypy → pytest) took 17 s. [Run 37835402977](https://github.com/subhankar2004/CourseCraft_AI/actions/runs/37835402977).
 
 ---
 
