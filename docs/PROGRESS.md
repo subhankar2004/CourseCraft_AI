@@ -26,6 +26,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 11  | 2026-10-10 | [#11](https://github.com/subhankar2004/CourseCraft_AI/issues/11) / [#62](https://github.com/subhankar2004/CourseCraft_AI/pull/62) | P1    | Courses & lessons read API: catalog list/search/pagination, course outline, lesson reader     |
 | 12  | 2026-10-10 | [#12](https://github.com/subhankar2004/CourseCraft_AI/issues/12) / [#63](https://github.com/subhankar2004/CourseCraft_AI/pull/63) | P1    | Web auth: login/register forms, session hooks, user menu, proxy route protection, 403         |
 | 13  | 2026-10-10 | [#13](https://github.com/subhankar2004/CourseCraft_AI/issues/13) / [#64](https://github.com/subhankar2004/CourseCraft_AI/pull/64) | P1    | Landing page, responsive navigation, footer; `/auth/session`                                  |
+| 14  | 2026-10-10 | [#14](https://github.com/subhankar2004/CourseCraft_AI/issues/14) / [#65](https://github.com/subhankar2004/CourseCraft_AI/pull/65) | P1    | Domain catalog pages: ISR, search + level filter, empty states; build-resilient caching       |
 
 ---
 
@@ -520,6 +521,47 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 14 — Domain catalog pages (Issue #14, PR #65, 2026-10-10)
+
+**What:**
+
+- **`/domains`**: grid of domain cards (description, published-course count), with a skeleton while loading.
+- **`/domains/[slug]`**: breadcrumb, heading, description and count, then the domain's **course cards** (YouTube thumbnail through `next/image`, title, description, level, lesson count) with:
+  - **search** (case-insensitive and **accent-insensitive**; every word must match, across title and description) and **level filter** (`aria-pressed` toggle buttons);
+  - filtering runs **client-side** over the already-loaded list (instant, no extra requests), and the **state lives in the URL** (`?q=&level=`, search debounced 250 ms), so filtered views can be shared and bookmarked;
+  - **empty states**: a domain with no courses, and "no courses match" with _Clear filters_. Unknown slug → 404.
+- **Incremental Static Regeneration with Cache Components** [R110]: `generateStaticParams` prerenders every known domain at build time (`cacheLife('hours')`). Domains created later are served instantly through the **App Shell** and filled in on demand (Partial Prefetching). `params` is awaited inside `<Suspense>`, as the Next.js guide requires.
+- **Images:** YouTube's CDN (`i.ytimg.com/vi/**`) is allow-listed in `remotePatterns`. **First-row thumbnails load eagerly** (they are often the Largest Contentful Paint [R111]); the rest load lazily.
+- Shared `DomainCards`, used by both the landing page and `/domains`.
+
+**Problems and resolutions: making builds independent of the API (D34).** This needed four hypotheses, each tested by building with the API reachable, unreachable, and **absent (CI-like)**, and checking exit codes:
+
+1. _Shared `cacheLife('seconds')` failure entries_ (the #13 approach) produced **"Unexpected cache miss after cache warming phase"** once a second route (`/domains`) and `generateStaticParams` used the same function. The docs explain why: entries with `expire` under 5 minutes are **excluded from prerenders**.
+2. _Shared constant vs fresh object_: hypothesis **rejected** by experiment (the error remained).
+3. _Throw inside `use cache` and catch in the page, deferring with `connection()`_: **failed the build**. An error thrown inside a cached function fails the prerender even when the caller catches it, and the error **loses its class across the cache boundary**, so `instanceof` checks don't work.
+4. **Adopted:** cached functions **never throw**. On failure they return `UNAVAILABLE` cached with **`cacheLife('minutes')`**, which is long enough to be included in prerenders and **revalidates every minute**, so pages heal soon after the API is back. Success caches for hours. `generateStaticParams` uses a separate **uncached** build-time fetch with a placeholder param, since Cache Components needs at least one.
+
+Result: **all three build scenarios exit 0 with no errors**. With the API up, domain pages are static (revalidate 1 h); without it, static with revalidate 1 min.
+
+- A clean **git worktree of `main`** was used to compare builds, after a `git stash` comparison turned out invalid (untracked files stayed in place). Recorded so the method can be reproduced.
+- The browser test flagged the thumbnail as the LCP element loaded lazily, so first-row images became eager. The optimizer itself was verified separately (HTTP 200, a 14 KB optimized JPEG).
+
+**Verification:**
+
+- **19 web unit tests** (6 new for `filterCourses`/`parseCourseFilter`: empty filter, title and description, all terms required, accents, level, combined, unknown level, length cap).
+- **Browser test** (headless Chrome), **16/16 checks, twice in a row, 0 console problems**:
+  - `/domains` shows 4 cards;
+  - navigating into Database Systems shows the breadcrumb and the seeded course card (title, _Beginner_, _4 lessons_);
+  - the **thumbnail loads, eager-loaded**;
+  - search `sql` → 1 and `?q=` updates; `quantum` → the empty state; Clear filters resets the UI and URL;
+  - level Advanced → 0 (`aria-pressed`), Beginner → 1;
+  - a **deep link** `?level=Beginner&q=normaliz` restores the state;
+  - an empty domain shows the no-courses message; an unknown domain → 404;
+  - **360 px: no horizontal scroll**.
+- Root format, lint, typecheck, test (shared 28 · web 19 · API 12 + 45 · Python) and build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -559,3 +601,5 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D31 | 2026-10-10 | No experimental Next.js APIs (`forbidden()` / `authInterrupts`); plain `/forbidden` page with status 403                                                   | Stability for a graded project; the same user-facing result                                                                                                                                               |
 | D32 | 2026-10-10 | `GET /auth/session` always returns 200 (`user: null` when signed out); `/auth/me` keeps 401                                                                | Clean browser consoles for anonymous visitors; strict semantics preserved for API clients; one shared resolution function                                                                                 |
 | D33 | 2026-10-10 | Server-side catalog data via `'use cache'` + explicit `cacheLife` (`hours`, or `seconds` on failure)                                                       | Static, fast pages that refresh in the background [R107][R108]; builds and CI don't need a running API                                                                                                    |
+| D34 | 2026-10-10 | Cached catalog reads **never throw**; on failure return `UNAVAILABLE` with `cacheLife('minutes')`; uncached build-time fetch for `generateStaticParams`    | Builds succeed without an API (CI); avoids prerender failures and cache-warming misses; pages recover within about a minute (found by four tested hypotheses, Entry 14)                                   |
+| D35 | 2026-10-10 | Course search and filter run **client-side** with state in the URL                                                                                         | Instant results over a small, already-loaded list; shareable and bookmarkable filtered views; pages stay static                                                                                           |

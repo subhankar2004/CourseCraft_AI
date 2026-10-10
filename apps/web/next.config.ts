@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  images: {
+    // Course thumbnails come from YouTube's image CDN.
+    remotePatterns: [{ protocol: 'https', hostname: 'i.ytimg.com', pathname: '/vi/**' }],
+  },
   turbopack: {
     rules: {
       '*.css': {
