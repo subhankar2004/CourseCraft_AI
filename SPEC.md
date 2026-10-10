@@ -444,7 +444,7 @@ UI conventions: shadcn/ui components, dark/light themes, loading skeletons, ever
 
 ## 11. Non-Functional Requirements
 
-- **Security**: bcrypt password hashing; JWT in an httpOnly cookie; role guards; rate limits on chat and generate endpoints; the AI service is never publicly exposed; secrets only in env; validate that YouTube URLs really are YouTube.
+- **Security**: Argon2id password hashing (OWASP parameters, `apps/api/src/auth/password.ts`; replaces the originally planned bcrypt, see D19); JWT in an httpOnly cookie; role guards; rate limits on chat and generate endpoints; the AI service is never publicly exposed; secrets only in env; validate that YouTube URLs really are YouTube.
 - **Performance**: catalog pages are SSR/ISR; chat first token < 3 s with OpenAI; generating a 10-video course < 15 min.
 - **Cost control**: `gpt-4o-mini` by default; cache transcripts/videos; `MAX_VIDEOS_PER_COURSE=25`; log token usage per job.
 - **Reliability**: idempotent per-video steps; failed jobs can be retried from the last completed stage.

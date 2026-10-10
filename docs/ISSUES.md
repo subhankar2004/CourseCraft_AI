@@ -124,7 +124,7 @@ Meta: phase=P1 | area=api | type=feat | depends=7
 **Tasks**
 
 - [ ] `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`
-- [ ] bcrypt hashing, JWT issued in an httpOnly, SameSite=Lax cookie (Secure in prod)
+- [ ] Argon2id hashing via `src/auth/password.ts` (added in #8), JWT issued in an httpOnly, SameSite=Lax cookie (Secure in prod)
 - [ ] `JwtAuthGuard`, `RolesGuard` and an `@Roles('ADMIN')` decorator; `@CurrentUser()` param decorator
 - [ ] Login rate limiting (`@nestjs/throttler`)
 - [ ] Shared Zod schemas for register/login/user in `packages/shared`

@@ -84,6 +84,20 @@ pnpm --filter api test            # unit + e2e tests (e2e needs PostgreSQL runni
 - `/health` pings PostgreSQL: `200` with `database: up`, or `503` with `database: down` (the reason is in the API log, never in the response).
 - The database schema lives in `apps/api/prisma/schema.prisma`. After changing it, run `pnpm --filter api prisma:migrate --name <what-changed>`. `pnpm --filter api prisma:studio` opens a browser UI for the data.
 
+### Demo data
+
+```bash
+pnpm --filter api prisma:seed     # safe to re-run
+```
+
+The seed creates:
+
+- an **admin** and a **student** account, with credentials from `SEED_*` in `.env`;
+- **4 domains**: Web Development, DSA, Database Systems, Machine Learning;
+- one published course, **Database Fundamentals** (2 modules, 4 lessons). It uses real freeCodeCamp.org videos and handwritten notes whose `[▶ h:mm:ss]` anchors are the videos' chapter starts.
+
+It upserts everything, so re-running doesn't duplicate data, and it never changes an existing account's password. It refuses to run with `NODE_ENV=production` unless `SEED_ALLOW_PRODUCTION=true`.
+
 The API validates its environment at startup. If a variable is missing or invalid (e.g. a `change-me` secret), it exits immediately and lists every problem.
 
 ## 5. Run the web app
