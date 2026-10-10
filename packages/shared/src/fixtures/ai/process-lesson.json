@@ -1,0 +1,48 @@
+{
+  "courseId": "manual-demo",
+  "lessonId": "cm24lesson001",
+  "chatModel": "llama3.1:8b",
+  "embeddingModel": "nomic-embed-text",
+  "chunks": [
+    {
+      "id": "cm24lesson001-0",
+      "index": 0,
+      "text": "SQL Tutorial - Full Database Course for Beginners In this course I’m going to teach you everything you need to know to g",
+      "startSec": 0.0,
+      "endSec": 204.4,
+      "tokenCount": 796,
+      "overlapChars": 0
+    },
+    {
+      "id": "cm24lesson001-1",
+      "index": 1,
+      "text": "So, this should basically just give you an introduction to databases in general. If you don’t know anything about databa",
+      "startSec": 179.6,
+      "endSec": 381.9,
+      "tokenCount": 798,
+      "overlapChars": 492
+    }
+  ],
+  "notes": {
+    "title": "SQL Tutorial - Full Database Course for Beginners",
+    "summary": "This lesson introduces the concept of a database, its characteristics, and the benefits of using computers to store and manage databases. Understanding databases is essential for working with SQL, a programming language used to manage and manipulate data in databases.",
+    "keyConcepts": [
+      "Database",
+      "Database Management System",
+      "Data Security",
+      "Data Backup",
+      "Data Duplication",
+      "Database Storage"
+    ],
+    "notesMarkdown": "## Summary\nThis lesson introduces the concept of a database, its characteristics, and the benefits of using computers to store and manage databases. Understanding databases is essential for working with SQL, a programming language used to manage and manipulate data in databases.\n\n## Key concepts\n- **Database**: A collection of related information.\n- **Database Management System**: Special software",
+    "readingTimeMin": 2,
+    "anchors": [195.0, 280.5, 350.3, 521.1, 574.1],
+    "promptIds": ["lesson-notes-map@2", "lesson-notes-reduce@2"]
+  },
+  "usage": {
+    "llmCalls": 2,
+    "inputTokens": 3392,
+    "outputTokens": 799
+  },
+  "elapsedSec": 51.5
+}

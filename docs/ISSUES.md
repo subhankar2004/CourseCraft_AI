@@ -350,10 +350,10 @@ Meta: phase=P3 | area=api | type=feat | depends=3,5
 **Goal:** A typed, resilient NestJS client for the internal AI API.
 **Tasks**
 
-- [ ] `AiClientModule` with methods for each internal endpoint (SPEC §8.2) and an `X-Internal-Key` header
-- [ ] Timeouts per endpoint, retries on 5xx/network errors, request-id forwarding
-- [ ] Support for SSE passthrough (used in #41)
-- [ ] Unit tests with a mocked HTTP server
+- [x] `AiClientModule` with methods for each internal endpoint (SPEC §8.2) and an `X-Internal-Key` header
+- [x] Timeouts per endpoint, retries on outages (network, 429/503/504; not 500/502/4xx, see PROGRESS D71), request-id forwarding
+- [x] Support for SSE passthrough (used in #41)
+- [x] Unit tests with a mocked HTTP server
 
 **Done when:** The health check includes the AI service's status.
 

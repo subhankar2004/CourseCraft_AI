@@ -1,8 +1,10 @@
 import { Body, Controller, Get, type INestApplication, Module, Post } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { apiHealthSchema, errorResponseSchema } from '@coursecraft/shared';
+import { apiHealthSchema, errorResponseSchema, type AiHealth } from '@coursecraft/shared';
 import { IsInt, IsString, Min } from 'class-validator';
 import request from 'supertest';
+import { AiServiceError } from '../src/ai/ai-client.errors.js';
+import { AiClient } from '../src/ai/ai-client.service.js';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { Public } from '../src/auth/auth.decorators.js';
@@ -35,13 +37,34 @@ class TestController {
 @Module({ controllers: [TestController] })
 class TestModule {}
 
+/** A healthy AI service (the real one isn't running in CI); see the AI-down suite below. */
+const AI_OK: AiHealth = {
+  status: 'ok',
+  service: 'coursecraft-ai',
+  version: '0.1.0',
+  providers: {
+    llm: {
+      provider: 'ollama',
+      chatModel: 'llama3.1:8b',
+      embeddingModel: 'nomic-embed-text',
+      embeddingDimension: 768,
+      configured: true,
+    },
+    vectorStore: { provider: 'pgvector', index: 'vector_store.chunks_nomic', configured: true },
+  },
+};
+const aiStub = (health: () => Promise<AiHealth>) => ({ health });
+
 describe('API (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, TestModule],
-    }).compile();
+    })
+      .overrideProvider(AiClient)
+      .useValue(aiStub(() => Promise.resolve(AI_OK)))
+      .compile();
     app = moduleRef.createNestApplication({ logger: false });
     configureApp(app);
     await app.init();
@@ -57,6 +80,12 @@ describe('API (e2e)', () => {
       const body = apiHealthSchema.parse(res.body);
       expect(body.status).toBe('ok');
       expect(body.details.database?.status).toBe('up');
+      expect(body.details.ai).toEqual({ status: 'up', llm: 'ollama', vectorStore: 'pgvector' });
+    });
+
+    it('has a dependency-free liveness probe', async () => {
+      const res = await request(app.getHttpServer()).get('/api/v1/health/live').expect(200);
+      expect(res.body).toEqual({ status: 'ok' });
     });
 
     it('is only served under the /api/v1 prefix', async () => {
@@ -157,6 +186,8 @@ describe('API (e2e) with the database unavailable', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(AiClient)
+      .useValue(aiStub(() => Promise.resolve(AI_OK)))
       .overrideProvider(PrismaService)
       .useValue({
         $queryRaw: () => Promise.reject(new Error('connect ECONNREFUSED 127.0.0.1:5432')),
@@ -181,5 +212,55 @@ describe('API (e2e) with the database unavailable', () => {
       message: 'Database unreachable',
     });
     expect(JSON.stringify(res.body)).not.toContain('ECONNREFUSED');
+  });
+});
+
+describe('API (e2e) with the AI service unavailable or misconfigured', () => {
+  let app: INestApplication;
+  let health: () => Promise<AiHealth>;
+
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(AiClient)
+      .useValue(aiStub(() => health()))
+      .compile();
+    app = moduleRef.createNestApplication({ logger: false });
+    configureApp(app);
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('reports the AI service as down with HTTP 503, without internals', async () => {
+    health = () =>
+      Promise.reject(
+        new AiServiceError(
+          'unavailable',
+          'connect ECONNREFUSED 127.0.0.1:8000',
+          'GET /health',
+          'r1',
+        ),
+      );
+    const res = await request(app.getHttpServer()).get('/api/v1/health').expect(503);
+    const body = apiHealthSchema.parse(res.body);
+    expect(body.details.ai).toEqual({ status: 'down', message: 'AI service unreachable' });
+    expect(body.details.database?.status).toBe('up');
+    expect(JSON.stringify(res.body)).not.toContain('ECONNREFUSED');
+  });
+
+  it('reports a running but unconfigured AI service as down', async () => {
+    health = () =>
+      Promise.resolve({
+        ...AI_OK,
+        providers: { ...AI_OK.providers, llm: { ...AI_OK.providers.llm, configured: false } },
+      });
+    const res = await request(app.getHttpServer()).get('/api/v1/health').expect(503);
+    expect(res.body.details.ai).toEqual({ status: 'down', message: 'AI service not configured' });
+  });
+
+  it('stays live while the AI service is down', async () => {
+    await request(app.getHttpServer()).get('/api/v1/health/live').expect(200);
   });
 });

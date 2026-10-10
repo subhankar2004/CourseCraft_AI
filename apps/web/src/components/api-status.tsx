@@ -1,14 +1,20 @@
 'use client';
 
-import { apiHealthSchema } from '@coursecraft/shared';
 import { useQuery } from '@tanstack/react-query';
+import { z } from 'zod';
 import { api } from '@/lib/api';
 
-/** Small live indicator that the web app can reach the API (exercises the API client + CORS). */
+const liveSchema = z.object({ status: z.literal('ok') });
+
+/**
+ * Small live indicator that the web app can reach the API (exercises the API client + CORS).
+ * Uses the liveness probe: `/health` also checks the AI service (#26) and returns 503 while it is
+ * down, which would wrongly show the API itself as offline.
+ */
 export function ApiStatus() {
   const { data, isPending, isError } = useQuery({
-    queryKey: ['health'],
-    queryFn: () => api('health', { schema: apiHealthSchema }),
+    queryKey: ['health', 'live'],
+    queryFn: () => api('health/live', { schema: liveSchema }),
     refetchInterval: 30_000,
   });
 

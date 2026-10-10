@@ -1,0 +1,16 @@
+{
+  "courseId": "capture-course",
+  "hits": [
+    {
+      "id": "capture-lesson-0",
+      "lessonId": "capture-lesson",
+      "youtubeId": "Tk1t3WKK-ZY",
+      "chunkIndex": 0,
+      "startSec": 0.0,
+      "endSec": 226.23,
+      "lessonTitle": "What is a database",
+      "text": "In this video, we're talking about what databases are, the different types, and various use cases. Companies, both large",
+      "score": 0.678963
+    }
+  ]
+}

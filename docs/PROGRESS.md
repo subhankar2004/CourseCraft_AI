@@ -1025,6 +1025,47 @@ Both were then reverted. The new tests also passed on the first run, which is wh
 
 ---
 
+## Entry 26 — API client for the AI service (Issue #26, PR #77, 2026-10-11)
+
+**What:** `AiClient` (`apps/api/src/ai/`), a typed NestJS client for every internal AI endpoint (SPEC §8.2): metadata, transcript, process lesson, structure, vector search and deletes, plus a streaming method for the chat (#41). The API's `/health` now includes the AI service.
+
+**Design:**
+
+- **Contracts shared and checked on arrival (D70).** Zod mirrors of the Python schemas live in `packages/shared/src/ai.ts`, and every response is validated when it arrives. A drifted contract fails as a `contract` error at the boundary instead of corrupting data later. The schemas are tested against **real responses captured from the running AI service** (9 fixtures: health, metadata with a failed video, transcript, a 422 error, process lesson, structure, search, both deletes).
+- **Timeouts per endpoint:** from 3 s for health up to 30 min for `/process/lesson` (map-reduce notes on a local LLM). The timeout covers the response body too (a slow body counts), but for streams it ends once the headers arrive, after which an **idle timeout** (60 s without data) takes over. Otherwise a long chat answer would be cut off mid-stream; this was found while designing, before any test, and is pinned by a test.
+- **Retries only for outages (D71):**
+  - **Retried:** network errors and 429/503/504, with exponential backoff and "equal jitter" [R137], honouring `Retry-After` (capped at 30 s) [R99]. Timeouts are retried only on short endpoints.
+  - **Not retried:** 500 (a bug), 502 (the AI service already made 3 attempts) and 4xx (the request can't succeed). This is a deliberate narrowing of the issue's "retry on 5xx".
+  - Errors carry a `kind` and `retryable`, so the job worker (#27) can decide between "retry the job later" and "mark this video failed".
+- **Request ids:** every call forwards `X-Request-Id`, either the caller's (e.g. a job id) or a generated `api-<uuid>`. The AI service logs it on every line (#24).
+- **SSE passthrough:** an event-stream parser following the WHATWG rules [R60]: CRLF, CR or LF line endings even when split across chunks, multi-line data, comments, ids, and discarding an unterminated last event. Cancelling (browser disconnects) aborts the upstream request.
+- **No new dependency:** Node's built-in `fetch`.
+- **Readiness vs liveness (D72)** [R138]:
+  - `/health` is **readiness**: the database **and** the AI service must be up, and the AI service must report its LLM and vector store as configured. It returns 503 otherwise, with only a short message (details are logged).
+  - The new `/health/live` is **liveness**, with no dependency checks, so a load balancer won't restart the API because the AI service is down.
+  - The web footer's "API online" dot now uses `/health/live`. With `/health` it would have shown "API offline" whenever only the AI service was down.
+
+**Verification:**
+
+- **19 unit tests against a real local HTTP server** with scripted responses (not a mocked `fetch`). They cover:
+  - headers, body and request-id forwarding; a generated id; path encoding;
+  - retry after 503 with `Retry-After`; backoff bounds; outage reported as retryable;
+  - no retry for 500/502/404/422, with the AI error message surfaced;
+  - connection refused → `unavailable`;
+  - header timeout and **slow-body** timeout;
+  - a contract violation; caller cancellation;
+  - a stream that outlasts the connect timeout, split oddly across chunks;
+  - a non-stream response; cancellation mid-stream;
+  - SSE parser edge cases.
+
+  **Mutation check:** not releasing the connect timeout on streams, and treating 500 as retryable, each made a test fail.
+
+- **e2e:** `/health` with the AI service up (stubbed in CI), unreachable (503 without internals), and running but unconfigured (503); liveness stays 200 while the AI service is down.
+- **Live:** the running dev API reports `"ai": {"status": "up", "llm": "ollama", "vectorStore": "pgvector"}`.
+- JS: shared 41 tests, API 19 + 50 e2e (and 12 unit), web lint and typecheck; Python unchanged (236).
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -1100,3 +1141,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D67 | 2026-10-11 | Course outline as **JSON** (provider JSON mode) validated by Pydantic; lessons referred to by **number** and mapped back to refs in code                                    | Structured data that small models can produce reliably with constrained decoding [R136]; numbers avoid mangled ids                                                                                        |
 | D68 | 2026-10-11 | Outlines are **repaired deterministically** (every lesson exactly once, no empty modules) and each repair is reported                                                       | Small mistakes shouldn't cost another LLM call; the admin sees exactly what was corrected; a property test guarantees the invariant for any input                                                         |
 | D69 | 2026-10-11 | Retry outlines that misplace > 30% of lessons; after 3 failures return a plain outline in the given order (`fallback: true`); outages still give 503                        | One bad answer shouldn't fail a course job, but an outline that far off isn't worth repairing; outages are transient and should be retried by the job                                                     |
+| D70 | 2026-10-11 | AI contracts as Zod schemas in `packages/shared`, **validated on arrival** and tested against responses captured from the real service                                      | A Python/TS drift fails loudly at the boundary; real fixtures catch details hand-written ones miss (e.g. offset timestamps, nullable fields)                                                              |
+| D71 | 2026-10-11 | The AI client retries **outages only** (network, 429/503/504, backoff with equal jitter, `Retry-After`); 500/502/4xx are final; errors carry `kind` + `retryable`           | Retrying bugs or already-retried model failures wastes minutes per call; jitter avoids synchronized retries [R137]                                                                                        |
+| D72 | 2026-10-11 | `/health` = **readiness** (DB + AI service); `/health/live` = **liveness** (no dependencies)                                                                                | A dependency outage should take the API out of rotation, not restart it [R138]                                                                                                                            |
