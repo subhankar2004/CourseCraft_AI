@@ -10,16 +10,17 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ## Summary
 
-| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                           |
-| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------- |
-| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report          |
-| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions                      |
-| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env            |
-| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging          |
-| 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages         |
-| 5   | 2026-10-09 | [#5](https://github.com/subhankar2004/CourseCraft_AI/issues/5) / [#56](https://github.com/subhankar2004/CourseCraft_AI/pull/56) | P0    | FastAPI AI service skeleton: config, internal-key auth, health    |
-| 6   | 2026-10-09 | [#6](https://github.com/subhankar2004/CourseCraft_AI/issues/6) / [#57](https://github.com/subhankar2004/CourseCraft_AI/pull/57) | P0    | Shared contracts package + GitHub Actions CI; **P0 complete**     |
-| 7   | 2026-10-10 | [#7](https://github.com/subhankar2004/CourseCraft_AI/issues/7) / [#58](https://github.com/subhankar2004/CourseCraft_AI/pull/58) | P1    | Database schema (Prisma 7, 13 tables), migration, DB health check |
+| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                                       |
+| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------- |
+| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report                      |
+| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions                                  |
+| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env                        |
+| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging                      |
+| 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages                     |
+| 5   | 2026-10-09 | [#5](https://github.com/subhankar2004/CourseCraft_AI/issues/5) / [#56](https://github.com/subhankar2004/CourseCraft_AI/pull/56) | P0    | FastAPI AI service skeleton: config, internal-key auth, health                |
+| 6   | 2026-10-09 | [#6](https://github.com/subhankar2004/CourseCraft_AI/issues/6) / [#57](https://github.com/subhankar2004/CourseCraft_AI/pull/57) | P0    | Shared contracts package + GitHub Actions CI; **P0 complete**                 |
+| 7   | 2026-10-10 | [#7](https://github.com/subhankar2004/CourseCraft_AI/issues/7) / [#58](https://github.com/subhankar2004/CourseCraft_AI/pull/58) | P1    | Database schema (Prisma 7, 13 tables), migration, DB health check             |
+| 8   | 2026-10-10 | [#8](https://github.com/subhankar2004/CourseCraft_AI/issues/8) / [#59](https://github.com/subhankar2004/CourseCraft_AI/pull/59) | P1    | Idempotent demo seed: users, 4 domains, 1 real-video course; Argon2id hashing |
 
 ---
 
@@ -267,6 +268,41 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 8 — Seed script with demo data (Issue #8, PR #59, 2026-10-10)
+
+**What:**
+
+- `apps/api/prisma/seed.ts`, run through Prisma 7's `migrations.seed` hook with `tsx` [R92]. It creates:
+  - an **admin** and a **student** account;
+  - **4 domains** (Web Development, Data Structures & Algorithms, Database Systems, Machine Learning);
+  - one fully populated, published course, **Database Fundamentals**: 2 modules × 2 lessons.
+- **Real, verified source material.** The lessons use two freeCodeCamp.org lectures [R90][R91]. Their IDs, titles, durations and **chapter start times were fetched with yt-dlp** [R23] instead of being typed from memory. Each lesson's handwritten Markdown notes contain `[▶ h:mm:ss]` anchors that are exactly those chapter starts. 20 anchors in total, **all inside their video's duration**, which was checked against the database.
+- **Idempotent.** Every record is upserted on a natural unique key (email, slug, YouTube id, `(course, order)`, `(module, order)`) in one transaction. Existing accounts keep their password.
+- **Password hashing: Argon2id** [R88][R89] with the **OWASP minimum parameters** (m = 19 MiB, t = 2, p = 1) [R87], in a shared `src/auth/password.ts` that the auth module (#9) will reuse. It is salted per hash and stored as a PHC string. Verification never throws on malformed input.
+
+**Credential handling:**
+
+- The seed reads its accounts from `SEED_*` variables, validated with Zod (valid email, password ≥ 12 characters).
+- For local development, the developer chose to have strong random passwords generated **directly into the git-ignored `.env`**. They were never printed, logged or committed.
+- The seed refuses to run in production unless explicitly allowed.
+- CI uses throwaway demo credentials for its ephemeral database.
+
+**Problems and resolutions:**
+
+- **Hash algorithm (D19).** SPEC planned bcrypt, but the OWASP Password Storage Cheat Sheet recommends Argon2id first, with bcrypt for legacy systems. We switched before any password existed, so there was nothing to migrate.
+- `@node-rs/argon2` exposes `Algorithm` as an ambient `const enum`, which can't be used under `isolatedModules`, so its numeric value is used with a type-only import.
+- `tsx` brings in `esbuild`, whose install script pnpm 12 blocks. That script is only an optimisation (the binary comes from an optional platform package), so it was **explicitly denied** in `allowBuilds` (least privilege), and `tsx` was verified to work.
+
+**Verification:**
+
+- Seeded **3 times** with identical counts (2 users, 4 domains, 1 course, 2 modules, 4 lessons, 2 videos). The admin's password hash was **unchanged** across re-seeds.
+- Both accounts' passwords verify against their stored Argon2id hashes (checked programmatically without printing them).
+- The guards work: a weak password is rejected with a clear message, and `NODE_ENV=production` refuses.
+- 4 new unit tests for password hashing (PHC format and parameters, verify/reject, unique salts, malformed hash).
+- **CI now migrates and seeds the fresh database twice on every run.**
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -291,3 +327,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D16 | 2026-10-10 | **snake_case** SQL names via `@@map`/`@map`; camelCase in TypeScript                                                     | Follows PostgreSQL convention (unquoted identifiers, friendlier raw SQL and BI tools) without changing the application code                                                                               |
 | D17 | 2026-10-10 | Pin **Prisma 7.10.0** (CLI and client), not the `8.0.0-rc` that npm marked `latest`                                      | Stable release; the CLI and client versions must match. Upgrade deliberately later                                                                                                                        |
 | D18 | 2026-10-10 | Custom database health indicator returning a **generic "Database unreachable"**                                          | `/health` is public; driver errors can reveal internals. Details go to the server log only [R85]                                                                                                          |
+| D19 | 2026-10-10 | Passwords hashed with **Argon2id** (m=19 MiB, t=2, p=1), not bcrypt                                                      | OWASP's first recommendation [R87]; Argon2 won the Password Hashing Competition and is standardised in RFC 9106 [R88][R89]. Switched before any password existed                                          |
+| D20 | 2026-10-10 | Seed course uses **real videos with yt-dlp-verified chapter timestamps**                                                 | Demo data that behaves like real data: anchors seek to real moments, and no fabricated video IDs                                                                                                          |
+| D21 | 2026-10-10 | Seed credentials only via `SEED_*` env (generated into `.env`, never printed); production guard                          | Secrets never enter code, git or chat logs [R38]; demo accounts can't be created in production by accident                                                                                                |

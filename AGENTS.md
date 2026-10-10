@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #8, seed script with demo data.
+**Next up:** Issue #9, authentication API (register, login, JWT, role guards).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -74,6 +74,7 @@ pnpm --filter api test               # unit (src/**/*.spec.ts) + e2e (test/**/*.
 pnpm --filter api prisma:migrate --name <change>   # create + apply a migration (dev DB)
 pnpm --filter api prisma:generate    # regenerate the client (also runs on pnpm install)
 pnpm --filter api prisma:deploy      # apply pending migrations (test/prod; non-destructive)
+pnpm --filter api prisma:seed        # idempotent demo data (needs SEED_* in .env)
 pnpm --filter api prisma:studio      # browse the database
 pnpm --filter shared build           # rebuild contracts after editing packages/shared
 uv --directory services/ai run pytest -m network   # opt-in live-API tests

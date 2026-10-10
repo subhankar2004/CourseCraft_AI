@@ -7,5 +7,7 @@ allowBuilds:
   # Official Prisma packages: download the schema/migration engine binaries.
   '@prisma/engines': true
   prisma: true
+  # esbuild (via tsx) loads its binary from an optional platform package; its postinstall is only an optimisation.
+  esbuild: false
   sharp: false
   unrs-resolver: false

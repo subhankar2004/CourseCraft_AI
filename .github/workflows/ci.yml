@@ -66,6 +66,16 @@ jobs:
         env:
           DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
 
+      - name: Seed twice (must be idempotent)
+        run: pnpm --filter api prisma:seed && pnpm --filter api prisma:seed
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+          # Throwaway demo accounts for the ephemeral CI database; not secrets.
+          SEED_ADMIN_EMAIL: admin@ci.test
+          SEED_ADMIN_PASSWORD: ci-admin-password-not-secret
+          SEED_STUDENT_EMAIL: student@ci.test
+          SEED_STUDENT_PASSWORD: ci-student-password-not-secret
+
       - name: Lint
         run: pnpm lint:js
 
