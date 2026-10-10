@@ -5,7 +5,11 @@ description = "CourseCraft AI pipeline service: transcripts, chunking, embedding
 license = "Apache-2.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    # faster-whisper 1.2.1 calls av.open(metadata_errors=...), removed in PyAV 19. Lift this pin
+    # once faster-whisper supports PyAV 19.
+    "av>=18,<19",
     "fastapi>=0.143.0",
+    "faster-whisper>=1.2,<2",
     "langchain-core>=1.6,<2",
     "langchain-ollama>=1.1,<2",
     "langchain-openai>=1.7,<2",
@@ -50,6 +54,12 @@ select = [
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
+
+# faster-whisper ships no type information (and there is no stubs package); its results are
+# wrapped in typed dataclasses in app/ingestion/whisper.py.
+[[tool.mypy.overrides]]
+module = ["faster_whisper", "faster_whisper.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

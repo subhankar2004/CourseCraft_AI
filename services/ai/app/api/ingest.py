@@ -12,6 +12,7 @@ from app.ingestion.transcripts import (
     TranscriptFetcher,
     TranscriptUnavailableError,
 )
+from app.ingestion.whisper import WhisperTranscriber
 from app.ingestion.youtube_urls import InvalidYoutubeUrlError, YoutubeRef, parse_youtube_url
 from app.schemas import (
     IngestMetadataRequest,
@@ -71,8 +72,15 @@ def _parse_all(urls: list[str]) -> list[YoutubeRef]:
     return refs
 
 
-def get_transcript_fetcher() -> TranscriptFetcher:
-    return TranscriptFetcher()
+def get_transcript_fetcher(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> TranscriptFetcher:
+    whisper = (
+        WhisperTranscriber(settings.whisper_model, settings.whisper_max_minutes)
+        if settings.whisper_enabled
+        else None
+    )
+    return TranscriptFetcher(whisper=whisper)
 
 
 @router.post("/transcript")
@@ -80,9 +88,13 @@ def ingest_transcript(
     body: IngestTranscriptRequest,
     fetcher: Annotated[TranscriptFetcher, Depends(get_transcript_fetcher)],
 ) -> IngestTranscriptResponse:
-    """Captions for one video. 404 = no captions exist; 503 = YouTube unreachable or blocked."""
+    """Transcript for one video: captions, else Whisper (can take minutes for long videos).
+
+    404 = nothing usable (no captions and no speech, too long for Whisper, or inaccessible);
+    503 = YouTube unreachable or blocked (retry later).
+    """
     try:
-        transcript = fetcher.fetch(body.youtube_id)
+        transcript = fetcher.fetch(body.youtube_id, spoken_language=body.spoken_language)
     except NoTranscriptError as error:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(error)) from error
     except TranscriptUnavailableError as error:

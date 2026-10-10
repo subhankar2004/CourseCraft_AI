@@ -48,7 +48,10 @@ class Settings(BaseSettings):
     llm_timeout_s: Annotated[float, Field(gt=0, le=600)] = 120
     llm_max_retries: Annotated[int, Field(ge=0, le=10)] = 2
 
-    whisper_model: str = "base"
+    whisper_model: str = "base"  # tiny | base | small | medium (faster-whisper)
+    whisper_enabled: bool = True
+    # Longer videos are not transcribed (CPU time); their captions are used, or they fail.
+    whisper_max_minutes: Annotated[int, Field(ge=1, le=600)] = 90
     rag_top_k: Annotated[int, Field(ge=1, le=50)] = 6
     rag_min_score: Annotated[float, Field(ge=0, le=1)] = 0.35
     cli_max: Annotated[float, Field(ge=0, le=100)] = 60

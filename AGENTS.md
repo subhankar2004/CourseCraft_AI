@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #19, Whisper transcription fallback (then set up free local models with Ollama before #21).
+**Next up:** Issue #20, timestamp-aware chunking (then set up free local models with Ollama before #21).
 
 ## How we work: 50 issues → 50 PRs
 

@@ -100,6 +100,11 @@ class IngestMetadataResponse(CamelModel):
 
 class IngestTranscriptRequest(CamelModel):
     youtube_id: str = Field(pattern=r"^[A-Za-z0-9_-]{11}$")
+    #: The video's spoken language from its metadata (#17), e.g. "en". When the captions are in
+    #: a different language, Whisper transcribes the audio instead.
+    spoken_language: str | None = Field(
+        default=None, pattern=r"^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+    )
 
 
 class SegmentOut(CamelModel):
@@ -110,12 +115,12 @@ class SegmentOut(CamelModel):
 
 class IngestTranscriptResponse(CamelModel):
     youtube_id: str
-    #: Matches the API's TranscriptSource enum (WHISPER arrives in #19).
-    source: Literal["YT_MANUAL", "YT_AUTO"]
+    #: Matches the API's TranscriptSource enum.
+    source: Literal["YT_MANUAL", "YT_AUTO", "WHISPER"]
     language: str
     #: Original language when YouTube translated the captions to English.
     translated_from: str | None
-    fetched_with: Literal["youtube-transcript-api", "yt-dlp"]
+    fetched_with: Literal["youtube-transcript-api", "yt-dlp", "whisper"]
     segment_count: int
     #: End of the last segment, in seconds.
     covered_sec: float
