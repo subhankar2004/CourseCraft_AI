@@ -58,12 +58,13 @@ class TestHealth:
             "provider": "openai",
             "chatModel": "gpt-4o-mini",
             "embeddingModel": "text-embedding-3-small",
+            "embeddingDimension": 1536,
             "configured": False,
         }
         assert body["providers"]["vectorStore"]["configured"] is False
 
     def test_reflects_ollama_provider(self) -> None:
-        app = create_app(make_settings(llm_provider="ollama"))
+        app = create_app(make_settings(llm_provider="ollama", pinecone_index="coursecraft-nomic"))
         with TestClient(app) as test_client:
             llm = test_client.get("/health").json()["providers"]["llm"]
         assert llm["provider"] == "ollama"

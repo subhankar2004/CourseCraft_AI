@@ -8,8 +8,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field, SecretStr, ValidationError, field_validator
+from pydantic import Field, SecretStr, ValidationError, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.generation.embedding_models import embedding_model_info
 
 ROOT_ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
 
@@ -42,6 +44,10 @@ class Settings(BaseSettings):
     pinecone_api_key: SecretStr | None = None
     pinecone_index: str = "coursecraft-te3s"
 
+    # Per-call limits for model requests.
+    llm_timeout_s: Annotated[float, Field(gt=0, le=600)] = 120
+    llm_max_retries: Annotated[int, Field(ge=0, le=10)] = 2
+
     whisper_model: str = "base"
     rag_top_k: Annotated[int, Field(ge=1, le=50)] = 6
     rag_min_score: Annotated[float, Field(ge=0, le=1)] = 0.35
@@ -62,6 +68,22 @@ class Settings(BaseSettings):
     def _empty_as_none(cls, value: object) -> object:
         # `.env.example` ships these as empty strings until the keys are provided.
         return None if value == "" else value
+
+    @model_validator(mode="after")
+    def _index_matches_embedding_model(self) -> "Settings":
+        # Vectors of different sizes can't share an index; catch the mix-up at startup.
+        info = embedding_model_info(self.embed_model)
+        if not self.pinecone_index.endswith(f"-{info.index_suffix}"):
+            raise ValueError(
+                f"PINECONE_INDEX '{self.pinecone_index}' doesn't match embedding model "
+                f"'{self.embed_model}' ({info.dimension}-d): its name must end with "
+                f"'-{info.index_suffix}' (e.g. coursecraft-{info.index_suffix})"
+            )
+        return self
+
+    @property
+    def embedding_dimension(self) -> int:
+        return embedding_model_info(self.embed_model).dimension
 
     @property
     def chat_model(self) -> str:
@@ -87,7 +109,7 @@ def get_settings() -> Settings:
         return Settings()  # required fields come from the environment
     except ValidationError as exc:
         problems = "\n".join(
-            f"  - {'.'.join(str(p) for p in err['loc']).upper()}: {err['msg']}"
+            f"  - {'.'.join(str(p) for p in err['loc']).upper() or 'CONFIG'}: {err['msg']}"
             for err in exc.errors()
         )
         raise RuntimeError(

@@ -21,7 +21,7 @@ def test_empty_keys_from_env_example_mean_not_configured() -> None:
 
 
 def test_ollama_needs_no_api_key() -> None:
-    settings = make_settings(llm_provider="ollama")
+    settings = make_settings(llm_provider="ollama", pinecone_index="coursecraft-nomic")
     assert settings.llm_configured is True
     assert settings.chat_model == "llama3.1:8b"
     assert settings.embed_model == "nomic-embed-text"
@@ -30,6 +30,20 @@ def test_ollama_needs_no_api_key() -> None:
 def test_shared_log_level_names_from_the_api_are_accepted() -> None:
     assert make_settings(log_level="WARN").log_level == "warning"
     assert make_settings(log_level="silent").log_level == "critical"
+
+
+def test_embedding_dimension_follows_the_model() -> None:
+    assert make_settings().embedding_dimension == 1536
+    ollama = make_settings(llm_provider="ollama", pinecone_index="coursecraft-nomic")
+    assert ollama.embedding_dimension == 768
+
+
+def test_index_must_match_the_embedding_model() -> None:
+    # Switching to Ollama (768-d) while keeping the OpenAI (1536-d) index would corrupt search.
+    with pytest.raises(ValidationError, match="must end with '-nomic'"):
+        make_settings(llm_provider="ollama")
+    with pytest.raises(ValidationError, match="Unknown embedding model"):
+        make_settings(openai_embed_model="text-embedding-ada-002")
 
 
 def test_secrets_are_masked_in_repr() -> None:
