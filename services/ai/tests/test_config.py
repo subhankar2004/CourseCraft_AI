@@ -46,6 +46,12 @@ def test_index_must_match_the_embedding_model() -> None:
         make_settings(openai_embed_model="text-embedding-ada-002")
 
 
+def test_chunk_overlap_must_be_smaller_than_chunk() -> None:
+    assert make_settings().chunk_target_tokens == 800
+    with pytest.raises(ValidationError, match="CHUNK_OVERLAP_TOKENS"):
+        make_settings(chunk_target_tokens=200, chunk_overlap_tokens=200)
+
+
 def test_secrets_are_masked_in_repr() -> None:
     settings = make_settings(openai_api_key="sk-very-secret")
     assert "sk-very-secret" not in repr(settings)

@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     whisper_enabled: bool = True
     # Longer videos are not transcribed (CPU time); their captions are used, or they fail.
     whisper_max_minutes: Annotated[int, Field(ge=1, le=600)] = 90
+    # Transcript chunking (SPEC §7.1 step 3): tokens per chunk and repeated between neighbours.
+    chunk_target_tokens: Annotated[int, Field(ge=50, le=8000)] = 800
+    chunk_overlap_tokens: Annotated[int, Field(ge=0, le=2000)] = 120
     rag_top_k: Annotated[int, Field(ge=1, le=50)] = 6
     rag_min_score: Annotated[float, Field(ge=0, le=1)] = 0.35
     cli_max: Annotated[float, Field(ge=0, le=100)] = 60
@@ -84,6 +87,12 @@ class Settings(BaseSettings):
                 f"'{self.embed_model}' ({info.dimension}-d): its name must end with "
                 f"'-{info.index_suffix}' (e.g. coursecraft-{info.index_suffix})"
             )
+        return self
+
+    @model_validator(mode="after")
+    def _overlap_smaller_than_chunk(self) -> "Settings":
+        if self.chunk_overlap_tokens >= self.chunk_target_tokens:
+            raise ValueError("CHUNK_OVERLAP_TOKENS must be smaller than CHUNK_TARGET_TOKENS")
         return self
 
     @property

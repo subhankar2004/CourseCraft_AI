@@ -32,6 +32,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 17  | 2026-10-10 | [#17](https://github.com/subhankar2004/CourseCraft_AI/issues/17) / [#68](https://github.com/subhankar2004/CourseCraft_AI/pull/68) | P2    | YouTube URL parsing (SSRF-safe) and metadata via yt-dlp; `/ingest/metadata`                   |
 | 18  | 2026-10-10 | [#18](https://github.com/subhankar2004/CourseCraft_AI/issues/18) / [#69](https://github.com/subhankar2004/CourseCraft_AI/pull/69) | P2    | Transcripts: youtube-transcript-api + yt-dlp VTT fallback, cleaning, `/ingest/transcript`     |
 | 19  | 2026-10-10 | [#19](https://github.com/subhankar2004/CourseCraft_AI/issues/19) / [#70](https://github.com/subhankar2004/CourseCraft_AI/pull/70) | P2    | Whisper fallback (local faster-whisper), caption-language mismatch rule                       |
+| 20  | 2026-10-10 | [#20](https://github.com/subhankar2004/CourseCraft_AI/issues/20) / [#71](https://github.com/subhankar2004/CourseCraft_AI/pull/71) | P2    | Timestamp-aware chunking with exact token sizing; property-based tests                        |
 
 ---
 
@@ -774,6 +775,39 @@ No real model calls are made yet; the first will be in #21 (embeddings) and #23 
 
 ---
 
+## Entry 20 — Timestamp-aware chunking (Issue #20, PR #71, 2026-10-10)
+
+**What:** SPEC §7.1 step 3, `services/ai/app/processing/chunking.py`:
+
+- **Whole transcript segments** are packed in order into chunks of **≤ 800 tokens**, and each chunk begins with **≤ 120 tokens repeated from the previous one**, so ideas that cross a boundary stay retrievable [R8]. Sizes come from `CHUNK_TARGET_TOKENS` and `CHUNK_OVERLAP_TOKENS`.
+- **Real timestamps:** each chunk's `startSec`/`endSec` are actual caption boundaries, needed for citations and "jump to this moment" links. Each chunk also records **`overlapChars`**, how much of its text repeats the previous chunk, which retrieval will use to de-duplicate neighbours (#40).
+- **Exact token sizing** with tiktoken `cl100k_base` [R29] (the tokenizer of the `text-embedding-3` models): sizes are measured on the **joined text**, not summed per segment.
+- Oversized segments (rare) are split **word by word** under the same exact check, with their time span shared in proportion to length. A pathological single "word" is cut by tokens.
+
+**Property-based testing** [R121] with **Hypothesis** [R122]. Instead of a few hand-picked cases, the generator produces hundreds of random transcripts (random words, durations and segment counts; random chunk and overlap sizes) and checks the invariants on every one:
+
+- **no text lost:** the chunks with their overlaps removed rebuild the transcript **exactly**;
+- no chunk exceeds the target, and the reported token counts are exact;
+- start and end times never go backwards;
+- the repeated text really is the previous chunk's ending, and is ≤ the overlap limit;
+- **every chunk adds new text.**
+
+**Bugs found by property testing (each reduced to a minimal counterexample):**
+
+1. **Token sums overshoot.** BPE tokenisation is context-sensitive at word boundaries (`"normalization"` vs `" normalization"`), so adding up per-segment counts let chunks exceed the limit. A 2-word counterexample showed it. Fixed by measuring the joined text exactly.
+2. **LangChain's token splitter only approximates its limit:** it estimates merged sizes the same way, so the oversized-segment test produced pieces over 100 tokens. It was replaced with exact word packing, and the `langchain-text-splitters` dependency was dropped (a deliberate deviation from the issue text).
+3. **A flawed test oracle.** Detecting overlap by string matching gave false positives on repetitive text ("database database …"). Overlap became explicit data (`overlapChars`), which the tests now check exactly.
+4. **Repeat-only chunks.** Found by a **2,000-example run** that the default 150 examples missed: with target 20 and overlap 10, carrying a 5-token segment forward left no room for the next 16-token segment, producing a chunk made entirely of repeated text. The overlap now always leaves room for the next new segment. A regression test pins the minimal case, and **CI now runs the thorough profile** (2,000 examples, about 5 s).
+
+**Verification:**
+
+- **The issue's acceptance case:** a deterministic **1-hour transcript** (1,200 caption segments of 3 s) → chunks start at 0.0 s and **end at exactly 3600.0 s**; every boundary is a real 3 s segment boundary; chunks are well filled (> 600 tokens each).
+- **Real data:** the seed's **4 h 20 min SQL course** (4,514 caption segments, 61,784 tokens) → **91 chunks in 0.33 s**; tokens min/avg/max **564/789/800**; average overlap **112 tokens**; no repeat-only chunks; the last chunk ends at 15,638.6 s, the full video.
+- 11 chunking tests (incl. the property test and the minimal regression), new config validation (overlap < chunk). The thorough profile passed 3 consecutive random runs.
+- Python: 151 offline + 7 network tests, Ruff, mypy `--strict`. JS: all checks and build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -827,3 +861,5 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D45 | 2026-10-10 | Own WebVTT parser with rolling-caption de-duplication; split cues on **empty lines only** (per the spec)                                                   | YouTube auto-captions repeat lines and contain whitespace-only lines; correct timing is essential for timestamp anchors and citations [R117]                                                              |
 | D46 | 2026-10-10 | Whisper runs **locally** (faster-whisper, CPU int8, VAD, `base` default); audio downloaded without conversion; length checked first                        | Free and private (matches the free-models plan and the report's Future Work); fast enough on Apple Silicon (~25× real time); no ffmpeg dependency                                                         |
 | D47 | 2026-10-10 | Whisper when there are **no captions** or the **caption language ≠ spoken language**; otherwise keep captions                                              | Captions are cheaper and usually accurate; Whisper fixes the two failure cases seen on real data. If Whisper can't run, keep what exists instead of failing                                               |
+| D48 | 2026-10-10 | Chunks = whole segments packed to ≤ 800 tokens with ≤ 120-token overlap, **sizes measured exactly** on joined text; overlap recorded per chunk             | Real timestamp boundaries for citations; strict size guarantees (summing or approximate splitters overshoot); explicit overlap enables de-duplication in retrieval                                        |
+| D49 | 2026-10-10 | **Property-based tests** (Hypothesis), thorough profile (2,000 examples) in CI                                                                             | Found four defects that example tests missed, each reduced to a minimal case [R121][R122]                                                                                                                 |

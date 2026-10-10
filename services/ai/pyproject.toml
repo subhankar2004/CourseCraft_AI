@@ -14,6 +14,7 @@ dependencies = [
     "langchain-ollama>=1.1,<2",
     "langchain-openai>=1.7,<2",
     "pydantic-settings>=2.15.0",
+    "tiktoken>=0.12",
     "uvicorn[standard]>=0.54.0",
     "youtube-transcript-api>=1",
     "yt-dlp>=2026.8.19",
@@ -26,6 +27,7 @@ package = false
 [dependency-groups]
 dev = [
     "httpx2>=2.13.1",
+    "hypothesis>=6.168.5",
     "mypy>=2.4.0",
     "pytest>=9.1.1",
     "ruff>=0.16.10",

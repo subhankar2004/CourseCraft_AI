@@ -117,3 +117,6 @@ jobs:
 
       - name: Test
         run: uv run pytest
+        env:
+          # Deep property-based testing in CI (2,000 examples; ~5 s). Found a bug the fast profile missed.
+          HYPOTHESIS_PROFILE: thorough

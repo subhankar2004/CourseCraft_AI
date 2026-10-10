@@ -38,6 +38,7 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
+.hypothesis/
 .mypy_cache/
 .ruff_cache/
 .coverage
