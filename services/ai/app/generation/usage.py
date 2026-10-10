@@ -75,6 +75,9 @@ class TokenUsageCallback(BaseCallbackHandler):
     def on_llm_end(self, response: LLMResult, *, run_id: UUID, **kwargs: Any) -> None:
         counts = extract_usage(response)
         if counts is None:
+            # Still a call: count it (with zero tokens) so job reports show every call.
+            if self.totals is not None:
+                self.totals.add(TokenCounts())
             logger.info(
                 "llm call (usage not reported)",
                 extra={"fields": {"operation": self.operation, "model": self.model}},

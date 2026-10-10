@@ -142,8 +142,6 @@ class SegmentIn(CamelModel):
 class IndexLessonRequest(CamelModel):
     """A lesson's transcript (from /ingest/transcript): chunked, embedded and stored."""
 
-    module_id: str = Field(pattern=ID_PATTERN)
-    video_id: str = Field(pattern=ID_PATTERN)
     youtube_id: str = Field(pattern=r"^[A-Za-z0-9_-]{11}$")
     lesson_title: str = Field(min_length=1, max_length=300)
     segments: list[SegmentIn] = Field(min_length=1, max_length=50_000)
@@ -175,9 +173,7 @@ class SearchRequest(CamelModel):
 
 class SearchHitOut(CamelModel):
     id: str
-    module_id: str
     lesson_id: str
-    video_id: str
     youtube_id: str
     chunk_index: int
     start_sec: float
@@ -195,4 +191,52 @@ class SearchResponse(CamelModel):
 
 class DeleteVectorsResponse(CamelModel):
     course_id: str
+    deleted: int
+
+
+# ─── Processing: one lesson (#24) ───────────────────────────────────────────
+
+
+class ProcessLessonRequest(CamelModel):
+    course_id: str = Field(pattern=ID_PATTERN)
+    #: Allocated by the API before processing; it creates the Lesson with this id (step 8).
+    lesson_id: str = Field(pattern=ID_PATTERN)
+    youtube_id: str = Field(pattern=r"^[A-Za-z0-9_-]{11}$")
+    #: The video's title, used as context for the notes.
+    video_title: str = Field(min_length=1, max_length=300)
+    segments: list[SegmentIn] = Field(min_length=1, max_length=50_000)
+
+
+class NotesOut(CamelModel):
+    title: str
+    summary: str
+    key_concepts: list[str]
+    notes_markdown: str
+    reading_time_min: int
+    #: Anchor times (s) used in the notes, in order.
+    anchors: list[float]
+    #: `name@version` of each prompt used (store with the lesson for provenance).
+    prompt_ids: list[str]
+
+
+class UsageOut(CamelModel):
+    llm_calls: int
+    input_tokens: int
+    output_tokens: int
+
+
+class ProcessLessonResponse(CamelModel):
+    course_id: str
+    lesson_id: str
+    chat_model: str
+    embedding_model: str
+    chunks: list[ChunkOut]
+    notes: NotesOut
+    usage: UsageOut
+    elapsed_sec: float
+
+
+class DeleteLessonVectorsResponse(CamelModel):
+    course_id: str
+    lesson_id: str
     deleted: int

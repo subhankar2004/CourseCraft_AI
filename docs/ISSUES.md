@@ -326,9 +326,9 @@ Meta: phase=P3 | area=ai | type=feat | depends=21,23
 **Goal:** One call that turns a video's transcript into a finished lesson.
 **Tasks**
 
-- [ ] `POST /process/lesson {courseId, lessonRef, youtubeId, segments}` → chunk, embed and upsert, generate notes → `{chunks[], notes, summary, keyConcepts, readingTimeMin}`
-- [ ] Idempotent: re-running it overwrites the same vector ids
-- [ ] Correlation id passed through to the logs
+- [x] `POST /process/lesson {courseId, lessonId (allocated by the API), youtubeId, videoTitle, segments}` → chunk, embed and upsert, generate notes → `{chunks[], notes, summary, keyConcepts, readingTimeMin}`
+- [x] Idempotent: re-running it overwrites the same vector ids
+- [x] Correlation id passed through to the logs
 
 **Done when:** An integration test with fakes passes, and a manual run against real services works.
 

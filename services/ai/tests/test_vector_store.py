@@ -23,9 +23,7 @@ DIM = KEYWORD_MODEL.dimension
 def lesson(course: str, lesson_id: str, title: str = "Lesson") -> LessonRef:
     return LessonRef(
         course_id=course,
-        module_id=f"{course}-m1",
         lesson_id=lesson_id,
-        video_id=f"{lesson_id}-v",
         youtube_id="dQw4w9WgXcQ",
         lesson_title=title,
     )
@@ -66,7 +64,7 @@ def test_upsert_search_delete_round_trip(index: VectorIndex) -> None:
     assert [h.id for h in hits] == ["l1-0", "l1-1"]  # ties (score 0) break by chunk order
     best = hits[0]
     assert best.score == pytest.approx(1.0, abs=1e-6)  # same direction as the query
-    assert (best.course_id, best.module_id, best.video_id) == ("c1", "c1-m1", "l1-v")
+    assert (best.course_id, best.lesson_id, best.youtube_id) == ("c1", "l1", "dQw4w9WgXcQ")
     assert (best.start_sec, best.end_sec, best.lesson_title) == (0.0, 59.0, "SQL")
     assert all(a.score >= b.score for a, b in pairwise(hits))
     assert len(index.similarity_search("c1", "transaction", k=10)) == 3
@@ -98,9 +96,7 @@ def test_rejects_records_for_another_lesson_or_dimension(make_store: StoreFactor
     record = VectorRecord(
         id="l1-0",
         course_id="c1",
-        module_id="m",
         lesson_id="l1",
-        video_id="v",
         youtube_id="dQw4w9WgXcQ",
         chunk_index=0,
         start_sec=0,
@@ -125,8 +121,6 @@ def test_http_round_trip(index: VectorIndex) -> None:
         for i, topic in enumerate(["join", "join", "join", "sort", "sort", "sort"] * 2)
     ]
     body = {
-        "moduleId": "m1",
-        "videoId": "v1",
         "youtubeId": "dQw4w9WgXcQ",
         "lessonTitle": "Algorithms",
         "segments": segments,

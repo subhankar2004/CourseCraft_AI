@@ -1,5 +1,6 @@
 import json
 import logging
+from uuid import uuid4
 
 import pytest
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
@@ -62,3 +63,11 @@ def test_falls_back_to_openai_token_usage_and_tolerates_missing_usage() -> None:
     assert counts is not None
     assert (counts.input_tokens, counts.output_tokens) == (7, 2)
     assert extract_usage(LLMResult(generations=[])) is None
+
+
+def test_calls_without_reported_usage_are_still_counted() -> None:
+    totals = UsageTotals()
+    callback = TokenUsageCallback(operation="notes", model="fake", totals=totals)
+    callback.on_llm_end(LLMResult(generations=[]), run_id=uuid4())
+    assert totals.calls == 1
+    assert totals.counts.total_tokens == 0

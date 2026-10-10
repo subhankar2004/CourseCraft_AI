@@ -33,6 +33,8 @@ from langchain_core.runnables.retry import ExponentialJitterParams
 from pydantic import BaseModel, Field
 
 from app.generation.prompts import Prompt, load_prompt
+from app.generation.providers import PROVIDER_ERRORS
+from app.generation.usage import UsageTotals
 from app.processing.chunking import TimedText, count_tokens
 
 logger = logging.getLogger("app.generation.notes")
@@ -51,7 +53,11 @@ class NotesFormatError(ValueError):
 
 
 class NotesGenerationError(RuntimeError):
-    """Notes could not be produced after all attempts."""
+    """Notes could not be produced after all attempts (the model's output stayed unusable)."""
+
+
+class LlmUnavailableError(RuntimeError):
+    """The chat model could not be reached after all attempts (retry the job later)."""
 
 
 class LessonNotes(BaseModel):
@@ -295,6 +301,7 @@ class NotesGenerator:
         reduce_tokens: int = 5000,
         concurrency: int = 2,
         retry_wait: ExponentialJitterParams | None = None,
+        usage: UsageTotals | None = None,
     ):
         self.model = model
         self.model_name = model_name
@@ -302,6 +309,8 @@ class NotesGenerator:
         self.reduce_tokens = reduce_tokens
         self.concurrency = concurrency
         self.retry_wait = retry_wait
+        #: Token totals of the model calls, when the model was created with the same totals.
+        self.usage = usage or UsageTotals()
         self.map_prompt = load_prompt("lesson-notes-map")
         self.collapse_prompt = load_prompt("lesson-notes-collapse")
         self.reduce_prompt = load_prompt("lesson-notes-reduce")
@@ -355,6 +364,8 @@ class NotesGenerator:
             raise NotesGenerationError(
                 f"notes failed after {ATTEMPTS} attempts: {error}"
             ) from error
+        except PROVIDER_ERRORS as error:
+            raise LlmUnavailableError(f"chat model unavailable: {error}") from error
 
         logger.info(
             "lesson notes generated",

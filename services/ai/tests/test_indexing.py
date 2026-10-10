@@ -20,8 +20,6 @@ from tests.fakes import KEYWORD_MODEL, FailingEmbeddings, KeywordEmbeddings
 
 HEADERS = {"X-Internal-Key": INTERNAL_KEY}
 LESSON = {
-    "moduleId": "mod1",
-    "videoId": "vid1",
     "youtubeId": "dQw4w9WgXcQ",
     "lessonTitle": "Joins",
     "segments": [{"text": "An inner join matches rows.", "start": 0, "duration": 4}],

@@ -100,8 +100,20 @@ def scripted(prompt: str) -> str:
     return reduce_reply(prompt)
 
 
-def generator(model: ScriptedChatModel, **kwargs: int) -> NotesGenerator:
-    return NotesGenerator(model, model_name="scripted", retry_wait=NO_WAIT, **kwargs)
+def generator(
+    model: ScriptedChatModel,
+    map_tokens: int = 2500,
+    reduce_tokens: int = 5000,
+    concurrency: int = 2,
+) -> NotesGenerator:
+    return NotesGenerator(
+        model,
+        model_name="scripted",
+        map_tokens=map_tokens,
+        reduce_tokens=reduce_tokens,
+        concurrency=concurrency,
+        retry_wait=NO_WAIT,
+    )
 
 
 # ─── Timestamps and anchors ─────────────────────────────────────────────────

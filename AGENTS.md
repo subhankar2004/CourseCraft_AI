@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #24 (`/process/lesson` endpoint: chunks + embeddings + notes in one call).
+**Next up:** Issue #25 (course structuring: `/process/structure`).
 
 ## How we work: 50 issues → 50 PRs
 

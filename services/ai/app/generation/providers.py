@@ -5,6 +5,9 @@ Everything that calls a model goes through `get_chat_model()` / `get_embeddings(
 configuration (AGENTS.md).
 """
 
+import httpx
+import ollama
+import openai
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
@@ -18,6 +21,18 @@ from app.generation.usage import TokenUsageCallback, UsageTotals
 
 class ProviderNotConfiguredError(RuntimeError):
     """The selected provider is missing something it needs (e.g. OPENAI_API_KEY)."""
+
+
+#: Errors that mean "the model service is unreachable or refused" (retry later), as opposed to
+#: bugs in our code. Ollama raises ConnectionError when it isn't running and ResponseError when
+#: e.g. the model isn't pulled; httpx and OpenAI errors cover timeouts and HTTP failures.
+PROVIDER_ERRORS: tuple[type[BaseException], ...] = (
+    ConnectionError,
+    TimeoutError,
+    httpx.HTTPError,
+    ollama.ResponseError,
+    openai.APIError,
+)
 
 
 def _openai_key(settings: Settings) -> SecretStr:

@@ -38,9 +38,7 @@ class VectorStoreError(RuntimeError):
 class VectorRecord:
     id: str  # == Chunk.id in the API database, e.g. "<lessonRef>-<index>"
     course_id: str
-    module_id: str
     lesson_id: str
-    video_id: str
     youtube_id: str
     chunk_index: int
     start_sec: float
@@ -55,9 +53,7 @@ class VectorRecord:
 class SearchHit:
     id: str
     course_id: str
-    module_id: str
     lesson_id: str
-    video_id: str
     youtube_id: str
     chunk_index: int
     start_sec: float
@@ -77,6 +73,7 @@ class VectorStore(Protocol):
         self, course_id: str, lesson_id: str, records: Sequence[VectorRecord]
     ) -> int: ...
     def delete_course(self, course_id: str) -> int: ...
+    def delete_lesson(self, course_id: str, lesson_id: str) -> int: ...
     def search(self, course_id: str, embedding: Sequence[float], k: int) -> list[SearchHit]: ...
     def count(self, course_id: str) -> int: ...
     def close(self) -> None: ...
@@ -130,9 +127,7 @@ class PgVectorStore:
                 CREATE TABLE IF NOT EXISTS {table} (
                     id           text PRIMARY KEY,
                     course_id    text NOT NULL,
-                    module_id    text NOT NULL,
                     lesson_id    text NOT NULL,
-                    video_id     text NOT NULL,
                     youtube_id   text NOT NULL,
                     chunk_index  integer NOT NULL,
                     start_sec    double precision NOT NULL,
@@ -149,6 +144,13 @@ class PgVectorStore:
                 sql.SQL(
                     "CREATE INDEX IF NOT EXISTS {index} ON {table} (course_id, lesson_id)"
                 ).format(index=self._index, table=self._table)
+            )
+            # #24: module and video ids are no longer stored (they don't exist yet when a lesson
+            # is indexed, and modules change on reorder). Drops them from tables made by #21.
+            conn.execute(
+                sql.SQL(
+                    "ALTER TABLE {} DROP COLUMN IF EXISTS module_id, DROP COLUMN IF EXISTS video_id"
+                ).format(self._table)
             )
             row = conn.execute(
                 """
@@ -183,13 +185,11 @@ class PgVectorStore:
             with conn.cursor() as cur:
                 cur.executemany(
                     sql.SQL("""
-                    INSERT INTO {} (id, course_id, module_id, lesson_id, video_id, youtube_id,
-                        chunk_index, start_sec, end_sec, lesson_title, text, token_count,
-                        embedding)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO {} (id, course_id, lesson_id, youtube_id, chunk_index,
+                        start_sec, end_sec, lesson_title, text, token_count, embedding)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (id) DO UPDATE SET
-                        course_id = EXCLUDED.course_id, module_id = EXCLUDED.module_id,
-                        lesson_id = EXCLUDED.lesson_id, video_id = EXCLUDED.video_id,
+                        course_id = EXCLUDED.course_id, lesson_id = EXCLUDED.lesson_id,
                         youtube_id = EXCLUDED.youtube_id, chunk_index = EXCLUDED.chunk_index,
                         start_sec = EXCLUDED.start_sec, end_sec = EXCLUDED.end_sec,
                         lesson_title = EXCLUDED.lesson_title, text = EXCLUDED.text,
@@ -200,9 +200,7 @@ class PgVectorStore:
                         (
                             r.id,
                             r.course_id,
-                            r.module_id,
                             r.lesson_id,
-                            r.video_id,
                             r.youtube_id,
                             r.chunk_index,
                             r.start_sec,
@@ -221,6 +219,16 @@ class PgVectorStore:
         with self._connections().connection() as conn:
             result = conn.execute(
                 sql.SQL("DELETE FROM {} WHERE course_id = %s").format(self._table), (course_id,)
+            )
+            return result.rowcount
+
+    def delete_lesson(self, course_id: str, lesson_id: str) -> int:
+        with self._connections().connection() as conn:
+            result = conn.execute(
+                sql.SQL("DELETE FROM {} WHERE course_id = %s AND lesson_id = %s").format(
+                    self._table
+                ),
+                (course_id, lesson_id),
             )
             return result.rowcount
 
@@ -243,7 +251,7 @@ class PgVectorStore:
         with self._connections().connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 sql.SQL("""
-                SELECT id, course_id, module_id, lesson_id, video_id, youtube_id, chunk_index,
+                SELECT id, course_id, lesson_id, youtube_id, chunk_index,
                        start_sec, end_sec,
                        lesson_title, text, 1 - (embedding <=> %s) AS score
                 FROM {}

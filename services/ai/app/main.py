@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
 
 from app import __version__
-from app.api import health, ingest, vectors
+from app.api import health, ingest, process, vectors
 from app.api.deps import require_internal_key
 from app.config import Settings, get_settings
 from app.core.errors import register_error_handlers
@@ -81,6 +81,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     internal = APIRouter(dependencies=[Depends(require_internal_key)])
     internal.include_router(ingest.router)
     internal.include_router(vectors.router)
+    internal.include_router(process.router)
     app.include_router(internal)
 
     return app
