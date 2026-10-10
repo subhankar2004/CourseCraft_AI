@@ -23,6 +23,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 8   | 2026-10-10 | [#8](https://github.com/subhankar2004/CourseCraft_AI/issues/8) / [#59](https://github.com/subhankar2004/CourseCraft_AI/pull/59)   | P1    | Idempotent demo seed: users, 4 domains, 1 real-video course; Argon2id hashing                 |
 | 9   | 2026-10-10 | [#9](https://github.com/subhankar2004/CourseCraft_AI/issues/9) / [#60](https://github.com/subhankar2004/CourseCraft_AI/pull/60)   | P1    | Authentication API: register/login/logout/me, JWT cookie sessions, global guards, rate limits |
 | 10  | 2026-10-10 | [#10](https://github.com/subhankar2004/CourseCraft_AI/issues/10) / [#61](https://github.com/subhankar2004/CourseCraft_AI/pull/61) | P1    | Domains API: public catalog reads, admin CRUD with slugs and delete protection                |
+| 11  | 2026-10-10 | [#11](https://github.com/subhankar2004/CourseCraft_AI/issues/11) / [#62](https://github.com/subhankar2004/CourseCraft_AI/pull/62) | P1    | Courses & lessons read API: catalog list/search/pagination, course outline, lesson reader     |
 
 ---
 
@@ -393,6 +394,48 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 11 — Courses and lessons read API (Issue #11, PR #62, 2026-10-10)
+
+**What:** `apps/api/src/courses`, the read side of the learning content:
+
+| Endpoint                                    | Access    | Design                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /courses?domain&q&level&page&pageSize` | public    | **Published only.** Filter by domain slug and level; `q` = case-insensitive match on title/description; **offset pagination** (`page`, `pageSize` ≤ 50) returning `{items, page, pageSize, total, totalPages}`. Count and page are read in one transaction for a consistent total. Deterministic order (title, then id) |
+| `GET /courses/:slug`                        | public    | The course **outline**: modules and lessons ordered by their `order` columns, with lesson titles, reading time and video length, **without note bodies** (they load per lesson, keeping the page small). `totalVideoSec` counts each source video **once**, even when several lessons share it                          |
+| `GET /lessons/:id`                          | signed in | Notes, key concepts, video (YouTube id, length, channel), module/course context, and **`prevLessonId`/`nextLessonId` across module boundaries** (ordered by module, then lesson)                                                                                                                                        |
+
+- **Object-level access control:** a lesson belonging to an unpublished course returns **404 to students** (not 403, which would confirm it exists) and is **visible to admins** for the review screen (#31). This addresses OWASP API Security's top risk, broken object-level authorisation [R102].
+- **Shared contracts:** `courseListQuerySchema` (query-string coercion, limits, unknown parameters rejected), `courseListSchema`, `courseDetailSchema`, `lessonDetailSchema`, for the catalog and lesson pages (#14, #15, #35).
+- **Refactor:** the course-card selection and mapping (`course-summary.ts`) is shared by the Domains and Courses services, so there is one definition of what a course card contains.
+
+**Problems and resolutions:**
+
+- **Flaky-by-design test cleanup (D27).** The new suite failed only when run with the others: Vitest runs test files **in parallel** against one database, and each suite's cleanup deleted _all_ e2e-marked users, including the users another suite was still signed in as. Their sessions were then (correctly, per #9) rejected. Fixed with **per-suite fixture scopes** (`createE2eScope()`): every slug, YouTube id and email is built from the suite's own prefix, and cleanup deletes only that scope. This applies the xUnit "fresh fixture" principle of test isolation [R101]. The auth and domains suites were migrated too.
+- Domains created _through the API_ get slugs generated from their names, so the domains tests now name them with the suite prefix, keeping them inside the cleanup scope.
+
+**Verification:**
+
+- **10 new e2e tests:**
+  - fixtures are created **out of order** on purpose, to prove that ordering comes from the `order` columns;
+  - list: domain filter, sorting, draft excluded, lesson counts;
+  - pagination (2 pages);
+  - search on description (case-insensitive) and title; level filter; no-match;
+  - invalid query → 400 listing every problem;
+  - outline order, `totalVideoSec` = 600 + 900 with a shared video counted once, no note bodies;
+  - draft and unknown course → 404;
+  - lesson: 401 without a session; notes, video and context; prev/next **across the module boundary** and null at both ends;
+  - draft lesson: student 404, admin 200; unknown → 404.
+- 7 new shared unit tests for the query schema.
+- **Stability:** the full e2e suite (44 tests) passed in **3 consecutive parallel runs**, with **0 leftover fixtures** in the test database.
+- **Real server, seeded data (done-when):**
+  - `/courses` lists _Database Fundamentals_;
+  - the outline shows 2 modules × 2 lessons and 12.5 h of distinct video;
+  - **signed in as the seeded student, all 4 lessons were read by following `nextLessonId`** (module 1 → module 2 → end), each with its notes and 3–6 timestamp anchors;
+  - anonymous lesson access → 401.
+- Root format, lint, typecheck, test (JS and Python) and build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -425,3 +468,5 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D24 | 2026-10-10 | Request validation for auth uses the **shared Zod schemas** via a `ZodValidationPipe`                                                                      | One definition of the rules for API and web forms, which can't drift apart [R44]                                                                                                                          |
 | D25 | 2026-10-10 | `TRUST_PROXY` off by default; per-IP login/register rate limits                                                                                            | Prevents IP spoofing through `X-Forwarded-For`, and slows brute-force and sign-up abuse [R94][R98]                                                                                                        |
 | D26 | 2026-10-10 | Public catalog shows **published** courses only (filtered in the query); slugs stable unless explicitly changed; domain delete blocked while courses exist | No draft leaks; shareable URLs don't break; no orphaned or accidentally deleted content (application check + FK RESTRICT)                                                                                 |
+| D27 | 2026-10-10 | **Per-suite e2e fixture scopes**; cleanup never by a global pattern                                                                                        | Test files run in parallel on one database; isolation keeps them deterministic and safe on a seeded database [R101]                                                                                       |
+| D28 | 2026-10-10 | Unpublished lessons → **404 for students**, visible to admins; outline excludes note bodies                                                                | Object-level authorisation without revealing that drafts exist [R102]; smaller course payloads                                                                                                            |

@@ -2,12 +2,14 @@ import type { INestApplication } from '@nestjs/common';
 import { domainDetailSchema, domainSchema, errorResponseSchema } from '@coursecraft/shared';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service.js';
-import { cleanupE2eData, createTestApp, E2E_PREFIX, signInAs, uniqueId } from './helpers.js';
+import { cleanupE2eData, createE2eScope, createTestApp, signInAs, uniqueId } from './helpers.js';
 
 // Needs PostgreSQL with migrations applied to TEST_DATABASE_URL (pnpm infra:up; CI does this).
 // Tolerates other data in the database (e.g. the seed): assertions only target e2e fixtures.
 
 describe('Domains (e2e)', () => {
+  const scope = createE2eScope();
+  const E2E_PREFIX = scope.prefix;
   let app: INestApplication;
   let prisma: PrismaService;
   let adminCookie: string;
@@ -17,19 +19,20 @@ describe('Domains (e2e)', () => {
   beforeAll(async () => {
     app = await createTestApp();
     prisma = app.get(PrismaService);
-    const admin = await signInAs(app, 'ADMIN');
+    const admin = await signInAs(app, scope, 'ADMIN');
     adminCookie = admin.cookie;
     adminId = admin.user.id;
-    studentCookie = (await signInAs(app, 'STUDENT')).cookie;
+    studentCookie = (await signInAs(app, scope, 'STUDENT')).cookie;
   });
 
   afterAll(async () => {
-    await cleanupE2eData(prisma);
+    await cleanupE2eData(prisma, scope);
     await app.close();
   });
 
   const http = () => request(app.getHttpServer());
-  const newName = () => `E2E Domain ${uniqueId()}`;
+  // Names start with the suite prefix so their generated slugs are cleaned up by this suite.
+  const newName = () => `${E2E_PREFIX}domain ${uniqueId()}`;
 
   /** A domain with one published course (2 lessons) and one draft course. */
   async function domainWithCourses() {
@@ -114,7 +117,7 @@ describe('Domains (e2e)', () => {
       const res = await http()
         .post('/api/v1/domains')
         .set('Cookie', adminCookie)
-        .send({ name: `E2E Cloud ${id}`, description: 'Infra and cloud' })
+        .send({ name: `${E2E_PREFIX}cloud ${id}`, description: 'Infra and cloud' })
         .expect(201);
       expect(domainSchema.parse(res.body)).toMatchObject({
         slug: `${E2E_PREFIX}cloud-${id}-2`,

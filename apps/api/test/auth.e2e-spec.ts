@@ -9,6 +9,7 @@ import { configureApp } from '../src/app.setup.js';
 import { Roles } from '../src/auth/auth.decorators.js';
 import { hashPassword } from '../src/auth/password.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
+import { cleanupE2eData, createE2eScope, newIp } from './helpers.js';
 
 // Needs PostgreSQL with migrations applied to TEST_DATABASE_URL (pnpm infra:up; CI does this).
 
@@ -24,13 +25,9 @@ class AdminOnlyController {
 @Module({ controllers: [AdminOnlyController] })
 class AdminOnlyModule {}
 
-const EMAIL_DOMAIN = '@e2e.coursecraft.test';
+const scope = createE2eScope();
 const PASSWORD = 'a-long-test-password';
-
-let ipCounter = 0;
-/** A distinct client IP per call site, so per-IP rate limits never leak between tests. */
-const newIp = () => `10.0.${Math.floor(++ipCounter / 250)}.${ipCounter % 250}`;
-const newEmail = () => `user-${randomUUID()}${EMAIL_DOMAIN}`;
+const newEmail = () => `user-${randomUUID()}${scope.emailDomain}`;
 
 function sessionCookie(res: request.Response): string | undefined {
   const cookies = ([] as string[]).concat(res.headers['set-cookie'] ?? []);
@@ -52,7 +49,7 @@ describe('Auth (e2e)', () => {
   });
 
   afterAll(async () => {
-    await prisma.user.deleteMany({ where: { email: { endsWith: EMAIL_DOMAIN } } });
+    await cleanupE2eData(prisma, scope);
     await app.close();
   });
 
