@@ -258,6 +258,7 @@ Meta: phase=P2 | area=ai | type=feat | depends=18
 - [ ] Transcribe with faster-whisper (`WHISPER_MODEL`), returning timestamped segments with `source=WHISPER`
 - [ ] Guard: skip videos longer than `WHISPER_MAX_MINUTES` (add to env and SPEC)
 - [ ] Wire it in as the last fallback of `/ingest/transcript`
+- [ ] Also transcribe when captions exist but their language doesn't match the video's spoken language (found in #18: YouTube auto-captions of English speech mislabelled `hi`, written phonetically in Devanagari). Compare the caption language with the metadata language from #17
 
 **Done when:** A no-subtitle test video produces a transcript locally. _(This can be cut per the SPEC §13 scope guard.)_
 

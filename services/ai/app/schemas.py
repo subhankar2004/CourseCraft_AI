@@ -93,3 +93,30 @@ class IngestMetadataResponse(CamelModel):
     #: True when the input had more videos than MAX_VIDEOS_PER_COURSE allows.
     truncated: bool
     max_videos: int
+
+
+# ─── Ingestion: transcripts (#18) ───────────────────────────────────────────
+
+
+class IngestTranscriptRequest(CamelModel):
+    youtube_id: str = Field(pattern=r"^[A-Za-z0-9_-]{11}$")
+
+
+class SegmentOut(CamelModel):
+    text: str
+    start: float
+    duration: float
+
+
+class IngestTranscriptResponse(CamelModel):
+    youtube_id: str
+    #: Matches the API's TranscriptSource enum (WHISPER arrives in #19).
+    source: Literal["YT_MANUAL", "YT_AUTO"]
+    language: str
+    #: Original language when YouTube translated the captions to English.
+    translated_from: str | None
+    fetched_with: Literal["youtube-transcript-api", "yt-dlp"]
+    segment_count: int
+    #: End of the last segment, in seconds.
+    covered_sec: float
+    segments: list[SegmentOut]

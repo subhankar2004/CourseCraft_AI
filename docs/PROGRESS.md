@@ -30,6 +30,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 15  | 2026-10-10 | [#15](https://github.com/subhankar2004/CourseCraft_AI/issues/15) / [#66](https://github.com/subhankar2004/CourseCraft_AI/pull/66) | P1    | Course overview page with OG/JSON-LD; hydration and rate-limit fixes; **P1 complete**         |
 | 16  | 2026-10-10 | [#16](https://github.com/subhankar2004/CourseCraft_AI/issues/16) / [#67](https://github.com/subhankar2004/CourseCraft_AI/pull/67) | P2    | AI provider factory (OpenAI/Ollama), embedding registry, prompt loader, token-usage logging   |
 | 17  | 2026-10-10 | [#17](https://github.com/subhankar2004/CourseCraft_AI/issues/17) / [#68](https://github.com/subhankar2004/CourseCraft_AI/pull/68) | P2    | YouTube URL parsing (SSRF-safe) and metadata via yt-dlp; `/ingest/metadata`                   |
+| 18  | 2026-10-10 | [#18](https://github.com/subhankar2004/CourseCraft_AI/issues/18) / [#69](https://github.com/subhankar2004/CourseCraft_AI/pull/69) | P2    | Transcripts: youtube-transcript-api + yt-dlp VTT fallback, cleaning, `/ingest/transcript`     |
 
 ---
 
@@ -683,6 +684,47 @@ No real model calls are made yet; the first will be in #21 (embeddings) and #23 
 
 ---
 
+## Entry 18 — Transcript fetching (Issue #18, PR #69, 2026-10-10)
+
+**What:** SPEC §7.1 step 2 (before Whisper), `services/ai/app/ingestion/transcripts.py`:
+
+- **Source order:**
+  1. **youtube-transcript-api** [R22] (v1.2): **manual English → auto-generated English → YouTube's translation to English → the original-language captions**, labelled honestly;
+  2. **yt-dlp subtitle tracks** [R23] as **WebVTT** (manual, then automatic English), used when the first source is blocked, fails or finds nothing.
+- **Normalisation:** `{text, start, duration}` segments; HTML entities unescaped; non-speech noise removed (`[Music]`, `[Applause]`, `(laughs)`, `♪`, `>>`); whitespace collapsed; empty segments dropped; sorted by time.
+- **WebVTT parser** [R117] that handles YouTube's **"rolling" auto-captions**: each line first appears with inline word timings, then repeats in 10 ms hold cues and in the next cue. Lines matching one of the last few emitted lines are dropped, and inline tags are stripped. The same algorithm handles manual captions, where a cue's two lines form one sentence.
+- **Two error types for the job pipeline:**
+  - `NoTranscriptError` → **404**: no captions exist, or the video is inaccessible. Definitive; Whisper (#19) takes over.
+  - `TranscriptUnavailableError` → **503** + `Retry-After: 60`: YouTube blocked or couldn't be reached. Retry later.
+- **Defence in depth:** caption files are only downloaded from `https://*.youtube.com` URLs, on top of the #17 SSRF rule.
+- **`POST /ingest/transcript`** (internal key): `{youtubeId}` (11-character id validated) → `source`, `language`, `translatedFrom`, `fetchedWith`, `segmentCount`, `coveredSec`, `segments`.
+
+**Problems found by testing, and their fixes:**
+
+1. **Mis-timed auto captions (a real bug).** YouTube's auto cues contain a line holding a single space, and the cue splitter treated "newline, whitespace, newline" as a separator. That cut each cue in two and attached its text to the _next_ cue's time, about 1.5 s late, which would have pushed every timestamp anchor in auto-captioned lessons late. Cues are now split only on **empty** lines, as the WebVTT spec defines. The fixture test now asserts the start times, and a **mutation check** confirmed it fails with the old splitter. On real data the parser's timestamps now **match youtube-transcript-api's exactly** (first five: 2.24, 3.84, 5.28, 7.40, 8.92 s; 1,640 vs 1,642 segments, the difference being noise-only segments).
+2. **A misleading 503 (design fix).** For one real video the only captions were auto-generated and **labelled Hindi, but the speech was English**, written phonetically in Devanagari (YouTube mis-detection). YouTube refused to translate them (`NotTranslatable`), so the code fell through to yt-dlp, whose machine-translated track request failed, and the result was "temporarily unavailable", although YouTube was reachable. Now each translation attempt is independent, and the **original-language captions are returned with their real language** (200, `language: "hi"`, 2,204 segments). That is correct for genuinely non-English lectures, which the LLM can still turn into English notes.
+3. **Recorded for #19 (GitHub issue and ISSUES.md updated):** mislabelled captions like these are unusable, so Whisper should also run when the **caption language differs from the video's spoken language** (from #17's metadata).
+
+**Verification:**
+
+- **26 new offline tests**:
+  - noise cleaning (6 cases);
+  - manual VTT (two-line cue, HTML entities, hour timestamps, NOTE block);
+  - **rolling auto VTT** (no repeats, **correct start times**);
+  - the decision tree with fake APIs: manual over auto; auto fallback with noise removed; translation; **refused translation → original language without calling yt-dlp**; untranslatable track; inaccessible video → 404 with no fallback; disabled → yt-dlp → none;
+  - **blocked or network failure → yt-dlp VTT** (3 error kinds); `en-orig` mapping; **captions from non-YouTube hosts never fetched**; both sources failing → temporary error;
+  - endpoint: shape, 404, 503 with `Retry-After`, 3 invalid ids.
+- **Live YouTube (`pytest -m network`): 6/6 in about 20 s**:
+  - **manual English** (the seed's SQL course: over 1,000 segments);
+  - **auto English** (`kqtD5dpn9C8`);
+  - **no captions → `NoTranscriptError`** (`LXb3EKWsInQ`);
+  - **the yt-dlp fallback parsing real VTT** with no rolling repeats;
+  - plus #17's metadata tests.
+- **Real service:** the SQL course → 200, 4,514 segments covering 15,638.6 s (the full video); the mislabelled video → 200 with `hi`; no-captions video → 404.
+- Python: 123 offline + 6 network tests, Ruff, mypy `--strict`. JS: all checks and build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -732,3 +774,5 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D41 | 2026-10-10 | Request id captured at **log-record creation** (record factory)                                                                                            | Correct correlation even when records are formatted later or on another thread [R115]                                                                                                                     |
 | D42 | 2026-10-10 | **User URLs never reach yt-dlp**: strict parse → canonical URL from the id; yt-dlp limited to YouTube extractors                                           | yt-dlp can fetch over a thousand sites; allow-listing prevents server-side request forgery through the ingestion API [R116]                                                                               |
 | D43 | 2026-10-10 | Unavailable videos are **reported per video**, not fatal to the batch                                                                                      | One private or removed video shouldn't block a whole course; admins see why in the job (#27/#30)                                                                                                          |
+| D44 | 2026-10-10 | Transcript order: manual EN → auto EN → translation → original language (labelled) → yt-dlp VTT; **404 = no captions, 503 = retry later**                  | Best available text with honest labelling; the job pipeline can tell "use Whisper" apart from "try again later"                                                                                           |
+| D45 | 2026-10-10 | Own WebVTT parser with rolling-caption de-duplication; split cues on **empty lines only** (per the spec)                                                   | YouTube auto-captions repeat lines and contain whitespace-only lines; correct timing is essential for timestamp anchors and citations [R117]                                                              |
