@@ -1,6 +1,8 @@
 import { type INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { REQUEST_ID_HEADER } from './common/logging/logger.module.js';
 import type { Env } from './config/env.js';
@@ -10,6 +12,10 @@ export const API_PREFIX = 'api/v1';
 /** Cross-cutting HTTP setup shared by main.ts and the e2e tests. */
 export function configureApp(app: INestApplication): void {
   const config = app.get<ConfigService<Env, true>>(ConfigService);
+
+  // Real client IPs (for rate limiting and logs) only when a trusted proxy sets X-Forwarded-For.
+  (app as NestExpressApplication).set('trust proxy', config.get('TRUST_PROXY', { infer: true }));
+  app.use(cookieParser());
 
   app.setGlobalPrefix(API_PREFIX);
   app.useGlobalPipes(

@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #9, authentication API (register, login, JWT, role guards).
+**Next up:** Issue #10, Domains API.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -90,6 +90,12 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - Secrets come only from env vars. Never commit `.env`. Add every new variable to `.env.example` and SPEC §12.
 - **Next.js 16 is newer than most training data:** before writing web code, read [apps/web/AGENTS.md](apps/web/AGENTS.md) and the bundled docs in `apps/web/node_modules/next/dist/docs/` (e.g. error boundaries take `retry`, not `reset`).
 - Keep the code idiomatic for each framework: NestJS modules/controllers/services/DTOs (ESM: relative imports end in `.js`); Next.js App Router with server components by default; FastAPI routers per feature folder.
+
+**Auth (API)**
+
+- **Secure by default:** the global `JwtAuthGuard` protects every route. Mark intentionally public routes with `@Public()`, and admin routes with `@Roles('ADMIN')`. Get the signed-in user with `@CurrentUser()`.
+- Validate request bodies with the shared Zod schemas: `@Body(new ZodValidationPipe(schema))`.
+- Never return `passwordHash`; select only public user fields.
 
 **API contracts**
 
