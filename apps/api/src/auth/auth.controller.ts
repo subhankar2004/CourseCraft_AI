@@ -1,12 +1,23 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
-import type { Response } from 'express';
+import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import type { Request, Response } from 'express';
 import {
   type LoginInput,
   loginSchema,
   type RegisterInput,
   registerSchema,
+  type Session,
   type User,
 } from '@coursecraft/shared';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe.js';
@@ -58,6 +69,18 @@ export class AuthController {
   logout(@Res({ passthrough: true }) res: Response): void {
     const { maxAge: _maxAge, ...options } = this.cookieOptions();
     res.clearCookie(SESSION_COOKIE, options);
+  }
+
+  /**
+   * Who is signed in, for the web app. Always 200: `{ user: null }` when signed out, so ordinary
+   * signed-out page views don't log 401 errors in the browser. `/auth/me` keeps its strict 401.
+   */
+  @Public()
+  @Get('session')
+  @SkipThrottle()
+  async session(@Req() req: Request): Promise<Session> {
+    const user = await this.auth.resolveSession(req.cookies?.[SESSION_COOKIE]);
+    return { user: user ? this.auth.toPublicUser(user) : null };
   }
 
   @Get('me')

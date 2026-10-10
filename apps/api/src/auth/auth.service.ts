@@ -65,6 +65,25 @@ export class AuthService implements OnModuleInit {
     return publicUser;
   }
 
+  /**
+   * Resolves a session token to the current user, or `null` if the token is missing, invalid,
+   * expired, or its user no longer exists. Shared by the global guard and GET /auth/session.
+   */
+  async resolveSession(token: unknown): Promise<AuthUser | null> {
+    if (typeof token !== 'string' || !token) return null;
+    let payload: JwtPayload;
+    try {
+      payload = await this.jwt.verifyAsync<JwtPayload>(token, {
+        algorithms: ['HS256'],
+        issuer: JWT_ISSUER,
+        audience: JWT_AUDIENCE,
+      });
+    } catch {
+      return null;
+    }
+    return this.prisma.user.findUnique({ where: { id: payload.sub }, select: PUBLIC_USER_FIELDS });
+  }
+
   signSession(user: AuthUser): Promise<string> {
     const payload: JwtPayload = { sub: user.id, role: user.role };
     return this.jwt.signAsync(payload, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE });

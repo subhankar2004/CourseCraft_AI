@@ -5,11 +5,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '../prisma/prisma.service.js';
 import { IS_PUBLIC_KEY } from './auth.decorators.js';
-import type { AuthenticatedRequest, JwtPayload } from './auth.types.js';
-import { JWT_AUDIENCE, JWT_ISSUER, SESSION_COOKIE } from './session-cookie.js';
+import { AuthService } from './auth.service.js';
+import type { AuthenticatedRequest } from './auth.types.js';
+import { SESSION_COOKIE } from './session-cookie.js';
 
 /**
  * Global guard: every route requires a valid session unless marked @Public().
@@ -20,8 +19,7 @@ import { JWT_AUDIENCE, JWT_ISSUER, SESSION_COOKIE } from './session-cookie.js';
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly jwt: JwtService,
-    private readonly prisma: PrismaService,
+    private readonly auth: AuthService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -35,21 +33,7 @@ export class JwtAuthGuard implements CanActivate {
     const token: unknown = request.cookies?.[SESSION_COOKIE];
     if (typeof token !== 'string' || !token) throw new UnauthorizedException('Not signed in');
 
-    let payload: JwtPayload;
-    try {
-      payload = await this.jwt.verifyAsync<JwtPayload>(token, {
-        algorithms: ['HS256'],
-        issuer: JWT_ISSUER,
-        audience: JWT_AUDIENCE,
-      });
-    } catch {
-      throw new UnauthorizedException('Session expired or invalid');
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
-      select: { id: true, email: true, name: true, role: true, createdAt: true },
-    });
+    const user = await this.auth.resolveSession(token);
     if (!user) throw new UnauthorizedException('Session expired or invalid');
 
     request.user = user;
