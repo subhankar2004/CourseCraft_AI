@@ -1,0 +1,18 @@
+WEBVTT
+Kind: captions
+Language: en
+
+NOTE Synthetic fixture in YouTube's manual-caption format (no third-party text).
+
+00:00:00.000 --> 00:00:01.500
+Database Basics - Lesson One
+
+00:00:01.500 --> 00:00:05.250
+In this lesson we&#39;ll learn what a database is
+and why we use one.
+
+00:00:05.250 --> 00:00:07.000
+[Music]
+
+01:02:03.400 --> 01:02:05.600
+Tables store rows &amp; columns.

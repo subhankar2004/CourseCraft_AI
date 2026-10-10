@@ -11,6 +11,7 @@ dependencies = [
     "langchain-openai>=1.7,<2",
     "pydantic-settings>=2.15.0",
     "uvicorn[standard]>=0.54.0",
+    "youtube-transcript-api>=1",
     "yt-dlp>=2026.8.19",
 ]
 
