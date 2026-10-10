@@ -23,6 +23,7 @@ from app.processing.vector_store import PgVectorStore
 from app.schemas import (
     ID_PATTERN,
     ChunkOut,
+    DeleteLessonVectorsResponse,
     DeleteVectorsResponse,
     IndexLessonRequest,
     IndexLessonResponse,
@@ -38,7 +39,7 @@ _lock = threading.Lock()
 IdParam = Annotated[str, Path(pattern=ID_PATTERN)]
 
 
-def _unavailable(message: str) -> HTTPException:
+def unavailable(message: str) -> HTTPException:
     return HTTPException(
         status.HTTP_503_SERVICE_UNAVAILABLE, message, headers={"Retry-After": "30"}
     )
@@ -46,15 +47,15 @@ def _unavailable(message: str) -> HTTPException:
 
 def build_vector_index(settings: Settings) -> VectorIndex:
     if settings.vector_store != "pgvector":
-        raise _unavailable(f"VECTOR_STORE={settings.vector_store} is not implemented")
+        raise unavailable(f"VECTOR_STORE={settings.vector_store} is not implemented")
     url = settings.vector_db_url
     if url is None:
-        raise _unavailable("vector store not configured (set DATABASE_URL or VECTOR_DATABASE_URL)")
+        raise unavailable("vector store not configured (set DATABASE_URL or VECTOR_DATABASE_URL)")
     info = embedding_model_info(settings.embed_model)
     try:
         embeddings = get_embeddings(settings)
     except ProviderNotConfiguredError as error:
-        raise _unavailable(str(error)) from error
+        raise unavailable(str(error)) from error
     store = PgVectorStore(url, table_suffix=info.index_suffix, dimension=info.dimension)
     return VectorIndex(store, Embedder(embeddings, info))
 
@@ -71,14 +72,14 @@ def get_vector_index(
     return index
 
 
-def _run[T](call: Callable[[], T]) -> T:
+def run_infra[T](call: Callable[[], T]) -> T:
     """Maps infrastructure failures to 503 (the API's job queue retries them)."""
     try:
         return call()
     except EmbeddingProviderError as error:
-        raise _unavailable(str(error)) from error
+        raise unavailable(str(error)) from error
     except (OperationalError, PoolTimeout) as error:
-        raise _unavailable("vector database unavailable") from error
+        raise unavailable("vector database unavailable") from error
 
 
 @router.put("/{course_id}/lessons/{lesson_id}")
@@ -99,13 +100,11 @@ def index_lesson(
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "transcript has no text")
     lesson = LessonRef(
         course_id=course_id,
-        module_id=body.module_id,
         lesson_id=lesson_id,
-        video_id=body.video_id,
         youtube_id=body.youtube_id,
         lesson_title=body.lesson_title,
     )
-    _run(lambda: index.index_lesson(lesson, chunks))
+    run_infra(lambda: index.index_lesson(lesson, chunks))
     return IndexLessonResponse(
         course_id=course_id,
         lesson_id=lesson_id,
@@ -133,7 +132,7 @@ def search(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> SearchResponse:
     """The chunks of ONE course most similar to the query (never other courses')."""
-    hits = _run(
+    hits = run_infra(
         lambda: index.similarity_search(course_id, body.query, body.k or settings.rag_top_k)
     )
     return SearchResponse(
@@ -141,9 +140,7 @@ def search(
         hits=[
             SearchHitOut(
                 id=h.id,
-                module_id=h.module_id,
                 lesson_id=h.lesson_id,
-                video_id=h.video_id,
                 youtube_id=h.youtube_id,
                 chunk_index=h.chunk_index,
                 start_sec=h.start_sec,
@@ -163,5 +160,17 @@ def delete_course_vectors(
 ) -> DeleteVectorsResponse:
     """Removes every vector of a course (when the course is deleted, #33)."""
     return DeleteVectorsResponse(
-        course_id=course_id, deleted=_run(lambda: index.delete_course(course_id))
+        course_id=course_id, deleted=run_infra(lambda: index.delete_course(course_id))
+    )
+
+
+@router.delete("/{course_id}/lessons/{lesson_id}")
+def delete_lesson_vectors(
+    course_id: IdParam, lesson_id: IdParam, index: Annotated[VectorIndex, Depends(get_vector_index)]
+) -> DeleteLessonVectorsResponse:
+    """Removes one lesson's vectors (a video skipped by the job, or a deleted lesson)."""
+    return DeleteLessonVectorsResponse(
+        course_id=course_id,
+        lesson_id=lesson_id,
+        deleted=run_infra(lambda: index.delete_lesson(course_id, lesson_id)),
     )

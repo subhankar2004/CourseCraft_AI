@@ -113,6 +113,14 @@ class InMemoryVectorStore:
             del self.rows[key]
         return len(doomed)
 
+    def delete_lesson(self, course_id: str, lesson_id: str) -> int:
+        doomed = [
+            k for k, r in self.rows.items() if (r.course_id, r.lesson_id) == (course_id, lesson_id)
+        ]
+        for key in doomed:
+            del self.rows[key]
+        return len(doomed)
+
     def search(self, course_id: str, embedding: Sequence[float], k: int) -> list[SearchHit]:
         def cosine(a: Sequence[float], b: Sequence[float]) -> float:
             dot = sum(x * y for x, y in zip(a, b, strict=True))

@@ -946,6 +946,45 @@ Both were then reverted. The new tests also passed on the first run, which is wh
 
 ---
 
+## Entry 24 — `/process/lesson`: one call per video (Issue #24, PR #75, 2026-10-11)
+
+**What:** `POST /process/lesson` (`app/api/process.py`, `app/processing/lesson.py`) turns one video's transcript into a finished lesson. It chunks the transcript (#20), generates notes by map-reduce (#23), then embeds and stores the chunks (#21). It returns the chunk records, the notes, token usage and timing for the API's job worker (#27).
+
+**Design decisions:**
+
+- **Who owns the lesson id (D64).** In the pipeline (SPEC §7.1), Module, Lesson and Video rows are only written at step 8, after course structuring. So at this point no lesson id exists in the database. The API **allocates the lesson id up front** (a cuid) and creates the Lesson with it later, so chunk ids `{lessonId}-{index}` match its Chunk rows.
+  - For the same reason, `module_id` and `video_id` were **removed from the vector rows**. They don't exist yet, and modules change when an admin reorders lessons (#31), so stored copies would go stale. The API joins them by `lessonId`.
+  - Existing tables are migrated by an idempotent `DROP COLUMN IF EXISTS` at start-up.
+- **Notes first, vectors second (D65).** Notes take minutes and can fail, while indexing takes about a second. Indexing only after the notes exist means a failed video leaves **no vectors** the chatbot could cite for a lesson that will never be created. As a compensating action [R135], `DELETE /vectors/{courseId}/lessons/{lessonId}` lets the worker remove a lesson that fails later in the job. Re-running replaces the same ids (idempotent).
+- **Honest error classes (D66):**
+  - **422:** empty transcript.
+  - **502:** the model's output stayed unusable after 3 attempts.
+  - **503 + `Retry-After`:** the chat model, embedding service or database is unreachable. Only connection, timeout and HTTP errors from Ollama/OpenAI/httpx count as "unavailable" (`PROVIDER_ERRORS`).
+  - **500:** a programming error, which is never disguised as an outage (tested).
+- **Correlation id:** the API's `X-Request-Id` (e.g. `job-42.video-3`) is on **every log line** of the request, including LLM calls running in parallel worker threads (LangChain copies the context into its executor; tested by asserting several threads), and is echoed back.
+- **Usage reporting** per lesson (LLM calls, input/output tokens) for job cost reports. This found a small bug from #16: a call whose provider reports no token counts wasn't counted at all. It now counts with zero tokens.
+
+**Verification:**
+
+- **Integration tests** (18, `tests/test_process_lesson.py`) run the real app with a scripted chat model and a hashing embedding, on both the in-memory store and real pgvector. They cover:
+  - the transcript → lesson round trip, and that chunks are searchable under the generated title;
+  - re-running is idempotent;
+  - unusable notes (502) and a model outage (503) leave **zero vectors**;
+  - an embedding outage gives 503, and a bug gives 500;
+  - validation, and lesson-vector deletion;
+  - request-id propagation across threads.
+
+  **Mutation check:** indexing before the notes made 3 of these tests fail.
+
+- **Manual run against real services:** the dev server with Ollama `llama3.1:8b` + `nomic-embed-text` + pgvector, on the recorded 10-minute SQL lecture, with `X-Request-Id: manual-run-24`. Results:
+  - **200 in 51.5 s**, 2 LLM calls (3,392 input / 799 output tokens), 4 chunks `cm24lesson001-0…3`, 5 anchors at real caption times, prompt ids recorded.
+  - A real search ("why are computers good at storing databases?") returned the 8:45 chunk.
+  - All 8 server log lines of the request (HTTP, notes, usage, Ollama calls) carried the request id.
+  - The demo vectors were deleted afterwards.
+- Python: 224 offline tests, Ruff, mypy `--strict`.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -1015,3 +1054,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D61 | 2026-10-11 | Timestamp anchors are **grounded in code**: normalised, snapped to a real caption marker within 30 s (per part in the map step) or removed                                  | Models invent and misplace timestamps [R7]; citations and video seeking (#34, #35) need anchors that always exist in the video                                                                            |
 | D62 | 2026-10-11 | The model writes **Markdown in a fixed layout** that code parses into `LessonNotes`; broken structure is retried (3 attempts, backoff); list-only code fences are unwrapped | JSON-wrapped Markdown is fragile with small models; computed fields (reading time) are exact; behaviours the model ignores despite instructions are fixed deterministically                               |
 | D63 | 2026-10-11 | `OLLAMA_NUM_CTX` set explicitly (8,192) and the HTTP timeout applied to Ollama                                                                                              | Ollama's default context silently truncates long prompts; a hung local model must not block a job forever                                                                                                 |
+| D64 | 2026-10-11 | The **API allocates `lessonId`** before processing; vector rows store course, lesson and YouTube ids only (no module/video ids)                                             | Lesson rows are written after structuring (step 8); chunk ids must still match. Modules change on reorder, so storing them in vectors would go stale                                                      |
+| D65 | 2026-10-11 | `/process/lesson` generates **notes before indexing**; `DELETE /vectors/{courseId}/lessons/{lessonId}` as the compensating action                                           | A failed video leaves no citable vectors; later failures can be undone without touching other lessons [R135]                                                                                              |
+| D66 | 2026-10-11 | Only provider connection/timeout/HTTP errors map to **503**; unusable output → **502**; anything else stays a **500**                                                       | The job worker retries outages but not bugs; misclassifying a bug as an outage would retry it forever and hide it                                                                                         |

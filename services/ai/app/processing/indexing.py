@@ -78,9 +78,7 @@ def chunk_id(lesson_id: str, index: int) -> str:
 @dataclass(frozen=True)
 class LessonRef:
     course_id: str
-    module_id: str
     lesson_id: str
-    video_id: str
     youtube_id: str
     lesson_title: str
 
@@ -99,9 +97,7 @@ class VectorIndex:
             VectorRecord(
                 id=chunk_id(lesson.lesson_id, chunk.index),
                 course_id=lesson.course_id,
-                module_id=lesson.module_id,
                 lesson_id=lesson.lesson_id,
-                video_id=lesson.video_id,
                 youtube_id=lesson.youtube_id,
                 chunk_index=chunk.index,
                 start_sec=chunk.start_sec,
@@ -122,3 +118,6 @@ class VectorIndex:
 
     def delete_course(self, course_id: str) -> int:
         return self.store.delete_course(course_id)
+
+    def delete_lesson(self, course_id: str, lesson_id: str) -> int:
+        return self.store.delete_lesson(course_id, lesson_id)

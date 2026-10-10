@@ -201,8 +201,6 @@ def ingest_course(client: TestClient, course_id: str) -> dict[str, list[dict[str
         res = client.put(
             f"/vectors/{course_id}/lessons/{lesson_id}",
             json={
-                "moduleId": "module-1",
-                "videoId": f"video-{name}",
                 "youtubeId": video["youtubeId"],
                 "lessonTitle": video["title"],
                 "segments": transcript["segments"],

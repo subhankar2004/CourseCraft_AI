@@ -34,7 +34,7 @@ def test_upsert_search_delete_with_real_embeddings(make_store: StoreFactory) -> 
         Chunk(index=i, text=t, start_sec=i * 120.0, end_sec=i * 120.0 + 119, token_count=40)
         for i, t in enumerate(LECTURE)
     ]
-    lesson = LessonRef("course-net", "m1", "lesson-net", "v1", "dQw4w9WgXcQ", "Databases")
+    lesson = LessonRef("course-net", "lesson-net", "dQw4w9WgXcQ", "Databases")
     assert index.index_lesson(lesson, chunks) == [f"lesson-net-{i}" for i in range(4)]
 
     # Paraphrased questions (few shared words) must still find the right moment.
