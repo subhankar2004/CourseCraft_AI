@@ -27,7 +27,7 @@ export const aiHealthSchema = z.object({
       configured: z.boolean(),
     }),
     vectorStore: z.object({
-      provider: z.literal('pinecone'),
+      provider: z.enum(['pgvector', 'pinecone']),
       index: z.string(),
       configured: z.boolean(),
     }),

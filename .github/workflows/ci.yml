@@ -25,7 +25,7 @@ jobs:
     services:
       # Migrations are applied here and the API e2e tests use it (Redis is used from #27).
       postgres:
-        image: postgres:16-alpine
+        image: pgvector/pgvector:0.8.7-pg16 # same image as docker-compose.yml
         env:
           POSTGRES_USER: coursecraft
           POSTGRES_PASSWORD: coursecraft
@@ -92,6 +92,18 @@ jobs:
     name: AI service (Python)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      # pgvector store tests (#21) run against a real PostgreSQL with the vector extension.
+      postgres:
+        image: pgvector/pgvector:0.8.7-pg16
+        env:
+          POSTGRES_USER: coursecraft
+          POSTGRES_PASSWORD: coursecraft
+          POSTGRES_DB: coursecraft_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U coursecraft -d coursecraft_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     defaults:
       run:
         working-directory: services/ai
@@ -120,3 +132,6 @@ jobs:
         env:
           # Deep property-based testing in CI (2,000 examples; ~5 s). Found a bug the fast profile missed.
           HYPOTHESIS_PROFILE: thorough
+          TEST_DATABASE_URL: postgresql://coursecraft:coursecraft@localhost:5432/coursecraft_test
+          # Database tests fail instead of skipping when PostgreSQL is missing.
+          REQUIRE_DB_TESTS: '1'

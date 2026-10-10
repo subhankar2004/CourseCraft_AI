@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     ollama_chat_model: str = "llama3.1:8b"
     ollama_embed_model: str = "nomic-embed-text"
 
+    # Vector store (SPEC §6). pgvector: vectors in PostgreSQL (schema `vector_store`, owned by
+    # this service). Pinecone remains a documented option for later; it isn't implemented yet.
+    vector_store: Literal["pgvector", "pinecone"] = "pgvector"
+    #: Defaults to DATABASE_URL (same PostgreSQL server as the API, separate schema).
+    vector_database_url: SecretStr | None = None
+    database_url: SecretStr | None = None
     pinecone_api_key: SecretStr | None = None
     pinecone_index: str = "coursecraft-te3s"
 
@@ -81,7 +87,9 @@ class Settings(BaseSettings):
     def _index_matches_embedding_model(self) -> "Settings":
         # Vectors of different sizes can't share an index; catch the mix-up at startup.
         info = embedding_model_info(self.embed_model)
-        if not self.pinecone_index.endswith(f"-{info.index_suffix}"):
+        if self.vector_store == "pinecone" and not self.pinecone_index.endswith(
+            f"-{info.index_suffix}"
+        ):
             raise ValueError(
                 f"PINECONE_INDEX '{self.pinecone_index}' doesn't match embedding model "
                 f"'{self.embed_model}' ({info.dimension}-d): its name must end with "
@@ -113,8 +121,22 @@ class Settings(BaseSettings):
         return self.llm_provider == "ollama" or self.openai_api_key is not None
 
     @property
+    def vector_db_url(self) -> str | None:
+        url = self.vector_database_url or self.database_url
+        return url.get_secret_value() if url else None
+
+    @property
+    def vector_table(self) -> str:
+        """Where this embedding model's vectors live (pgvector table or Pinecone index)."""
+        if self.vector_store == "pinecone":
+            return self.pinecone_index
+        return f"vector_store.chunks_{embedding_model_info(self.embed_model).index_suffix}"
+
+    @property
     def vector_store_configured(self) -> bool:
-        return self.pinecone_api_key is not None
+        if self.vector_store == "pinecone":
+            return self.pinecone_api_key is not None
+        return self.vector_db_url is not None
 
 
 @lru_cache

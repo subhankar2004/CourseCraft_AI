@@ -27,7 +27,6 @@ def test_switching_provider_swaps_models_without_code_changes() -> None:
     settings = make_settings(
         llm_provider="ollama",
         ollama_chat_model="llama-test",
-        pinecone_index="coursecraft-nomic",
     )
     chat = get_chat_model(settings, operation="unit-test")
     assert isinstance(chat, ChatOllama)

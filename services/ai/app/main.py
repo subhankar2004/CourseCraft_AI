@@ -5,12 +5,13 @@ Run locally:  uv run uvicorn app.main:app --reload --port 8000
 
 import logging
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
 
 from app import __version__
-from app.api import health, ingest
+from app.api import health, ingest, vectors
 from app.api.deps import require_internal_key
 from app.config import Settings, get_settings
 from app.core.errors import register_error_handlers
@@ -18,6 +19,15 @@ from app.core.logging import configure_logging
 from app.core.request_context import REQUEST_ID_HEADER, request_id_var, resolve_request_id
 
 logger = logging.getLogger("app.http")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    yield
+    # The vector index (and its connection pool) is created on first use (app.api.vectors).
+    index = getattr(app.state, "vector_index", None)
+    if index is not None:
+        index.store.close()
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -32,6 +42,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         docs_url="/docs" if docs_enabled else None,
         redoc_url=None,
         openapi_url="/openapi.json" if docs_enabled else None,
+        lifespan=lifespan,
     )
     app.dependency_overrides[get_settings] = lambda: settings
     register_error_handlers(app)
@@ -69,6 +80,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # Feature routers (ingest, process, rag, eval) are added here from #17 onwards.
     internal = APIRouter(dependencies=[Depends(require_internal_key)])
     internal.include_router(ingest.router)
+    internal.include_router(vectors.router)
     app.include_router(internal)
 
     return app

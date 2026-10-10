@@ -808,6 +808,52 @@ No real model calls are made yet; the first will be in #21 (embeddings) and #23 
 
 ---
 
+## Entry 21 — Embeddings and the pgvector store (Issue #21, PR #72, 2026-10-10)
+
+**What:** SPEC §6 and §7.1 step 4. Chunks are embedded and stored so that the RAG chatbot (P5) can retrieve the right moment of the right lecture.
+
+- **Vector store: pgvector instead of Pinecone** [R123] (a deviation from the report, D50). Vectors live in the project's own PostgreSQL. The Docker image changed from `postgres:16-alpine` to `pgvector/pgvector:0.8.7-pg16` (same PostgreSQL 16 data directory). Because the C library changed (musl → glibc), all indexes were rebuilt with `REINDEX DATABASE` and the data was checked afterwards (users, domains, course, lessons, email lookups).
+- **Layout** (D51): schema `vector_store`, owned by the AI service, with one table per embedding model (`chunks_nomic` is 768-d, `chunks_te3s` is 1536-d). The service creates the extension, the schema and the table on first use, and **refuses to start** if an existing table's dimension doesn't match the model.
+- **Course isolation** (D52): every query filters on `course_id`; search is **exact** cosine similarity (`1 - (embedding <=> q)`), with no approximate index.
+- **Idempotent writes:** row id = `{lessonId}-{index}`, the same id as the API's `Chunk` row. Re-indexing a lesson deletes and inserts **in one transaction**, so there are never stale or duplicate chunks.
+- **Embeddings with Ollama `nomic-embed-text`** [R124][R26], free and local (D53). The embedder adds the model's **task prefixes** (`search_document:` / `search_query:`) [R125], embeds in batches and checks every vector's dimension.
+- **SQL safety:** every value is a bound parameter and table names are composed with `psycopg.sql.Identifier` [R126], so no SQL is built from strings. The type checker also enforces this (psycopg requires `LiteralString` or composed SQL).
+- **Internal endpoints:**
+  - `PUT /vectors/{courseId}/lessons/{lessonId}`: transcript segments → chunks (#20) → embeddings → replace. Returns the chunk records for the API to store.
+  - `POST /vectors/{courseId}/search`.
+  - `DELETE /vectors/{courseId}`.
+  - Errors: 503 with `Retry-After` when Ollama or the database is down; 422 for invalid ids or bodies.
+- **Config:** `VECTOR_STORE=pgvector`, `VECTOR_DATABASE_URL` (defaults to `DATABASE_URL`). The local `.env` now uses `LLM_PROVIDER=ollama`; no paid keys are needed. `/health` reports `pgvector` and `vector_store.chunks_nomic`.
+
+**Verification:**
+
+- **Real end-to-end run** on the seed's 4 h 20 min SQL course (freeCodeCamp, manual captions): transcript (4,514 segments) → **91 chunks embedded and stored in 5.3 s** on an Apple Silicon laptop (Ollama). Searches took **18–42 ms**:
+
+  | Question                               | Top hit (score) | What is said there                                       |
+  | -------------------------------------- | --------------- | -------------------------------------------------------- |
+  | "how to delete rows from a table"      | 1:54:06 (0.786) | "now I'm going to show you guys how we can delete rows…" |
+  | "how do I join two tables?"            | 3:09:50 (0.701) | the joins section (top 3 all within 3:00–3:10)           |
+  | "what is a foreign key?"               | 0:31:09 (0.731) | the foreign-key explanation (employee → branch)          |
+  | "what is a stored function or trigger" | 3:39:32 (0.642) | the triggers section (top 3 all within 3:31–3:39)        |
+
+  The same query against another course returned no hits.
+
+- **Prefix check** (4 topic paragraphs × 4 paraphrased questions, real `nomic-embed-text`): both with and without prefixes ranked **4/4** correctly. The mean margin over the runner-up was **0.118 with** and **0.167 without** prefixes, and absolute scores were higher with them. On this tiny set, prefixes did **not** help. They are kept because the model card requires them; the question goes to the evaluation phase (#40s). The result also shows that **`RAG_MIN_SCORE` must be calibrated per model and prefix setting** (noted for #39).
+- **Tests:**
+  - 17 new tests. The pgvector tests run against the **real test database** using an 8-dimension keyword embedding, so similarity is meaningful and assertable offline. They cover:
+    - bootstrap is idempotent, and a dimension mismatch is refused;
+    - upsert → search → delete, with ties broken by chunk order;
+    - **no cross-course results**;
+    - re-indexing removes stale chunks;
+    - the HTTP round trip;
+    - 503 and 422 mapping, and internal-key auth.
+  - The tests skip when the test database is unreachable locally; CI sets `REQUIRE_DB_TESTS=1` so they fail instead.
+  - One network test uses real Ollama embeddings: paraphrased questions find the right paragraph.
+- **CI:** the Python job now has a pgvector PostgreSQL service, and the Node job uses the same image.
+- Python: 171 offline + 8 network tests, Ruff, mypy `--strict`.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -863,3 +909,9 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D47 | 2026-10-10 | Whisper when there are **no captions** or the **caption language ≠ spoken language**; otherwise keep captions                                              | Captions are cheaper and usually accurate; Whisper fixes the two failure cases seen on real data. If Whisper can't run, keep what exists instead of failing                                               |
 | D48 | 2026-10-10 | Chunks = whole segments packed to ≤ 800 tokens with ≤ 120-token overlap, **sizes measured exactly** on joined text; overlap recorded per chunk             | Real timestamp boundaries for citations; strict size guarantees (summing or approximate splitters overshoot); explicit overlap enables de-duplication in retrieval                                        |
 | D49 | 2026-10-10 | **Property-based tests** (Hypothesis), thorough profile (2,000 examples) in CI                                                                             | Found four defects that example tests missed, each reduced to a minimal case [R121][R122]                                                                                                                 |
+| D50 | 2026-10-10 | **pgvector** in the project's PostgreSQL instead of Pinecone (deviation from the report); `VECTOR_STORE` keeps Pinecone switchable                         | Free, no external account or network round trip, one database to back up; course-sized collections (hundreds of chunks) need no dedicated vector service [R123]                                           |
+| D51 | 2026-10-10 | Schema `vector_store` owned by the AI service; one table per embedding model; dimension checked at start-up                                                | Keeps the API the only writer of application tables (`public`); a vector column has a fixed dimension, so mixing models would corrupt search                                                              |
+| D52 | 2026-10-10 | **Exact** cosine search filtered by `course_id`; no ANN index yet                                                                                          | Per-course scans are small (≈ 100 rows per long lecture) and give perfect recall; HNSW [R127] can be added if courses grow                                                                                |
+| D53 | 2026-10-10 | Embeddings from **Ollama `nomic-embed-text`** (768-d, local) with the model's task prefixes                                                                | Free; quality comparable to `text-embedding-3-small` per its paper [R124]; prefixes required by the model card [R125] (their effect is measured in #40s)                                                  |
+| D54 | 2026-10-10 | Vector row id = `{lessonId}-{index}` = API `Chunk.id`; lesson re-index is one delete + insert transaction                                                  | Idempotent pipeline retries; citations map straight back to chunk rows; no stale vectors after re-processing                                                                                              |
+| D55 | 2026-10-10 | Vector-store tests run against **real PostgreSQL** with a keyword embedding; CI fails (not skips) without the database                                     | Mocks would not catch SQL, dimension or transaction bugs; a deterministic "semantic" embedding makes ranking assertable offline                                                                           |

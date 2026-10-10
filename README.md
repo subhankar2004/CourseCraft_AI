@@ -26,7 +26,7 @@ CourseCraft AI takes YouTube videos or playlists and does three things:
 └──────────────┘                    └──────────────────┘                 └──────────────────────┘
                                       │ Prisma    │ BullMQ                 │            │
                                       ▼           ▼                        ▼            ▼
-                                 PostgreSQL     Redis                  Pinecone   OpenAI / Ollama
+                                 PostgreSQL     Redis                  pgvector   OpenAI / Ollama
 ```
 
 - **Web**: UI only. It talks only to the API.
@@ -37,13 +37,13 @@ The full design is in [SPEC.md](SPEC.md).
 
 ## Tech stack
 
-| Layer      | Technologies                                                                         |
-| ---------- | ------------------------------------------------------------------------------------ |
-| Frontend   | Next.js, TypeScript, Tailwind CSS, shadcn/ui, Zod, TanStack Query                    |
-| API        | NestJS, TypeScript, Prisma, PostgreSQL, BullMQ + Redis, JWT                          |
-| AI service | Python, FastAPI, LangChain, youtube-transcript-api, yt-dlp, Whisper, Pinecone, RAGAS |
-| LLMs       | OpenAI `gpt-4o-mini` + `text-embedding-3-small`, or local models via Ollama          |
-| Infra      | Docker Compose, AWS (EC2, RDS, S3), Cloudflare CDN, GitHub Actions                   |
+| Layer      | Technologies                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| Frontend   | Next.js, TypeScript, Tailwind CSS, shadcn/ui, Zod, TanStack Query                            |
+| API        | NestJS, TypeScript, Prisma, PostgreSQL, BullMQ + Redis, JWT                                  |
+| AI service | Python, FastAPI, LangChain, youtube-transcript-api, yt-dlp, Whisper, pgvector, Ollama, RAGAS |
+| LLMs       | OpenAI `gpt-4o-mini` + `text-embedding-3-small`, or local models via Ollama                  |
+| Infra      | Docker Compose, AWS (EC2, RDS, S3), Cloudflare CDN, GitHub Actions                           |
 
 ## Repository layout
 

@@ -11,6 +11,8 @@ def test_defaults() -> None:
     assert settings.embed_model == "text-embedding-3-small"
     assert settings.rag_top_k == 6
     assert settings.ai_port == 8000
+    assert settings.vector_store == "pgvector"
+    assert settings.vector_table == "vector_store.chunks_te3s"
 
 
 def test_empty_keys_from_env_example_mean_not_configured() -> None:
@@ -21,7 +23,7 @@ def test_empty_keys_from_env_example_mean_not_configured() -> None:
 
 
 def test_ollama_needs_no_api_key() -> None:
-    settings = make_settings(llm_provider="ollama", pinecone_index="coursecraft-nomic")
+    settings = make_settings(llm_provider="ollama")
     assert settings.llm_configured is True
     assert settings.chat_model == "llama3.1:8b"
     assert settings.embed_model == "nomic-embed-text"
@@ -34,14 +36,33 @@ def test_shared_log_level_names_from_the_api_are_accepted() -> None:
 
 def test_embedding_dimension_follows_the_model() -> None:
     assert make_settings().embedding_dimension == 1536
-    ollama = make_settings(llm_provider="ollama", pinecone_index="coursecraft-nomic")
+    ollama = make_settings(llm_provider="ollama")
     assert ollama.embedding_dimension == 768
 
 
-def test_index_must_match_the_embedding_model() -> None:
+def test_pgvector_table_follows_the_embedding_model() -> None:
+    # One table per model: a vector column has a fixed dimension.
+    assert make_settings(llm_provider="ollama").vector_table == "vector_store.chunks_nomic"
+
+
+def test_pgvector_uses_database_url_unless_a_separate_one_is_set() -> None:
+    assert make_settings().vector_store_configured is False
+    shared = make_settings(database_url="postgresql://u:p@localhost:5432/app")
+    assert shared.vector_db_url == "postgresql://u:p@localhost:5432/app"
+    assert shared.vector_store_configured is True
+    separate = make_settings(
+        database_url="postgresql://u:p@localhost:5432/app",
+        vector_database_url="postgresql://u:p@vectors:5432/v",
+    )
+    assert separate.vector_db_url == "postgresql://u:p@vectors:5432/v"
+    assert "u:p@" not in repr(separate)  # secrets: the URLs hold passwords
+
+
+def test_pinecone_index_must_match_the_embedding_model() -> None:
     # Switching to Ollama (768-d) while keeping the OpenAI (1536-d) index would corrupt search.
     with pytest.raises(ValidationError, match="must end with '-nomic'"):
-        make_settings(llm_provider="ollama")
+        make_settings(vector_store="pinecone", llm_provider="ollama")
+    assert make_settings(vector_store="pinecone").vector_table == "coursecraft-te3s"
     with pytest.raises(ValidationError, match="Unknown embedding model"):
         make_settings(openai_embed_model="text-embedding-ada-002")
 
@@ -64,6 +85,7 @@ def test_secrets_are_masked_in_repr() -> None:
         {"llm_provider": "gemini"},
         {"rag_min_score": 1.5},
         {"rag_top_k": 0},
+        {"vector_store": "chroma"},
     ],
 )
 def test_invalid_values_fail_fast(overrides: dict[str, object]) -> None:

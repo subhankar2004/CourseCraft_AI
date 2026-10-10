@@ -7,7 +7,7 @@ name: coursecraft
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:0.8.7-pg16 # PostgreSQL 16 + pgvector (vector search, #21)
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-coursecraft}

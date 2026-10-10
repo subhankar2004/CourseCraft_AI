@@ -61,10 +61,14 @@ class TestHealth:
             "embeddingDimension": 1536,
             "configured": False,
         }
-        assert body["providers"]["vectorStore"]["configured"] is False
+        assert body["providers"]["vectorStore"] == {
+            "provider": "pgvector",
+            "index": "vector_store.chunks_te3s",
+            "configured": False,
+        }
 
     def test_reflects_ollama_provider(self) -> None:
-        app = create_app(make_settings(llm_provider="ollama", pinecone_index="coursecraft-nomic"))
+        app = create_app(make_settings(llm_provider="ollama"))
         with TestClient(app) as test_client:
             llm = test_client.get("/health").json()["providers"]["llm"]
         assert llm["provider"] == "ollama"

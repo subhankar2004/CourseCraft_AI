@@ -274,19 +274,20 @@ Meta: phase=P2 | area=ai | type=feat | depends=18
 
 **Done when:** Chunking a 1-hour fixture transcript gives correct timestamps and the tests pass.
 
-## 21. AI: embeddings and the Pinecone vector store
+## 21. AI: embeddings and the vector store (pgvector)
 
 Meta: phase=P2 | area=ai | type=feat | depends=16,20
-**Goal:** SPEC §6 Pinecone layout and §7.1 step 4.
+**Goal:** SPEC §6 vector store layout and §7.1 step 4.
+**Scope change:** pgvector in PostgreSQL instead of Pinecone, with Ollama `nomic-embed-text` embeddings (free; PROGRESS D50).
 **Tasks**
 
-- [ ] Create the index if it's missing (dimension from the provider, cosine metric)
-- [ ] Batch-embed chunks and upsert into namespace `courseId` with the full metadata from SPEC §6; vector id = chunk id (deterministic, e.g. `{lessonRef}-{index}`)
-- [ ] `similarity_search(courseId, query, k)` helper that returns scores
-- [ ] `DELETE /vectors/{courseId}`
-- [ ] Tests using a mocked Pinecone client; one network test against a real index
+- [x] Create the extension, schema and per-model table if missing (dimension from the embedding model, cosine distance); refuse a dimension mismatch
+- [x] Batch-embed chunks and store them scoped to `courseId` with the full metadata from SPEC §6; row id = chunk id (deterministic `{lessonId}-{index}`)
+- [x] `similarity_search(courseId, query, k)` helper that returns scores
+- [x] `DELETE /vectors/{courseId}`
+- [x] Tests against a real PostgreSQL (pgvector) with offline embeddings; one network test with real Ollama embeddings
 
-**Done when:** Upsert → search → delete works on a real index.
+**Done when:** Upsert → search → delete works on a real store.
 
 ## 22. AI: ingestion fixtures and integration tests
 
@@ -413,7 +414,7 @@ Meta: phase=P3 | area=api,web | type=feat | depends=28,30
 **Goal:** Human review before a course is published.
 **Tasks**
 
-- [ ] API: `PATCH /courses/:id` (title, description, level, domain), reorder modules and lessons (transactional reindex), rename modules, `POST /courses/:id/publish|unpublish`, `DELETE /courses/:id` (also deletes its Pinecone namespace)
+- [ ] API: `PATCH /courses/:id` (title, description, level, domain), reorder modules and lessons (transactional reindex), rename modules, `POST /courses/:id/publish|unpublish`, `DELETE /courses/:id` (also deletes its vectors)
 - [ ] Web `/admin/courses/[id]`: outline with drag-and-drop reordering (dnd-kit), inline renaming, lesson preview, Publish button
 
 **Done when:** The generated course can be reordered and published, and it then appears in the public catalog.

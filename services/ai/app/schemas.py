@@ -34,7 +34,7 @@ class LlmInfo(CamelModel):
 
 
 class VectorStoreInfo(CamelModel):
-    provider: Literal["pinecone"]
+    provider: Literal["pgvector", "pinecone"]
     index: str
     configured: bool
 
@@ -125,3 +125,74 @@ class IngestTranscriptResponse(CamelModel):
     #: End of the last segment, in seconds.
     covered_sec: float
     segments: list[SegmentOut]
+
+
+# ─── Vectors: embeddings and search (#21) ───────────────────────────────────
+
+#: Database ids (Prisma cuid) and other path identifiers.
+ID_PATTERN = r"^[A-Za-z0-9_-]{1,64}$"
+
+
+class SegmentIn(CamelModel):
+    text: str = Field(max_length=20_000)
+    start: float = Field(ge=0)
+    duration: float = Field(ge=0)
+
+
+class IndexLessonRequest(CamelModel):
+    """A lesson's transcript (from /ingest/transcript): chunked, embedded and stored."""
+
+    module_id: str = Field(pattern=ID_PATTERN)
+    video_id: str = Field(pattern=ID_PATTERN)
+    youtube_id: str = Field(pattern=r"^[A-Za-z0-9_-]{11}$")
+    lesson_title: str = Field(min_length=1, max_length=300)
+    segments: list[SegmentIn] = Field(min_length=1, max_length=50_000)
+
+
+class ChunkOut(CamelModel):
+    #: Deterministic `{lessonId}-{index}`: the API stores its Chunk row under the same id.
+    id: str
+    index: int
+    text: str
+    start_sec: float
+    end_sec: float
+    token_count: int
+    overlap_chars: int
+
+
+class IndexLessonResponse(CamelModel):
+    course_id: str
+    lesson_id: str
+    embedding_model: str
+    chunks: list[ChunkOut]
+
+
+class SearchRequest(CamelModel):
+    query: str = Field(min_length=1, max_length=2_000)
+    #: Defaults to RAG_TOP_K.
+    k: int | None = Field(default=None, ge=1, le=50)
+
+
+class SearchHitOut(CamelModel):
+    id: str
+    module_id: str
+    lesson_id: str
+    video_id: str
+    youtube_id: str
+    chunk_index: int
+    start_sec: float
+    end_sec: float
+    lesson_title: str
+    text: str
+    #: Cosine similarity; higher is closer.
+    score: float
+
+
+class SearchResponse(CamelModel):
+    course_id: str
+    hits: list[SearchHitOut]
+
+
+class DeleteVectorsResponse(CamelModel):
+    course_id: str
+    deleted: int
