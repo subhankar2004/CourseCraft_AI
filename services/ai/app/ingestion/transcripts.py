@@ -1,14 +1,16 @@
-"""Transcripts for YouTube videos (SPEC §7.1 step 2, before the Whisper fallback of #19).
+"""Transcripts for YouTube videos (SPEC §7.1 step 2).
 
 Order of preference:
-  1. youtube-transcript-api: manual English → auto-generated English → any language that YouTube
-     can translate to English.
+  1. youtube-transcript-api: manual English → auto-generated English → YouTube's translation to
+     English → the original-language captions (labelled with their real language).
   2. yt-dlp subtitle tracks (manual English, then automatic English) as WebVTT, parsed here. Used
      when the first source is blocked, fails, or finds nothing.
+  3. Whisper speech-to-text (app.ingestion.whisper, #19) when no captions exist, or when the
+     captions' language doesn't match the video's spoken language (mis-labelled auto-captions).
 
 Every result is normalised to segments `{text, start, duration}` with captions noise removed.
-`NoTranscriptError` means no captions exist (definitive; #19 adds Whisper for these).
-`TranscriptUnavailableError` means YouTube couldn't be reached or blocked us (retry later).
+`NoTranscriptError`: nothing usable can be produced (definitive).
+`TranscriptUnavailableError`: YouTube couldn't be reached or blocked us (retry later).
 """
 
 import html
@@ -31,16 +33,21 @@ from youtube_transcript_api import (
     YouTubeTranscriptApi,
 )
 
+from app.ingestion.whisper import AudioDownloadError, Transcriber, WhisperSkippedError
 from app.ingestion.youtube_urls import canonical_video_url
 
 logger = logging.getLogger("app.ingestion.transcripts")
 
 ENGLISH = ("en", "en-US", "en-GB", "en-CA", "en-AU", "en-IN", "en-orig")
-TranscriptSource = Literal["YT_MANUAL", "YT_AUTO"]
+TranscriptSource = Literal["YT_MANUAL", "YT_AUTO", "WHISPER"]
 
 
 class NoTranscriptError(Exception):
-    """The video has no usable captions, or can't be accessed at all. Retrying won't help."""
+    """No usable transcript could be produced. Retrying won't help."""
+
+
+class VideoInaccessibleError(NoTranscriptError):
+    """The video itself can't be accessed (removed, private, age-restricted): Whisper can't help."""
 
 
 class TranscriptUnavailableError(Exception):
@@ -60,7 +67,7 @@ class Transcript:
     language: str
     segments: list[Segment]
     translated_from: str | None = None
-    fetched_with: Literal["youtube-transcript-api", "yt-dlp"] = "youtube-transcript-api"
+    fetched_with: Literal["youtube-transcript-api", "yt-dlp", "whisper"] = "youtube-transcript-api"
 
 
 # ─── Cleaning ───────────────────────────────────────────────────────────────
@@ -131,6 +138,17 @@ def parse_vtt(text: str) -> list[tuple[str, float, float]]:
     return results
 
 
+def _base_language(code: str) -> str:
+    return code.split("-")[0].lower()
+
+
+def _language_mismatch(transcript: Transcript, spoken_language: str | None) -> bool:
+    """True when untranslated captions are in a different language than the speech."""
+    if not spoken_language or transcript.translated_from is not None:
+        return False
+    return _base_language(transcript.language) != _base_language(spoken_language)
+
+
 # ─── Sources ────────────────────────────────────────────────────────────────
 
 
@@ -165,8 +183,58 @@ class TranscriptFetcher:
     api: TranscriptApi = field(default_factory=YouTubeTranscriptApi)
     ytdlp_info: YtDlpInfo = _ytdlp_info
     http_get: HttpGet = _http_get
+    #: Speech-to-text fallback (#19); `None` disables it.
+    whisper: Transcriber | None = None
 
-    def fetch(self, video_id: str) -> Transcript:
+    def fetch(self, video_id: str, spoken_language: str | None = None) -> Transcript:
+        """Captions when usable, else Whisper.
+
+        Whisper runs when no captions exist, or when the captions' language doesn't match
+        `spoken_language` (the video's language from its metadata, #17), which catches YouTube
+        auto-captions that were generated for the wrong language.
+        """
+        try:
+            captions = self._captions(video_id)
+        except VideoInaccessibleError:
+            raise
+        except NoTranscriptError as no_captions:
+            return self._transcribe(video_id, reason=str(no_captions))
+
+        if _language_mismatch(captions, spoken_language) and self.whisper is not None:
+            logger.info(
+                "caption language doesn't match the spoken language; trying Whisper",
+                extra={
+                    "fields": {
+                        "youtubeId": video_id,
+                        "captions": captions.language,
+                        "spoken": spoken_language,
+                    }
+                },
+            )
+            try:
+                return self._transcribe(video_id, reason="caption language mismatch")
+            except (NoTranscriptError, TranscriptUnavailableError) as error:
+                logger.warning(
+                    "Whisper unavailable; keeping the mismatched captions",
+                    extra={"fields": {"youtubeId": video_id, "error": str(error)}},
+                )
+        return captions
+
+    def _transcribe(self, video_id: str, reason: str) -> Transcript:
+        if self.whisper is None:
+            raise NoTranscriptError(reason)
+        try:
+            result = self.whisper.transcribe_video(video_id)
+        except WhisperSkippedError as error:
+            raise NoTranscriptError(f"{reason}; Whisper skipped: {error}") from error
+        except AudioDownloadError as error:
+            raise TranscriptUnavailableError(str(error)) from error
+        segments = clean_segments((s.text, s.start, s.duration) for s in result.segments)
+        if not segments:
+            raise NoTranscriptError(f"{reason}; no speech detected in the audio")
+        return Transcript("WHISPER", result.language, segments, fetched_with="whisper")
+
+    def _captions(self, video_id: str) -> Transcript:
         primary_error: Exception | None = None
         try:
             transcript = self._from_transcript_api(video_id)
@@ -199,7 +267,9 @@ class TranscriptFetcher:
         except (TranscriptsDisabled, NoTranscriptFound):
             return None  # let yt-dlp have a look before giving up
         except (VideoUnavailable, VideoUnplayable, AgeRestricted, InvalidVideoId) as error:
-            raise NoTranscriptError(f"video can't be accessed ({type(error).__name__})") from error
+            raise VideoInaccessibleError(
+                f"video can't be accessed ({type(error).__name__})"
+            ) from error
 
         choices: list[tuple[str, TranscriptSource]] = [
             ("find_manually_created_transcript", "YT_MANUAL"),

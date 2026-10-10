@@ -31,6 +31,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 16  | 2026-10-10 | [#16](https://github.com/subhankar2004/CourseCraft_AI/issues/16) / [#67](https://github.com/subhankar2004/CourseCraft_AI/pull/67) | P2    | AI provider factory (OpenAI/Ollama), embedding registry, prompt loader, token-usage logging   |
 | 17  | 2026-10-10 | [#17](https://github.com/subhankar2004/CourseCraft_AI/issues/17) / [#68](https://github.com/subhankar2004/CourseCraft_AI/pull/68) | P2    | YouTube URL parsing (SSRF-safe) and metadata via yt-dlp; `/ingest/metadata`                   |
 | 18  | 2026-10-10 | [#18](https://github.com/subhankar2004/CourseCraft_AI/issues/18) / [#69](https://github.com/subhankar2004/CourseCraft_AI/pull/69) | P2    | Transcripts: youtube-transcript-api + yt-dlp VTT fallback, cleaning, `/ingest/transcript`     |
+| 19  | 2026-10-10 | [#19](https://github.com/subhankar2004/CourseCraft_AI/issues/19) / [#70](https://github.com/subhankar2004/CourseCraft_AI/pull/70) | P2    | Whisper fallback (local faster-whisper), caption-language mismatch rule                       |
 
 ---
 
@@ -725,6 +726,54 @@ No real model calls are made yet; the first will be in #21 (embeddings) and #23 
 
 ---
 
+## Entry 19 — Whisper transcription fallback (Issue #19, PR #70, 2026-10-10)
+
+**What:** speech-to-text for videos without usable captions, **running locally and free** (`services/ai/app/ingestion/whisper.py`):
+
+- **Whisper** [R6] through **faster-whisper** [R24] (CTranslate2 [R119]), on the **CPU with int8 quantisation** (CTranslate2 has no Apple GPU backend). **Voice-activity detection** (Silero VAD [R120]) skips silence and music, which also reduces Whisper's known tendency to hallucinate text over non-speech audio. Each 30 s window is decoded independently (`condition_on_previous_text=False`) to avoid the repetition loops long lectures can trigger.
+- **Audio only** is downloaded with yt-dlp as the **original stream, with no conversion**, so **no ffmpeg binary is needed**: faster-whisper decodes it with PyAV [R118]. It goes into a **temporary directory that is always deleted**, even when transcription fails. The **length is checked before downloading** against `WHISPER_MAX_MINUTES` (default 90). The download is retried once.
+- **When Whisper runs** (D47):
+  1. **no captions exist** (404 from the caption sources);
+  2. **the caption language ≠ the spoken language** (`spokenLanguage` from #17's metadata), for YouTube auto-captions generated in the wrong language (found in #18).
+
+  It never runs for inaccessible videos. If Whisper can't run in case 2 (too long, download failed), the existing captions are kept rather than failing.
+
+- **Outcomes:** `source: WHISPER`, `fetchedWith: whisper`, the detected language, cleaned segments. Music-only audio → "no speech detected" (404). Too long → 404 with the reason. Download failure → 503 (retry).
+- New settings: `WHISPER_ENABLED`, `WHISPER_MAX_MINUTES` (plus the existing `WHISPER_MODEL`: tiny, base, small or medium).
+
+**Problems found while building it:**
+
+1. **Dependency incompatibility.** faster-whisper 1.2.1 (the latest) calls `av.open(metadata_errors=…)`, which **PyAV 19 removed**, so every transcription crashed. Testing PyAV versions showed **18.1 is the newest compatible one**; it is pinned `>=18,<19`, with a comment to lift the pin once faster-whisper supports PyAV 19.
+2. **Music-only videos.** Two candidate "no-caption" videos produced **0 segments** with low language confidence (about 0.55): they contain no speech, and VAD correctly removed everything. This confirmed the "no speech detected" path.
+3. **Transient HTTP 403** from YouTube's media servers on one audio download. A format probe minutes later downloaded every format successfully, so the error was transient. It is retried once, and still surfaces as a retryable 503 if it persists.
+4. faster-whisper has no type information and no stubs package, so a **targeted mypy override** for that module only keeps `--strict` everywhere else; its results are wrapped in typed dataclasses.
+
+**Measured on the developer's MacBook (Apple M5, `base` model, CPU int8):**
+
+| Video                                                                      | Audio | Time                       | Result                                                                                                      |
+| -------------------------------------------------------------------------- | ----- | -------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `Tk1t3WKK-ZY` "What is a database in under 4 minutes" (**no captions**)    | 226 s | **9.1 s (~25× real time)** | 59 segments, English (p = 1.0)                                                                              |
+| `jNQXAC9IVRw` "Me at the zoo" (2005 phone audio, human captions available) | 19 s  | 0.9 s                      | Near-identical to the human captions, with 2 word errors ("one of" for "in front of", "punks" for "trunks") |
+
+**Known limitation:** for the #18 video, **YouTube's own metadata language is also `hi`**: YouTube mis-detected the whole video, not just its captions. The mismatch rule therefore can't fire automatically for such videos (it was exercised by passing `spokenLanguage: "en"` manually). A possible improvement is a **language probe**: let Whisper detect the language from a short audio sample when the captions are auto-generated and non-English.
+
+**Verification (done-when ✅):**
+
+- **A no-caption video produces a transcript locally:** `Tk1t3WKK-ZY` → `WHISPER`, 59 segments covering the full 226 s, through the real endpoint (19 s end to end).
+- **16 new offline tests:**
+  - no captions → Whisper (with cleaning);
+  - an inaccessible video never reaches Whisper;
+  - **the mismatch rule** in 5 cases (Hindi captions vs English speech → Whisper; same base language; unknown spoken language; YouTube translation is intentional);
+  - captions kept when Whisper can't run (3 failure kinds);
+  - too long → definitive; download failure → temporary; music only → "no speech"; Whisper disabled;
+  - **the length guard skips before downloading**;
+  - **audio deleted even when the model crashes**.
+- **Live (`pytest -m network`): 7/7 in about 41 s**, including real Whisper on the no-caption video.
+- **Real mismatch path:** `4ZZrP68yXCI` + `spokenLanguage: "en"` → Whisper attempted → skipped (126 min > 90) → captions kept, all visible in the logs.
+- Python: 139 offline + 7 network tests, Ruff, mypy `--strict`. JS: all checks and build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -776,3 +825,5 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D43 | 2026-10-10 | Unavailable videos are **reported per video**, not fatal to the batch                                                                                      | One private or removed video shouldn't block a whole course; admins see why in the job (#27/#30)                                                                                                          |
 | D44 | 2026-10-10 | Transcript order: manual EN → auto EN → translation → original language (labelled) → yt-dlp VTT; **404 = no captions, 503 = retry later**                  | Best available text with honest labelling; the job pipeline can tell "use Whisper" apart from "try again later"                                                                                           |
 | D45 | 2026-10-10 | Own WebVTT parser with rolling-caption de-duplication; split cues on **empty lines only** (per the spec)                                                   | YouTube auto-captions repeat lines and contain whitespace-only lines; correct timing is essential for timestamp anchors and citations [R117]                                                              |
+| D46 | 2026-10-10 | Whisper runs **locally** (faster-whisper, CPU int8, VAD, `base` default); audio downloaded without conversion; length checked first                        | Free and private (matches the free-models plan and the report's Future Work); fast enough on Apple Silicon (~25× real time); no ffmpeg dependency                                                         |
+| D47 | 2026-10-10 | Whisper when there are **no captions** or the **caption language ≠ spoken language**; otherwise keep captions                                              | Captions are cheaper and usually accurate; Whisper fixes the two failure cases seen on real data. If Whisper can't run, keep what exists instead of failing                                               |

@@ -249,7 +249,7 @@ class StubFetcher:
     def __init__(self, outcome: Any):
         self.outcome = outcome
 
-    def fetch(self, video_id: str) -> Any:
+    def fetch(self, video_id: str, spoken_language: str | None = None) -> Any:
         if isinstance(self.outcome, Exception):
             raise self.outcome
         return self.outcome
