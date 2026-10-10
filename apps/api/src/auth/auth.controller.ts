@@ -31,6 +31,7 @@ const MINUTE = 60_000;
 
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
+@SkipThrottle({ generate: true }) // only the course generation endpoint uses that one
 export class AuthController {
   constructor(
     private readonly auth: AuthService,

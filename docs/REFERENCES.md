@@ -101,7 +101,7 @@ These come from the report's reference list. **⚠ verify:** check authors, venu
 | R57 | Microsoft, "Playwright documentation." [Online]. Available: https://playwright.dev                                                                                   | End-to-end browser tests                   | ✅ #4 (smoke test, playwright-core outside repo) · ⏳ #47 (E2E suite) |
 | R58 | Amazon Web Services, "AWS documentation: EC2, RDS, S3, SSM." [Online]. Available: https://docs.aws.amazon.com                                                        | Production deployment                      | ⏳ #49, #50                                                           |
 | R59 | Cloudflare, "Cloudflare CDN documentation." [Online]. Available: https://developers.cloudflare.com/cache/                                                            | Content delivery                           | ⏳ #49                                                                |
-| R60 | WHATWG, "HTML Living Standard, §9.2 Server-sent events." [Online]. Available: https://html.spec.whatwg.org/multipage/server-sent-events.html                         | Streaming job progress and chat tokens     | ✅ #26 (parser, passthrough) · ⏳ #28, #39                            |
+| R60 | WHATWG, "HTML Living Standard, §9.2 Server-sent events." [Online]. Available: https://html.spec.whatwg.org/multipage/server-sent-events.html                         | Streaming job progress and chat tokens     | ✅ #26 (parser, passthrough) · ✅ #28 (job progress) · ⏳ #39         |
 
 ## G. Frontend libraries and web standards
 

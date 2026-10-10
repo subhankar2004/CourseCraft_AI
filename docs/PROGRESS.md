@@ -1102,6 +1102,61 @@ Both were then reverted. The new tests also passed on the first run, which is wh
 
 ---
 
+## Entry 28 — Course generation API: start, status, live progress, retry (Issue #28, PR #79, 2026-10-11)
+
+**What:** the public side of course generation (`apps/api/src/ingestion/generation.controller.ts`):
+
+- `POST /courses/generate` (admin, **202**) → `{courseId, jobId}`.
+- `GET /jobs/:id` (detail with each video's status).
+- `GET /jobs/:id/events`: Server-Sent Events [R60].
+- `POST /jobs/:id/retry`.
+
+**Design:**
+
+- **Strict URL validation in the API too (D77).** A TypeScript twin of the AI service's YouTube parser (`packages/shared/src/youtube.ts`) checks every URL, so the web form (#30) can reuse it. The job stores only **canonical URLs rebuilt from the validated ids**, de-duplicated; anything else the user typed is dropped. Each bad URL is reported with its index. Both parsers are held to the **same accept/reject table**, including look-alike hosts, credentials, odd ports, `javascript:`/`file:` URLs and the cloud metadata address [R116].
+- **Live progress (D78).** One shared Redis subscriber fans events out to all viewers; a channel is subscribed only while someone watches that job. A stream sends:
+  - the **`job` snapshot first**;
+  - then `progress` events;
+  - then `done` or `error` with the final job, and closes;
+  - a `ping` every 15 s keeps idle connections open through proxies.
+
+  The stream subscribes **before** reading the snapshot, so nothing can fall in between. Events that arrive during that window are held back until the snapshot is sent, and any older than the snapshot are dropped, so progress never goes backwards on screen.
+
+- **Retry resumes (D79).** Only FAILED jobs can be retried (409 otherwise, and also while the old queue job is still finishing). Processed videos are kept; failed ones go back to their last completed step: TRANSCRIBED if the transcript is cached, else PENDING. Videos rejected at the metadata stage stay failed. BullMQ ignores adding a job id it still knows, so the old queue job is removed first. Every check runs **before** anything is changed.
+- **Rate limit.** Generation is limited to 10 requests per hour per client (429 [R98]). The throttler configuration moved to the app module with two named throttlers, `auth` and `generate`, each applied only where intended.
+
+**Problems found and fixed:**
+
+1. **Parallel test files took each other's jobs (D80).** Two e2e files both ran a queue worker on the same test prefix. Each fake AI service then saw the other file's videos as nonexistent, so jobs failed "at random". Every file that runs a worker now gets its own queue prefix, set before the app module loads. This is now an AGENTS.md rule.
+2. **Events could overtake the snapshot.** This was found when the parallel-file problem flooded the stream, and fixed with the hold-back described above.
+
+   The first e2e test **could not prove the fix**: with the hold-back disabled it still passed 3/3, because the race window is too small to hit over HTTP. A deterministic unit test now fires events exactly between subscribing and reading the snapshot. Disabling the hold-back, or the stale-event filter, each fails it.
+
+**Verification:**
+
+- **e2e** (9 new tests) with real PostgreSQL, Redis and BullMQ, and the AI client faked. They cover:
+  - 401/403; per-URL validation errors; 404 for an unknown domain; canonical, de-duplicated storage; the 429 after 10 requests;
+  - a live stream watched **while the job runs** (snapshot first, progress, `done`, the subscription released);
+  - an already-finished job (`job`, `done` at once);
+  - 404s;
+  - retry of a failed job reusing the cached transcript (fetched once, processed twice);
+  - 409 for a job that hasn't failed.
+
+  The whole e2e suite passed 66/66 three times in a row.
+
+- **Real run (the issue's done-condition).** The seed admin signed in with `curl`, `POST /courses/generate` returned 202, and `curl -N /jobs/:id/events` showed:
+  - the snapshot (NOTES 58%, transcript cached);
+  - keep-alive pings while `llama3.1:8b` wrote the notes;
+  - progress 90 → 97 → 100;
+  - `done`: course "Database Systems Fundamentals" (DRAFT), the nonexistent video recorded as failed;
+  - then the stream closed by itself after 49 s.
+
+  The demo course was deleted afterwards. `docs/setup.md` now shows these commands.
+
+- Shared: 81 tests (URL parity table, request schema). API: 33 unit + 66 e2e. All checks and the build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -1184,3 +1239,7 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D74 | 2026-10-11 | Video-level failures skip the video; AI outages fail the **attempt** and BullMQ retries the job (3 attempts, backoff from 1 min); the job fails only if every video failed    | One bad video shouldn't sink a course, while an outage is temporary and affects every video                                                                                                               |
 | D75 | 2026-10-11 | `Video` rows are written when a transcript arrives (the cache), not at the end; modules, lessons and chunks are written in **one** transaction                                | Caching needs the row early; the course must appear complete or not at all                                                                                                                                |
 | D76 | 2026-10-11 | BullMQ gets a shared **ioredis** client (BullMQ 6 can't load a driver under native ESM); the worker is switchable (`INGESTION_WORKER`) and tests use their own `QUEUE_PREFIX` | ESM compatibility; parallel test files and the dev server must not consume each other's jobs                                                                                                              |
+| D77 | 2026-10-11 | The API validates generation URLs with a **TypeScript twin** of the AI parser (same test table) and stores only canonical URLs rebuilt from ids                               | Defence in depth at the public boundary; one rule set for web form, API and AI service; user-typed text never reaches the job or yt-dlp [R116]                                                            |
+| D78 | 2026-10-11 | SSE through **one shared Redis subscriber**; snapshot first, early events held back and stale ones dropped; ping every 15 s; the stream closes when the job ends              | One connection regardless of viewers; a client must never miss an update or see progress go backwards                                                                                                     |
+| D79 | 2026-10-11 | Retry only FAILED jobs, resuming each failed video from its last completed step; all checks before any change                                                                 | Reuses cached transcripts and finished lessons; a half-applied retry would leave a "queued" job that never runs                                                                                           |
+| D80 | 2026-10-11 | Every e2e file that runs a queue worker uses its own `QUEUE_PREFIX` (set before the app module loads)                                                                         | Workers in parallel files otherwise consume each other's jobs, which looked like random failures                                                                                                          |

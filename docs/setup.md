@@ -103,6 +103,21 @@ curl -b cookies.txt localhost:4000/api/v1/auth/me
 
 The session is an httpOnly `cc_session` cookie. `POST /api/v1/auth/logout` clears it. After 5 failed logins in a minute from one IP, the API answers `429` until the minute passes.
 
+### Generating a course (API)
+
+Needs the AI service and Ollama running (sections 6 and 2). Signed in as the admin (cookie above):
+
+```bash
+curl -s localhost:4000/api/v1/domains | jq '.[] | {id, name}'      # pick a domain id
+curl -b cookies.txt -H 'Content-Type: application/json' \
+  -d '{"domainId":"<id>","urls":["https://www.youtube.com/watch?v=Tk1t3WKK-ZY"]}' \
+  localhost:4000/api/v1/courses/generate                         # → {"courseId","jobId"} (202)
+curl -N -b cookies.txt localhost:4000/api/v1/jobs/<jobId>/events # live progress (SSE) until done
+curl -b cookies.txt -X POST localhost:4000/api/v1/jobs/<jobId>/retry   # only for a failed job
+```
+
+The stream sends `job` (a snapshot), `progress` events, then `done` or `error`, and closes. A 4-minute video takes about a minute on a laptop with `llama3.1:8b`; the course is created as a `DRAFT`. Generation is limited to 10 requests per hour per client.
+
 ### Demo data
 
 ```bash

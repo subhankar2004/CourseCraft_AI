@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #28 (course generation endpoints, job status, SSE progress and retry).
+**Next up:** Issue #29 (web: admin area layout and domain management).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -96,6 +96,7 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - **Secure by default:** the global `JwtAuthGuard` protects every route. Mark intentionally public routes with `@Public()`, and admin routes with `@Roles('ADMIN')`. Get the signed-in user with `@CurrentUser()`.
 - Validate request bodies with the shared Zod schemas: `@Body(new ZodValidationPipe(schema))`.
 - Never return `passwordHash`; select only public user fields.
+- e2e tests that run the ingestion worker (`IngestionWorkerModule`) must set their own `QUEUE_PREFIX` with `vi.hoisted` (see `test/generation.e2e-spec.ts`), or parallel files take each other's jobs. Fake the AI service with `test/fake-ai.ts`.
 - e2e tests: use `test/helpers.ts`. Each suite creates its own `createE2eScope()` and builds every slug, YouTube id and email from that scope's `prefix`/`emailDomain`; `cleanupE2eData(prisma, scope)` then deletes only that suite's data. Test files run **in parallel** on one database, so never clean up by a global pattern, and never assume an empty database.
 
 **Auth (web)**
