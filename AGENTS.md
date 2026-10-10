@@ -16,7 +16,7 @@ Since there is no second human reviewer, every change touching more than one pac
 
 ## Architecture in one breath
 
-`apps/web` (Next.js) → `apps/api` (NestJS, **sole PostgreSQL writer** via Prisma, BullMQ jobs on Redis) → `services/ai` (FastAPI + LangChain: transcripts, chunking, embeddings to Pinecone, LLM notes, RAG, evaluation). The web app never calls the AI service. The AI service never touches PostgreSQL. Pinecone **namespace = courseId**. Details are in SPEC §3.
+`apps/web` (Next.js) → `apps/api` (NestJS, **sole PostgreSQL writer** via Prisma, BullMQ jobs on Redis) → `services/ai` (FastAPI + LangChain: transcripts, chunking, embeddings to pgvector, LLM notes, RAG, evaluation). The web app never calls the AI service. The AI service never touches the application tables; it owns only the `vector_store` schema (pgvector). Every vector query is **scoped to one courseId**. Details are in SPEC §3.
 
 ## Current status
 
@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Set up free local models (Ollama) and choose the vector store, then issue #21 (embeddings + vector store).
+**Next up:** Issue #22 (ingestion fixtures and integration tests). Local models: Ollama (`nomic-embed-text` for embeddings; `llama3.1:8b` needed from #23).
 
 ## How we work: 50 issues → 50 PRs
 

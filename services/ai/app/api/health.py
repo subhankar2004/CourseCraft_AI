@@ -27,8 +27,8 @@ def health(settings: Annotated[Settings, Depends(get_settings)]) -> HealthRespon
                 configured=settings.llm_configured,
             ),
             vector_store=VectorStoreInfo(
-                provider="pinecone",
-                index=settings.pinecone_index,
+                provider=settings.vector_store,
+                index=settings.vector_table,
                 configured=settings.vector_store_configured,
             ),
         ),
