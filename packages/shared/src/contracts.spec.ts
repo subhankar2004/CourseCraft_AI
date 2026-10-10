@@ -48,6 +48,7 @@ describe('health schemas', () => {
           provider: 'openai',
           chatModel: 'gpt-4o-mini',
           embeddingModel: 'text-embedding-3-small',
+          embeddingDimension: 1536,
           configured: false,
         },
         vectorStore: { provider: 'pinecone', index: 'coursecraft-te3s', configured: false },

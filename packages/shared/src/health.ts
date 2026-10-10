@@ -23,6 +23,7 @@ export const aiHealthSchema = z.object({
       provider: z.enum(['openai', 'ollama']),
       chatModel: z.string(),
       embeddingModel: z.string(),
+      embeddingDimension: z.number().int().positive(),
       configured: z.boolean(),
     }),
     vectorStore: z.object({

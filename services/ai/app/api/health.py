@@ -23,6 +23,7 @@ def health(settings: Annotated[Settings, Depends(get_settings)]) -> HealthRespon
                 provider=settings.llm_provider,
                 chat_model=settings.chat_model,
                 embedding_model=settings.embed_model,
+                embedding_dimension=settings.embedding_dimension,
                 configured=settings.llm_configured,
             ),
             vector_store=VectorStoreInfo(

@@ -28,6 +28,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 13  | 2026-10-10 | [#13](https://github.com/subhankar2004/CourseCraft_AI/issues/13) / [#64](https://github.com/subhankar2004/CourseCraft_AI/pull/64) | P1    | Landing page, responsive navigation, footer; `/auth/session`                                  |
 | 14  | 2026-10-10 | [#14](https://github.com/subhankar2004/CourseCraft_AI/issues/14) / [#65](https://github.com/subhankar2004/CourseCraft_AI/pull/65) | P1    | Domain catalog pages: ISR, search + level filter, empty states; build-resilient caching       |
 | 15  | 2026-10-10 | [#15](https://github.com/subhankar2004/CourseCraft_AI/issues/15) / [#66](https://github.com/subhankar2004/CourseCraft_AI/pull/66) | P1    | Course overview page with OG/JSON-LD; hydration and rate-limit fixes; **P1 complete**         |
+| 16  | 2026-10-10 | [#16](https://github.com/subhankar2004/CourseCraft_AI/issues/16) / [#67](https://github.com/subhankar2004/CourseCraft_AI/pull/67) | P2    | AI provider factory (OpenAI/Ollama), embedding registry, prompt loader, token-usage logging   |
 
 ---
 
@@ -597,6 +598,47 @@ Result: **all three build scenarios exit 0 with no errors**. With the API up, do
 
 ---
 
+## Entry 16 — LLM/embedding provider factory and prompt loader (Issue #16, PR #67, 2026-10-10) · P2 begins
+
+**What:** the foundation of the AI pipeline in `services/ai/app/generation/`, on **LangChain 1.x** [R20] (`langchain-core` 1.6, `langchain-openai` 1.7, `langchain-ollama` 1.1). Only the core and the two provider integrations are installed, not the full `langchain` package.
+
+| Module                    | Design                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `providers.py`            | `get_chat_model(settings, operation=…)` and `get_embeddings(settings)` return **OpenAI** (`ChatOpenAI`, `OpenAIEmbeddings`) or **Ollama** (`ChatOllama`, `OllamaEmbeddings`) models depending on `LLM_PROVIDER`. **Every model name comes from configuration.** Timeouts and retries are configurable (`LLM_TIMEOUT_S`, `LLM_MAX_RETRIES`). A missing OpenAI key raises a clear `ProviderNotConfiguredError`               |
+| `embedding_models.py`     | Registry of supported embedding models: **dimension** and **Pinecone index suffix** (`text-embedding-3-small` 1536-d `-te3s`, `-3-large` 3072-d `-te3l`, `nomic-embed-text` 768-d `-nomic`, `mxbai-embed-large` 1024-d `-mxbai`)                                                                                                                                                                                           |
+| config validation         | The service **refuses to start if `PINECONE_INDEX` doesn't match the embedding model** (D38). Switching to Ollama while pointing at the OpenAI index would otherwise mix 768-d and 1536-d vectors and break retrieval                                                                                                                                                                                                      |
+| `prompts.py` + `prompts/` | **Versioned prompt files** (D39): Markdown with front matter (`name`, `version`, `description`, `variables`) and `{{variable}}` placeholders. Single braces stay literal, so prompts can contain JSON or code. **Strict:** undeclared placeholders, unused variables, and missing or unexpected values are all errors. `name@version` will be **stored with generated content** for provenance and reproducible evaluation |
+| `usage.py`                | `TokenUsageCallback` (a LangChain callback) is attached to every chat model by the factory. It logs **one JSON line per call** (operation, model, input/output/total tokens, request id) and can add to a thread-safe `UsageTotals` for a whole job (#27). It reads the standard `usage_metadata`, falling back to OpenAI's `token_usage` (D40)                                                                            |
+| `/health`                 | Now also reports `embeddingDimension` (the shared TypeScript schema is updated to match)                                                                                                                                                                                                                                                                                                                                   |
+
+**Problems and resolutions:**
+
+- **mypy and LangChain aliases.** `OpenAIEmbeddings` accepts `api_key`/`timeout` at runtime, but its typed constructor doesn't expose those aliases, so the real field names (`openai_api_key`, `request_timeout`) are used. In tests the key is narrowed with `isinstance(..., SecretStr)`, because LangChain also accepts key-provider callables.
+- **Request ids in logs (D41).** A test showed the formatter read the request id at **format** time, so a record formatted later (or on another thread) could lose it. Fixed at the root: a **log-record factory** stamps the request id onto each record **when it is created**.
+- Config errors that span several fields had no field name (`- : …`); they are now labelled `CONFIG`.
+
+**Verification:**
+
+- **20 new Python tests**, all offline, using LangChain's fake models:
+  - the factory builds OpenAI models from config (model, temperature, retries, key);
+  - **switching to Ollama swaps both models with no code change**;
+  - every chat model carries the usage callback;
+  - a missing key fails clearly;
+  - prompt parsing and strict rendering: 5 invalid-file cases, missing and unexpected values, literal insertion, path-traversal names rejected, name/filename check;
+  - usage totals across calls;
+  - **a JSON log line with request id, operation and token counts**;
+  - the OpenAI fallback and missing usage;
+  - embedding dimensions; **index/model mismatch rejected**; unknown model rejected.
+- **Real service (done-when):**
+  - default → `openai | gpt-4o-mini | text-embedding-3-small (1536-d)`;
+  - `LLM_PROVIDER=ollama` with `PINECONE_INDEX=coursecraft-nomic` → `ollama | llama3.1:8b | nomic-embed-text (768-d)`, **with no code changes**;
+  - `LLM_PROVIDER=ollama` with the OpenAI index → **refuses to start** and explains the required suffix.
+- Python: 44 tests, Ruff, mypy `--strict` (27 files). JS: shared, web, API and build pass.
+
+No real model calls are made yet; the first will be in #21 (embeddings) and #23 (notes), which need an OpenAI API key.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -640,3 +682,7 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D35 | 2026-10-10 | Course search and filter run **client-side** with state in the URL                                                                                         | Instant results over a small, already-loaded list; shareable and bookmarkable filtered views; pages stay static                                                                                           |
 | D36 | 2026-10-10 | `useMe()` is **hydration-safe** (pending until hydrated via `useSyncExternalStore`)                                                                        | Session-aware client components can sit inside late-streamed Suspense boundaries without hydration mismatches [R114]; fixed centrally instead of per component                                            |
 | D37 | 2026-10-10 | Course pages publish **Open Graph/Twitter metadata and schema.org Course JSON-LD**                                                                         | Rich link previews and search-engine understanding of courses [R112][R113]; escaped against script injection                                                                                              |
+| D38 | 2026-10-10 | Embedding-model registry; **startup check that `PINECONE_INDEX` matches the embedding model**                                                              | Mixing vector sizes in one index silently breaks retrieval; fail fast with a clear fix instead                                                                                                            |
+| D39 | 2026-10-10 | **Versioned Markdown prompts** with strict `{{variable}}` rendering; `name@version` stored with outputs                                                    | Prompts are reviewable and diffable; no silently blank variables; generated content is traceable to the exact prompt (reproducible evaluation)                                                            |
+| D40 | 2026-10-10 | Token usage logged per call via a LangChain callback, with job totals                                                                                      | Cost visibility and control (SPEC §11) without touching call sites                                                                                                                                        |
+| D41 | 2026-10-10 | Request id captured at **log-record creation** (record factory)                                                                                            | Correct correlation even when records are formatted later or on another thread [R115]                                                                                                                     |

@@ -29,6 +29,7 @@ class LlmInfo(CamelModel):
     provider: Literal["openai", "ollama"]
     chat_model: str
     embedding_model: str
+    embedding_dimension: int
     configured: bool
 
 
