@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module.js';
 import { LoggerModule } from './common/logging/logger.module.js';
+import { CoursesModule } from './courses/courses.module.js';
 import { DomainsModule } from './domains/domains.module.js';
 import { validateEnv } from './config/env.js';
 import { HealthModule } from './health/health.module.js';
@@ -23,6 +24,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     AuthModule,
     HealthModule,
     DomainsModule,
+    CoursesModule,
   ],
 })
 export class AppModule {}

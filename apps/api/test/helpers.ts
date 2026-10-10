@@ -8,15 +8,28 @@ import { hashPassword } from '../src/auth/password.js';
 import type { Role } from '../src/generated/prisma/client.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
-/** Every e2e fixture uses this marker so afterAll can delete exactly what a suite created. */
-export const E2E_EMAIL_DOMAIN = '@e2e.coursecraft.test';
-export const E2E_PREFIX = 'e2e-';
 export const TEST_PASSWORD = 'a-long-test-password';
 
 let ipCounter = 0;
 /** A distinct client IP per call, so per-IP rate limits never leak between tests (TRUST_PROXY=1). */
 export const newIp = () => `10.1.${Math.floor(++ipCounter / 250)}.${ipCounter % 250}`;
 export const uniqueId = () => randomUUID().slice(0, 8);
+
+/**
+ * Per-suite fixture markers. Vitest runs test files in parallel against one database, so each
+ * suite must create and clean up only its own data, never another suite's (or the seed's).
+ */
+export interface E2eScope {
+  /** Prefix for slugs and YouTube ids, e.g. `e2e-1a2b3c4d-`. */
+  prefix: string;
+  /** Email domain for users, e.g. `@e2e-1a2b3c4d.coursecraft.test`. */
+  emailDomain: string;
+}
+
+export function createE2eScope(): E2eScope {
+  const id = uniqueId();
+  return { prefix: `e2e-${id}-`, emailDomain: `@e2e-${id}.coursecraft.test` };
+}
 
 export async function createTestApp(...extraModules: Type[]): Promise<INestApplication> {
   const moduleRef = await Test.createTestingModule({
@@ -28,10 +41,10 @@ export async function createTestApp(...extraModules: Type[]): Promise<INestAppli
   return app;
 }
 
-/** Creates a user directly in the database and returns its session cookie. */
-export async function signInAs(app: INestApplication, role: Role) {
+/** Creates a user directly in the database and returns it with its session cookie. */
+export async function signInAs(app: INestApplication, scope: E2eScope, role: Role) {
   const prisma = app.get(PrismaService);
-  const email = `${role.toLowerCase()}-${uniqueId()}${E2E_EMAIL_DOMAIN}`;
+  const email = `${role.toLowerCase()}-${uniqueId()}${scope.emailDomain}`;
   const user = await prisma.user.create({
     data: { email, name: `E2E ${role}`, role, passwordHash: await hashPassword(TEST_PASSWORD) },
   });
@@ -47,10 +60,13 @@ export async function signInAs(app: INestApplication, role: Role) {
   return { user, cookie };
 }
 
-/** Deletes everything created with the e2e markers, children first (FK RESTRICT). */
-export async function cleanupE2eData(prisma: PrismaService): Promise<void> {
-  await prisma.course.deleteMany({ where: { slug: { startsWith: E2E_PREFIX } } });
-  await prisma.domain.deleteMany({ where: { slug: { startsWith: E2E_PREFIX } } });
-  await prisma.video.deleteMany({ where: { youtubeId: { startsWith: E2E_PREFIX } } });
-  await prisma.user.deleteMany({ where: { email: { endsWith: E2E_EMAIL_DOMAIN } } });
+/** Deletes this suite's fixtures, children first (FK RESTRICT). */
+export async function cleanupE2eData(prisma: PrismaService, scope: E2eScope): Promise<void> {
+  await prisma.course.deleteMany({ where: { slug: { startsWith: scope.prefix } } });
+  await prisma.course.deleteMany({
+    where: { createdBy: { email: { endsWith: scope.emailDomain } } },
+  });
+  await prisma.domain.deleteMany({ where: { slug: { startsWith: scope.prefix } } });
+  await prisma.video.deleteMany({ where: { youtubeId: { startsWith: scope.prefix } } });
+  await prisma.user.deleteMany({ where: { email: { endsWith: scope.emailDomain } } });
 }

@@ -1,16 +1,14 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import {
-  type CourseSummary,
   type CreateDomainInput,
   type Domain,
   type DomainDetail,
   slugify,
   type UpdateDomainInput,
 } from '@coursecraft/shared';
-import { CourseStatus, Prisma } from '../generated/prisma/client.js';
+import { courseSummarySelect, PUBLISHED, toCourseSummary } from '../courses/course-summary.js';
+import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-
-const PUBLISHED = { status: CourseStatus.PUBLISHED } as const;
 
 const domainWithCount = {
   id: true,
@@ -47,15 +45,7 @@ export class DomainsService {
         courses: {
           where: PUBLISHED,
           orderBy: { title: 'asc' },
-          select: {
-            id: true,
-            slug: true,
-            title: true,
-            description: true,
-            level: true,
-            thumbnailUrl: true,
-            modules: { select: { _count: { select: { lessons: true } } } },
-          },
+          select: courseSummarySelect,
         },
       },
     });
@@ -64,10 +54,7 @@ export class DomainsService {
     const { courses, ...domain } = row;
     return {
       ...toDomain(domain),
-      courses: courses.map(({ modules, ...course }): CourseSummary => ({
-        ...course,
-        lessonCount: modules.reduce((sum, m) => sum + m._count.lessons, 0),
-      })),
+      courses: courses.map(toCourseSummary),
     };
   }
 
