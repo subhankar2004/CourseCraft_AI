@@ -24,6 +24,9 @@ dist/
 build/
 .turbo/
 
+# Generated Prisma client (rebuilt by `prisma generate` on install)
+apps/api/src/generated/
+
 # Next.js
 .next/
 out/

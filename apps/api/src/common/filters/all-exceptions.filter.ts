@@ -10,6 +10,10 @@ import {
 import { HttpAdapterHost } from '@nestjs/core';
 import type { ErrorResponse } from '@coursecraft/shared';
 
+function isHealthCheckResult(value: unknown): boolean {
+  return typeof value === 'object' && value !== null && 'status' in value && 'details' in value;
+}
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
@@ -27,6 +31,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let message: string | string[] = 'Internal server error';
     if (exception instanceof HttpException) {
       const response = exception.getResponse();
+      if (isHealthCheckResult(response)) {
+        // @nestjs/terminus failures keep their own documented shape (which dependency is down).
+        httpAdapter.reply(ctx.getResponse(), response, statusCode);
+        return;
+      }
       message =
         typeof response === 'string'
           ? response

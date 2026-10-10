@@ -4,5 +4,8 @@ packages:
 
 # Dependencies allowed (true) or denied (false) to run install scripts.
 allowBuilds:
+  # Official Prisma packages: download the schema/migration engine binaries.
+  '@prisma/engines': true
+  prisma: true
   sharp: false
   unrs-resolver: false

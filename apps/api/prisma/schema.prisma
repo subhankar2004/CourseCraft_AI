@@ -1,0 +1,310 @@
+// CourseCraft AI data model (SPEC §6).
+// Tables and columns use snake_case in PostgreSQL (@@map / @map); the TypeScript client stays camelCase.
+// After editing: `pnpm --filter api prisma:migrate --name <change>` then `pnpm --filter api prisma:generate`.
+
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  runtime                = "nodejs"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "js" // NestJS compiles with module "nodenext"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  ADMIN
+
+  @@map("role")
+}
+
+enum CourseStatus {
+  DRAFT
+  GENERATING
+  PUBLISHED
+  FAILED
+
+  @@map("course_status")
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+
+  @@map("job_status")
+}
+
+enum JobStage {
+  METADATA
+  TRANSCRIPT
+  CHUNKING
+  EMBEDDING
+  NOTES
+  STRUCTURING
+  EVALUATION
+  DONE
+
+  @@map("job_stage")
+}
+
+enum TranscriptSource {
+  YT_MANUAL
+  YT_AUTO
+  WHISPER
+
+  @@map("transcript_source")
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+
+  @@map("progress_status")
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+
+  @@map("chat_role")
+}
+
+// ─── Identity ───────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  role         Role     @default(STUDENT)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  createdCourses Course[]
+  enrollments    Enrollment[]
+  progress       LessonProgress[]
+  chatSessions   ChatSession[]
+
+  @@map("users")
+}
+
+// ─── Catalog: Domain → Course → Module → Lesson ─────────────────────────────
+
+model Domain {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  courses Course[]
+
+  @@map("domains")
+}
+
+model Course {
+  id             String       @id @default(cuid())
+  slug           String       @unique
+  title          String
+  description    String?
+  level          String? // Beginner | Intermediate | Advanced
+  status         CourseStatus @default(DRAFT)
+  thumbnailUrl   String?      @map("thumbnail_url")
+  domainId       String       @map("domain_id")
+  createdById    String       @map("created_by_id")
+  llmModel       String       @map("llm_model") // provenance, e.g. "gpt-4o-mini"
+  embeddingModel String       @map("embedding_model") // e.g. "text-embedding-3-small"
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  // Restrict: a domain or author with courses cannot be deleted by accident (#10).
+  domain      Domain          @relation(fields: [domainId], references: [id], onDelete: Restrict)
+  createdBy   User            @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  modules     Module[]
+  jobs        IngestionJob[]
+  enrollments Enrollment[]
+  chats       ChatSession[]
+  evaluations EvaluationRun[]
+
+  @@index([domainId])
+  @@index([status])
+  @@map("courses")
+}
+
+model Module {
+  id       String  @id @default(cuid())
+  courseId String  @map("course_id")
+  title    String
+  summary  String?
+  order    Int
+
+  course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@unique([courseId, order])
+  @@map("modules")
+}
+
+model Video {
+  id               String           @id @default(cuid())
+  youtubeId        String           @unique @map("youtube_id")
+  title            String
+  channel          String?
+  durationSec      Int              @map("duration_sec")
+  thumbnailUrl     String?          @map("thumbnail_url")
+  language         String?
+  transcriptSource TranscriptSource @map("transcript_source")
+  transcript       Json // [{ text, start, duration }]
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  lessons Lesson[]
+
+  @@map("videos")
+}
+
+model Lesson {
+  id             String   @id @default(cuid())
+  moduleId       String   @map("module_id")
+  videoId        String   @map("video_id")
+  title          String
+  order          Int
+  summary        String?
+  notesMarkdown  String   @map("notes_markdown") @db.Text
+  keyConcepts    String[] @map("key_concepts")
+  readingTimeMin Int?     @map("reading_time_min")
+  cognitiveLoad  Json?    @map("cognitive_load") // { fleschKincaid, avgSentenceLen, conceptDensity, index }
+
+  module   Module           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  // Restrict: cached videos are shared between lessons/courses.
+  video    Video            @relation(fields: [videoId], references: [id], onDelete: Restrict)
+  chunks   Chunk[]
+  progress LessonProgress[]
+
+  // The (module_id, order) unique index also serves lookups by module_id.
+  @@unique([moduleId, order])
+  @@index([videoId])
+  @@map("lessons")
+}
+
+/// Mirror of the Pinecone vectors for a lesson, used for citations and debugging.
+model Chunk {
+  id         String @id // == Pinecone vector id
+  lessonId   String @map("lesson_id")
+  index      Int
+  text       String @db.Text
+  startSec   Float  @map("start_sec")
+  endSec     Float  @map("end_sec")
+  tokenCount Int    @map("token_count")
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  // The (lesson_id, index) unique index also serves lookups by lesson_id.
+  @@unique([lessonId, index])
+  @@map("chunks")
+}
+
+// ─── Generation jobs ────────────────────────────────────────────────────────
+
+model IngestionJob {
+  id         String    @id @default(cuid())
+  courseId   String    @map("course_id")
+  input      Json // { urls: [...], playlistUrl?, options }
+  status     JobStatus @default(QUEUED)
+  stage      JobStage?
+  progress   Int       @default(0) // 0-100
+  error      String?
+  startedAt  DateTime? @map("started_at")
+  finishedAt DateTime? @map("finished_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@map("ingestion_jobs")
+}
+
+// ─── Learning progress ──────────────────────────────────────────────────────
+
+model Enrollment {
+  userId     String   @map("user_id")
+  courseId   String   @map("course_id")
+  enrolledAt DateTime @default(now()) @map("enrolled_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseId])
+  @@index([courseId])
+  @@map("enrollments")
+}
+
+model LessonProgress {
+  userId          String         @map("user_id")
+  lessonId        String         @map("lesson_id")
+  status          ProgressStatus @default(NOT_STARTED)
+  lastPositionSec Float          @default(0) @map("last_position_sec")
+  completedAt     DateTime?      @map("completed_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@id([userId, lessonId])
+  @@index([lessonId])
+  @@map("lesson_progress")
+}
+
+// ─── RAG chat ───────────────────────────────────────────────────────────────
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  courseId  String   @map("course_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course   Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@index([userId, courseId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String   @map("session_id")
+  role      ChatRole
+  content   String   @db.Text
+  citations Json? // [{ lessonId, chunkId, startSec, endSec, score }]
+  grounded  Boolean? // false = refused / out of scope
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
+}
+
+// ─── Evaluation ─────────────────────────────────────────────────────────────
+
+model EvaluationRun {
+  id        String   @id @default(cuid())
+  courseId  String   @map("course_id")
+  kind      String // "rag" | "notes"
+  metrics   Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@map("evaluation_runs")
+}
