@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "service": "coursecraft-ai",
+  "version": "0.1.0",
+  "providers": {
+    "llm": {
+      "provider": "ollama",
+      "chatModel": "llama3.1:8b",
+      "embeddingModel": "nomic-embed-text",
+      "embeddingDimension": 768,
+      "configured": true
+    },
+    "vectorStore": {
+      "provider": "pgvector",
+      "index": "vector_store.chunks_nomic",
+      "configured": true
+    }
+  }
+}

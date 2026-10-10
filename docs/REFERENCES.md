@@ -101,7 +101,7 @@ These come from the report's reference list. **⚠ verify:** check authors, venu
 | R57 | Microsoft, "Playwright documentation." [Online]. Available: https://playwright.dev                                                                                   | End-to-end browser tests                   | ✅ #4 (smoke test, playwright-core outside repo) · ⏳ #47 (E2E suite) |
 | R58 | Amazon Web Services, "AWS documentation: EC2, RDS, S3, SSM." [Online]. Available: https://docs.aws.amazon.com                                                        | Production deployment                      | ⏳ #49, #50                                                           |
 | R59 | Cloudflare, "Cloudflare CDN documentation." [Online]. Available: https://developers.cloudflare.com/cache/                                                            | Content delivery                           | ⏳ #49                                                                |
-| R60 | WHATWG, "HTML Living Standard, §9.2 Server-sent events." [Online]. Available: https://html.spec.whatwg.org/multipage/server-sent-events.html                         | Streaming job progress and chat tokens     | ⏳ #28, #39                                                           |
+| R60 | WHATWG, "HTML Living Standard, §9.2 Server-sent events." [Online]. Available: https://html.spec.whatwg.org/multipage/server-sent-events.html                         | Streaming job progress and chat tokens     | ✅ #26 (parser, passthrough) · ⏳ #28, #39                            |
 
 ## G. Frontend libraries and web standards
 
@@ -238,3 +238,10 @@ These come from the report's reference list. **⚠ verify:** check authors, venu
 | R134 | J. Danjou and contributors, "Tenacity: Retrying library for Python." [Online]. Available: https://tenacity.readthedocs.io (accessed Oct. 11, 2026). `[tenacity]`                                      | Exponential backoff with jitter behind LangChain `with_retry`          | ✅ #23 |
 | R135 | H. Garcia-Molina and K. Salem, "Sagas," in _Proc. ACM SIGMOD Int. Conf. Management of Data_, 1987, pp. 249–259. `[garciamolina1987sagas]`                                                             | Compensating actions for multi-step jobs (lesson-vector deletion, D65) | ✅ #24 |
 | R136 | B. T. Willard and R. Louf, "Efficient guided generation for large language models," _arXiv preprint_ arXiv:2307.09702, 2023. `[willard2023guided]`                                                    | Constrained (grammar-guided) decoding behind JSON mode (D67)           | ✅ #25 |
+
+## S. Service reliability
+
+| Ref  | Citation (IEEE)                                                                                                                                                                                                                                | Used for                                                                     | Status |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ |
+| R137 | M. Brooker, "Exponential backoff and jitter," _AWS Architecture Blog_, Mar. 4, 2015. [Online]. Available: https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/ (accessed Oct. 11, 2026). `[brooker2015backoff]`           | Retry delays of the AI client (equal jitter, D71)                            | ✅ #26 |
+| R138 | The Kubernetes Authors, "Liveness, readiness, and startup probes," Kubernetes documentation. [Online]. Available: https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/ (accessed Oct. 11, 2026). `[k8sprobes]` | Separate readiness (`/health`) and liveness (`/health/live`) endpoints (D72) | ✅ #26 |

@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AiClientModule } from './ai/ai-client.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { LoggerModule } from './common/logging/logger.module.js';
 import { CoursesModule } from './courses/courses.module.js';
@@ -21,6 +22,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     }),
     LoggerModule,
     PrismaModule,
+    AiClientModule,
     AuthModule,
     HealthModule,
     DomainsModule,

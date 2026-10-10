@@ -1,0 +1,8 @@
+{
+  "statusCode": 422,
+  "error": "Unprocessable Entity",
+  "message": ["body.youtubeId: String should match pattern '^[A-Za-z0-9_-]{11}$'"],
+  "path": "/ingest/transcript",
+  "timestamp": "2026-10-10T19:05:47.484020+00:00",
+  "requestId": "capture-26"
+}

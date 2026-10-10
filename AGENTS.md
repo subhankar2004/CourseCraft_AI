@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #26 (API: AI service client module).
+**Next up:** Issue #27 (API: BullMQ ingestion pipeline and persistence).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -114,6 +114,7 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 
 - REST under `/api/v1`. Request DTOs are validated (class-validator in Nest, Zod in web).
 - Shared TS types and Zod schemas live in `packages/shared`. Python mirrors live in `services/ai/app/schemas.py`. Change both together.
+- The API calls the AI service **only** through `AiClient` (`apps/api/src/ai/`), never with raw `fetch`. Its contracts are `packages/shared/src/ai.ts`; when an AI response changes, re-capture the fixtures in `packages/shared/src/fixtures/ai/` from the running service. Pass the job's or request's id as `requestId`.
 - Streaming (chat tokens, job progress) uses **SSE**, not WebSockets.
 
 **Database**

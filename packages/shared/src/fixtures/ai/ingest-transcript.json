@@ -1,0 +1,26 @@
+{
+  "youtubeId": "kqtD5dpn9C8",
+  "source": "YT_AUTO",
+  "language": "en",
+  "translatedFrom": null,
+  "fetchedWith": "youtube-transcript-api",
+  "segmentCount": 1642,
+  "coveredSec": 3604.36,
+  "segments": [
+    {
+      "text": "In this Python tutorial, you're going to",
+      "start": 2.24,
+      "duration": 3.04
+    },
+    {
+      "text": "learn everything you need to know to",
+      "start": 3.84,
+      "duration": 3.56
+    },
+    {
+      "text": "start programming in Python. If you want",
+      "start": 5.28,
+      "duration": 3.64
+    }
+  ]
+}

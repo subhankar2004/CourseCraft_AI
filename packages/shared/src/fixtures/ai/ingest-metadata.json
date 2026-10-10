@@ -1,0 +1,38 @@
+{
+  "videos": [
+    {
+      "youtubeId": "Tk1t3WKK-ZY",
+      "title": "What is a database in under 4 minutes",
+      "channel": "Linux Academy",
+      "durationSec": 226,
+      "thumbnailUrl": "https://i.ytimg.com/vi/Tk1t3WKK-ZY/hqdefault.jpg",
+      "language": null,
+      "chapters": [
+        {
+          "startSec": 0.0,
+          "title": "<Untitled Chapter 1>"
+        },
+        {
+          "startSec": 65.0,
+          "title": "Flat Files Database"
+        },
+        {
+          "startSec": 99.0,
+          "title": "STRUCTURED QUERY LANGUAGE (SQL)"
+        },
+        {
+          "startSec": 115.0,
+          "title": "Non-Relational Database (NoSQL)"
+        }
+      ]
+    }
+  ],
+  "failed": [
+    {
+      "youtubeId": "AAAAAAAAAAA",
+      "reason": "This video is unavailable"
+    }
+  ],
+  "truncated": false,
+  "maxVideos": 25
+}
