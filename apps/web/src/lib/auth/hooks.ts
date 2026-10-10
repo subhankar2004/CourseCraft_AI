@@ -1,9 +1,15 @@
 'use client';
 
-import { type LoginInput, type RegisterInput, type User, userSchema } from '@coursecraft/shared';
+import {
+  type LoginInput,
+  type RegisterInput,
+  sessionSchema,
+  type User,
+  userSchema,
+} from '@coursecraft/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { api, ApiError } from '@/lib/api';
+import { api } from '@/lib/api';
 
 export const ME_QUERY_KEY = ['auth', 'me'] as const;
 
@@ -11,14 +17,9 @@ export const ME_QUERY_KEY = ['auth', 'me'] as const;
 export function useMe() {
   return useQuery({
     queryKey: ME_QUERY_KEY,
-    queryFn: async (): Promise<User | null> => {
-      try {
-        return await api('auth/me', { schema: userSchema });
-      } catch (error) {
-        if (error instanceof ApiError && error.status === 401) return null;
-        throw error;
-      }
-    },
+    // /auth/session answers 200 with `user: null` when signed out (no 401 noise in the console).
+    queryFn: async (): Promise<User | null> =>
+      (await api('auth/session', { schema: sessionSchema })).user,
     staleTime: 5 * 60_000,
   });
 }

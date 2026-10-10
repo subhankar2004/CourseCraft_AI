@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #13, web landing page and global navigation.
+**Next up:** Issue #14, web domain catalog pages.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -104,6 +104,8 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - Route protection lives in `src/proxy.ts` + `src/lib/auth/access.ts` and is optimistic only. Every real permission check happens in the API.
 - Redirect targets from the URL go through `safeNextPath()`.
 - Forms: react-hook-form + `zodResolver(<shared schema>)`, `FormField` for accessible inputs, `applyApiError()` for server errors.
+- Server-side catalog reads: `'use cache'` functions in `src/lib/catalog.ts` with an explicit `cacheLife` (and a short one on failure, so builds without a running API still succeed and recover quickly). Wrap them in `<Suspense>`.
+- `useMe()` reads `GET /auth/session` (always 200), never `/auth/me`.
 - Avoid experimental Next.js APIs (e.g. `forbidden()` / `authInterrupts`) unless there's a strong reason.
 
 **API contracts**

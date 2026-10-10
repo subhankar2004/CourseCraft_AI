@@ -35,6 +35,10 @@ export const userSchema = z.object({
   createdAt: z.iso.datetime({ offset: true }),
 });
 
+/** GET /auth/session: never 401; `user` is null when signed out. */
+export const sessionSchema = z.object({ user: userSchema.nullable() });
+
+export type Session = z.infer<typeof sessionSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type Role = z.infer<typeof roleSchema>;

@@ -85,6 +85,23 @@ describe('Auth (e2e)', () => {
       expect(sessionCookie(out)).toMatch(/cc_session=;/);
     });
 
+    it('reports the session on /auth/session without ever returning 401', async () => {
+      const anonymous = await http().get('/api/v1/auth/session').expect(200);
+      expect(anonymous.body).toEqual({ user: null });
+      const garbage = await http()
+        .get('/api/v1/auth/session')
+        .set('Cookie', 'cc_session=not.a.jwt')
+        .expect(200);
+      expect(garbage.body).toEqual({ user: null });
+
+      const res = await register().expect(201);
+      const signedIn = await http()
+        .get('/api/v1/auth/session')
+        .set('Cookie', sessionCookie(res)!)
+        .expect(200);
+      expect(signedIn.body.user).toEqual(res.body);
+    });
+
     it('rejects /me without a session using the standard error body', async () => {
       const res = await http().get('/api/v1/auth/me').expect(401);
       expect(errorResponseSchema.parse(res.body).message).toBe('Not signed in');

@@ -25,6 +25,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 10  | 2026-10-10 | [#10](https://github.com/subhankar2004/CourseCraft_AI/issues/10) / [#61](https://github.com/subhankar2004/CourseCraft_AI/pull/61) | P1    | Domains API: public catalog reads, admin CRUD with slugs and delete protection                |
 | 11  | 2026-10-10 | [#11](https://github.com/subhankar2004/CourseCraft_AI/issues/11) / [#62](https://github.com/subhankar2004/CourseCraft_AI/pull/62) | P1    | Courses & lessons read API: catalog list/search/pagination, course outline, lesson reader     |
 | 12  | 2026-10-10 | [#12](https://github.com/subhankar2004/CourseCraft_AI/issues/12) / [#63](https://github.com/subhankar2004/CourseCraft_AI/pull/63) | P1    | Web auth: login/register forms, session hooks, user menu, proxy route protection, 403         |
+| 13  | 2026-10-10 | [#13](https://github.com/subhankar2004/CourseCraft_AI/issues/13) / [#64](https://github.com/subhankar2004/CourseCraft_AI/pull/64) | P1    | Landing page, responsive navigation, footer; `/auth/session`                                  |
 
 ---
 
@@ -481,6 +482,44 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 13 — Landing page and global navigation (Issue #13, PR #64, 2026-10-10)
+
+**What:**
+
+- **Landing page** (`/`), with sections taken from the project report's abstract:
+  - hero with CTAs that adapt to the visitor (_Start learning free_ / _Continue learning_ + _Browse domains_);
+  - **the problem** (scattered content, time lost searching, long videos);
+  - **how it works** (Ingest → Structure → Learn & ask);
+  - **what you get** (learning path, study notes, course-aware assistant);
+  - **featured domains** from the API.
+
+  No invented statistics or testimonials.
+
+- **Featured domains are fetched on the server and cached** with Next.js 16 `'use cache'` + `cacheLife('hours')` + `cacheTag('domains')` [R107], so the page is a **static page that revalidates in the background** (stale-while-revalidate semantics [R108]). If the API can't be reached, the function returns a fallback with `cacheLife('seconds')`. The build then still succeeds (CI has no API) and the section recovers within about a minute.
+- **Responsive navigation** [R109]: inline links from 640 px up, a slide-in **Sheet** menu on phones; `aria-current` on the active link. _Dashboard_ and _Admin_ appear only for signed-in users and admins.
+- **Footer:** project summary, academic credits (Dept. of CSE, VSSUT Burla, supervisor Dr. Sucheta Panda), links to the domains page, the GitHub repository and the report PDF, the licence, and the API status.
+- **New API endpoint `GET /auth/session`** (D32): always **200**, `{ user | null }`. The guard's token logic moved into `AuthService.resolveSession()`, so the guard and the endpoint share one implementation. `useMe()` now uses it.
+
+**Problems and resolutions:**
+
+- **Builds must not depend on a running API.** We verified both cases: with the API up, `/` is **fully static** with the domains baked into the HTML (revalidate 1 h, expire 1 d). With the API unreachable, the build succeeds and `/` becomes a **partial prerender**: a static shell plus a skeleton, with the domains streamed later.
+- **Console noise for signed-out visitors.** The browser test found `401 Unauthorized` logged on every signed-out page view, because `useMe()` called `/auth/me`. That's correct HTTP, but a poor experience and it hides real errors. Fixed with the always-200 session endpoint, the same approach common auth libraries take. The #12 login-flow test was re-run as a regression check and **no longer needs any filter for expected 401s**.
+
+**Verification:**
+
+- **Responsive browser test** (headless Chrome) at **360, 768 and 1280 px in light and dark: 27/27 checks, 0 console errors or warnings.**
+  - No horizontal scrolling at any width.
+  - The hero and all 4 domain cards render.
+  - The correct navigation for each width (phone menu below 640 px).
+  - **The phone menu opens, navigates and closes.**
+  - The hero CTA goes to `/register`.
+  - The footer credits VSSUT and the supervisor.
+- **#12 regression:** the login flow is still 16/16 with 0 console errors.
+- New API e2e test: `/auth/session` returns `{user:null}` for no cookie and for a garbage cookie, and the user when signed in. API e2e total: 45.
+- Root format, lint, typecheck, test (shared 28 · web 13 · API 12 + 45 · Python) and build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -518,3 +557,5 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D29 | 2026-10-10 | Web and API must be served from the **same site** in production (one domain, `/api` → API)                                                                 | Lets the web proxy see the httpOnly session cookie for route protection; also keeps cookies first-party. Implemented in #48/#50                                                                           |
 | D30 | 2026-10-10 | **Optimistic** route checks in `proxy.ts` (cookie presence, unverified role claim) + client-side session via `useMe()`                                     | Follows the Next.js 16 guidance: no secret in the web tier, no DB/API calls in the proxy, static pages preserved; the API enforces all real authorisation [R106]                                          |
 | D31 | 2026-10-10 | No experimental Next.js APIs (`forbidden()` / `authInterrupts`); plain `/forbidden` page with status 403                                                   | Stability for a graded project; the same user-facing result                                                                                                                                               |
+| D32 | 2026-10-10 | `GET /auth/session` always returns 200 (`user: null` when signed out); `/auth/me` keeps 401                                                                | Clean browser consoles for anonymous visitors; strict semantics preserved for API clients; one shared resolution function                                                                                 |
+| D33 | 2026-10-10 | Server-side catalog data via `'use cache'` + explicit `cacheLife` (`hours`, or `seconds` on failure)                                                       | Static, fast pages that refresh in the background [R107][R108]; builds and CI don't need a running API                                                                                                    |
