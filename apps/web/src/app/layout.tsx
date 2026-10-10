@@ -10,6 +10,8 @@ const geistSans = Geist({ variable: '--font-sans', subsets: ['latin'] });
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  // Base for absolute URLs in Open Graph/Twitter metadata (link previews need absolute URLs).
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: { default: 'CourseCraft AI', template: '%s · CourseCraft AI' },
   description:
     'Turn scattered YouTube lectures into structured courses with AI study notes and a course-aware chatbot.',

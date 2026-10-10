@@ -102,6 +102,13 @@ describe('Auth (e2e)', () => {
       expect(signedIn.body.user).toEqual(res.body);
     });
 
+    it('never rate-limits /auth/session (it runs on every page view)', async () => {
+      const ip = newIp();
+      for (let i = 0; i < 30; i++) {
+        await http().get('/api/v1/auth/session').set('X-Forwarded-For', ip).expect(200);
+      }
+    });
+
     it('rejects /me without a session using the standard error body', async () => {
       const res = await http().get('/api/v1/auth/me').expect(401);
       expect(errorResponseSchema.parse(res.body).message).toBe('Not signed in');

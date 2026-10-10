@@ -23,7 +23,7 @@ Since there is no second human reviewer, every change touching more than one pac
 Track progress here. Update this section at the end of every working session.
 
 - [x] P0 Setup — monorepo, docker-compose, lint, env, health checks, shared contracts, CI (#1–#6)
-- [ ] P1 Core — Prisma schema, auth, domains/courses CRUD, seed + web layout, auth pages, catalog browsing
+- [x] P1 Core — Prisma schema, auth, domains/courses read API, seed, web auth, landing, catalog and course pages (#7–#15)
 - [ ] P2 Ingestion — metadata, transcripts (+ Whisper fallback), chunking, embeddings
 - [ ] P3 Generation — notes map-reduce, structuring, job + SSE progress, admin UI
 - [ ] P4 Learning UX — split view, timestamp seek, progress, next lesson, dashboard
@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #15, web course overview page.
+**Next up:** Issue #16, AI provider factory and prompt loader (starts P2, the AI pipeline).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -106,7 +106,8 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - Forms: react-hook-form + `zodResolver(<shared schema>)`, `FormField` for accessible inputs, `applyApiError()` for server errors.
 - Server-side catalog reads: `'use cache'` functions in `src/lib/catalog.ts`. They **never throw**: on API failure they return `UNAVAILABLE` cached with `cacheLife('minutes')` (an error thrown inside `use cache` fails the build even if caught, and `'seconds'` entries are excluded from prerenders). Success uses `cacheLife('hours')`. Wrap readers in `<Suspense>`, and await `params` inside the boundary (ISR with Cache Components).
 - `generateStaticParams` uses uncached build-time fetches and must return at least one param (placeholder when the API is down).
-- `useMe()` reads `GET /auth/session` (always 200), never `/auth/me`.
+- `useMe()` reads `GET /auth/session` (always 200), never `/auth/me`. It is **hydration-safe**: it reports `isPending` until the component has hydrated, so session-aware components can live inside late-streamed `<Suspense>` boundaries. Always handle `isPending` (render a skeleton).
+- Throttler decorators must name the throttler: `@SkipThrottle({ auth: true })`. A bare `@SkipThrottle()` only skips one called `default`.
 - Avoid experimental Next.js APIs (e.g. `forbidden()` / `authInterrupts`) unless there's a strong reason.
 
 **API contracts**
