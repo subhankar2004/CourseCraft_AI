@@ -12,15 +12,19 @@ from app.api.vectors import get_vector_index, run_infra, unavailable
 from app.config import Settings, get_settings
 from app.generation.notes import LlmUnavailableError, NotesGenerationError, NotesGenerator
 from app.generation.providers import ProviderNotConfiguredError, get_chat_model
+from app.generation.structure import CourseStructurer, LessonInput
 from app.generation.usage import UsageTotals
 from app.processing.chunking import TimedText
 from app.processing.indexing import VectorIndex
 from app.processing.lesson import EmptyTranscriptError, LessonProcessor
 from app.schemas import (
     ChunkOut,
+    ModuleOut,
     NotesOut,
     ProcessLessonRequest,
     ProcessLessonResponse,
+    StructureRequest,
+    StructureResponse,
     UsageOut,
 )
 
@@ -112,4 +116,60 @@ def process_lesson(
             output_tokens=result.tokens.output_tokens,
         ),
         elapsed_sec=result.elapsed_sec,
+    )
+
+
+def get_course_structurer(
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> CourseStructurer:
+    totals = UsageTotals()
+    try:
+        model = get_chat_model(
+            settings, operation="course-structure", totals=totals, json_mode=True
+        )
+    except ProviderNotConfiguredError as error:
+        raise unavailable(str(error)) from error
+    return CourseStructurer(model, model_name=settings.chat_model, usage=totals)
+
+
+@router.post("/structure")
+def structure_course(
+    body: StructureRequest,
+    structurer: Annotated[CourseStructurer, Depends(get_course_structurer)],
+) -> StructureResponse:
+    """Lessons (titles + summaries from /process/lesson) → course title, description, level and
+    modules with ordered lesson refs. Every lesson is placed exactly once (repaired if needed).
+
+    503 = the chat model is unavailable. Unusable model output never fails the request: a plain
+    outline in the given order is returned with `fallback: true` for the admin to fix.
+    """
+    try:
+        outline = structurer.structure(
+            [
+                LessonInput(lesson.ref, lesson.title, lesson.summary, lesson.key_concepts)
+                for lesson in body.lessons
+            ],
+            domain=body.domain,
+            title_hint=body.title_hint,
+        )
+    except LlmUnavailableError as error:
+        raise unavailable(str(error)) from error
+    usage = structurer.usage
+    return StructureResponse(
+        title=outline.title,
+        description=outline.description,
+        level=outline.level,
+        modules=[
+            ModuleOut(title=m.title, summary=m.summary, lesson_refs=m.lesson_refs)
+            for m in outline.modules
+        ],
+        repairs=outline.repairs,
+        fallback=outline.fallback,
+        prompt_id=outline.prompt_id,
+        chat_model=outline.model,
+        usage=UsageOut(
+            llm_calls=usage.calls,
+            input_tokens=usage.counts.input_tokens,
+            output_tokens=usage.counts.output_tokens,
+        ),
     )

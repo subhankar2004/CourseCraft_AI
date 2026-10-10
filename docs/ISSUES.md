@@ -338,9 +338,9 @@ Meta: phase=P3 | area=ai | type=feat | depends=16
 **Goal:** SPEC §7.1 step 6: build the Domain → Course → Module → Lesson outline.
 **Tasks**
 
-- [ ] Prompt: lesson titles and summaries → course title, description, level, modules (title, summary) with ordered lesson refs
-- [ ] Validation: every lesson is placed exactly once and no module is empty; repair or retry if not
-- [ ] Tests with a fake LLM, including the repair path
+- [x] Prompt: lesson titles and summaries → course title, description, level, modules (title, summary) with ordered lesson refs
+- [x] Validation: every lesson is placed exactly once and no module is empty; repair or retry if not
+- [x] Tests with a fake LLM, including the repair path
 
 **Done when:** A 10-lesson fixture produces a valid outline.
 

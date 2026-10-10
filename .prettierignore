@@ -11,3 +11,4 @@ services/ai/
 
 # Model outputs kept verbatim as evaluation evidence (#23)
 docs/eval/notes-samples/*.*.md
+docs/eval/structure-samples/*.json

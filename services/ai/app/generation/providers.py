@@ -49,8 +49,14 @@ def get_chat_model(
     operation: str,
     temperature: float = 0.2,
     totals: UsageTotals | None = None,
+    json_mode: bool = False,
 ) -> BaseChatModel:
-    """A chat model for the configured provider, logging token usage under `operation`."""
+    """A chat model for the configured provider, logging token usage under `operation`.
+
+    `json_mode` makes the provider return syntactically valid JSON (Ollama `format="json"`,
+    OpenAI `response_format=json_object`; the prompt must mention JSON). The SHAPE is still
+    validated by the caller.
+    """
     callbacks: list[BaseCallbackHandler] = [
         TokenUsageCallback(operation=operation, model=settings.chat_model, totals=totals)
     ]
@@ -63,6 +69,7 @@ def get_chat_model(
             max_retries=settings.llm_max_retries,
             stream_usage=True,  # token counts are reported for streamed responses too
             callbacks=callbacks,
+            model_kwargs={"response_format": {"type": "json_object"}} if json_mode else {},
         )
     return ChatOllama(
         model=settings.ollama_chat_model,
@@ -71,6 +78,7 @@ def get_chat_model(
         num_ctx=settings.ollama_num_ctx,
         client_kwargs={"timeout": settings.llm_timeout_s},  # httpx timeout per request
         callbacks=callbacks,
+        format="json" if json_mode else None,
     )
 
 

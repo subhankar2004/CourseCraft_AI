@@ -1,0 +1,16 @@
+{
+  "source": "Chapter titles of freeCodeCamp.org's 'SQL Tutorial - Full Database Course for Beginners' (HXV3zeQKqGY); summaries hand-written in the style of generated lesson notes (#23).",
+  "domain": "Database Systems",
+  "lessons": [
+    {"ref": "lsn01", "title": "What is a Database?", "summary": "Defines a database as any collection of related information, compares storing data on paper and on computers, and introduces database management systems.", "keyConcepts": ["Database", "Database management system", "CRUD"]},
+    {"ref": "lsn02", "title": "Tables & Keys", "summary": "Explains how relational databases store data in tables of rows and columns, and how primary keys, foreign keys and composite keys identify and link rows.", "keyConcepts": ["Table", "Primary key", "Foreign key"]},
+    {"ref": "lsn03", "title": "SQL Basics", "summary": "Introduces SQL as the language for talking to relational database management systems, and its parts: queries, data definition, data manipulation and data control.", "keyConcepts": ["SQL", "Query", "RDBMS"]},
+    {"ref": "lsn04", "title": "MySQL Windows Installation", "summary": "Step-by-step installation of the MySQL server and command-line client on Windows, and creating a first database.", "keyConcepts": ["MySQL", "Installation", "Command line"]},
+    {"ref": "lsn05", "title": "MySQL Mac Installation", "summary": "Installing MySQL on macOS, setting the root password, and connecting from the terminal.", "keyConcepts": ["MySQL", "macOS", "Terminal"]},
+    {"ref": "lsn06", "title": "Creating Tables", "summary": "Uses CREATE TABLE with data types such as INT, VARCHAR and DATE, defines a primary key, and changes tables with ALTER TABLE and DROP TABLE.", "keyConcepts": ["CREATE TABLE", "Data types", "ALTER TABLE"]},
+    {"ref": "lsn07", "title": "Inserting Data", "summary": "Adds rows with INSERT INTO, including inserting into specific columns and handling NULL values.", "keyConcepts": ["INSERT INTO", "NULL", "Rows"]},
+    {"ref": "lsn08", "title": "Joins", "summary": "Combines rows from several tables with INNER JOIN, LEFT JOIN and RIGHT JOIN using related columns.", "keyConcepts": ["INNER JOIN", "LEFT JOIN", "RIGHT JOIN"]},
+    {"ref": "lsn09", "title": "Nested Queries", "summary": "Uses the result of one SELECT inside another to answer questions that need several steps.", "keyConcepts": ["Subquery", "IN", "SELECT"]},
+    {"ref": "lsn10", "title": "ER Diagrams Intro", "summary": "Introduces entity relationship diagrams: entities, attributes, relationships and cardinality, for designing a database schema before building it.", "keyConcepts": ["ER diagram", "Entity", "Cardinality"]}
+  ]
+}
