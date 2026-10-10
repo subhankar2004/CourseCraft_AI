@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #14, web domain catalog pages.
+**Next up:** Issue #15, web course overview page.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -104,7 +104,8 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - Route protection lives in `src/proxy.ts` + `src/lib/auth/access.ts` and is optimistic only. Every real permission check happens in the API.
 - Redirect targets from the URL go through `safeNextPath()`.
 - Forms: react-hook-form + `zodResolver(<shared schema>)`, `FormField` for accessible inputs, `applyApiError()` for server errors.
-- Server-side catalog reads: `'use cache'` functions in `src/lib/catalog.ts` with an explicit `cacheLife` (and a short one on failure, so builds without a running API still succeed and recover quickly). Wrap them in `<Suspense>`.
+- Server-side catalog reads: `'use cache'` functions in `src/lib/catalog.ts`. They **never throw**: on API failure they return `UNAVAILABLE` cached with `cacheLife('minutes')` (an error thrown inside `use cache` fails the build even if caught, and `'seconds'` entries are excluded from prerenders). Success uses `cacheLife('hours')`. Wrap readers in `<Suspense>`, and await `params` inside the boundary (ISR with Cache Components).
+- `generateStaticParams` uses uncached build-time fetches and must return at least one param (placeholder when the API is down).
 - `useMe()` reads `GET /auth/session` (always 200), never `/auth/me`.
 - Avoid experimental Next.js APIs (e.g. `forbidden()` / `authInterrupts`) unless there's a strong reason.
 
