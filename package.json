@@ -27,9 +27,10 @@
     "infra:logs": "docker compose --profile ollama logs -f",
     "ai:sync": "uv --directory services/ai sync",
     "ai:dev": "uv --directory services/ai run uvicorn app.main:app --reload --port 8000",
+    "ai:fixtures": "uv --directory services/ai run python -m scripts.record_fixtures",
     "ai:lint": "uv --directory services/ai run ruff check . && uv --directory services/ai run ruff format --check .",
     "ai:format": "uv --directory services/ai run ruff format . && uv --directory services/ai run ruff check --fix .",
-    "ai:typecheck": "uv --directory services/ai run mypy app tests",
+    "ai:typecheck": "uv --directory services/ai run mypy app tests scripts",
     "ai:test": "uv --directory services/ai run pytest"
   },
   "devDependencies": {

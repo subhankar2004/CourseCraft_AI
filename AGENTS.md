@@ -24,14 +24,14 @@ Track progress here. Update this section at the end of every working session.
 
 - [x] P0 Setup — monorepo, docker-compose, lint, env, health checks, shared contracts, CI (#1–#6)
 - [x] P1 Core — Prisma schema, auth, domains/courses read API, seed, web auth, landing, catalog and course pages (#7–#15)
-- [ ] P2 Ingestion — metadata, transcripts (+ Whisper fallback), chunking, embeddings
+- [x] P2 Ingestion — metadata, transcripts (+ Whisper fallback), chunking, embeddings + pgvector, fixtures (#16–#22)
 - [ ] P3 Generation — notes map-reduce, structuring, job + SSE progress, admin UI
 - [ ] P4 Learning UX — split view, timestamp seek, progress, next lesson, dashboard
 - [ ] P5 RAG chat — grounding gate, citations, chat drawer
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #22 (ingestion fixtures and integration tests). Local models: Ollama (`nomic-embed-text` for embeddings; `llama3.1:8b` needed from #23).
+**Next up:** Issue #23 (lesson notes generation, map-reduce) with Ollama `llama3.1:8b`.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -134,7 +134,7 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - **Never pass user-supplied URLs to yt-dlp or any fetcher.** Parse them with `app.ingestion.youtube_urls.parse_youtube_url()` and build canonical URLs from the validated ids; keep yt-dlp's `allowed_extractors` restricted to YouTube.
 - Chunks must keep `startSec/endSec`. Citations and timestamp seeking depend on it.
 - The RAG answer path must keep the **grounding gate** (`RAG_MIN_SCORE`) and the "answer only from context" system prompt. Do not weaken these to make a demo look better. They are the core claim of the project.
-- Use real YouTube calls only in tests marked `@pytest.mark.network`. Default unit tests use the fixtures in `services/ai/tests/fixtures/`.
+- Use real YouTube calls only in tests marked `@pytest.mark.network`. Default unit tests use the fixtures in `services/ai/tests/fixtures/` (`tests/fixture_data.py` loads them; `pnpm ai:fixtures` re-records them). New pipeline stages extend `tests/test_ingestion_pipeline.py`, which replays the outside world and runs the real code.
 
 **Git**
 

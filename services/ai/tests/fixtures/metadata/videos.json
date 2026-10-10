@@ -1,0 +1,219 @@
+{
+  "recordedAt": "2026-10-10",
+  "videos": [
+    {
+      "youtube_id": "HXV3zeQKqGY",
+      "title": "SQL Tutorial - Full Database Course for Beginners",
+      "channel": "freeCodeCamp.org",
+      "duration_sec": 15639,
+      "thumbnail_url": "https://i.ytimg.com/vi/HXV3zeQKqGY/hqdefault.jpg",
+      "language": null,
+      "chapters": [
+        {
+          "start_sec": 0.0,
+          "title": "Introduction"
+        },
+        {
+          "start_sec": 156.0,
+          "title": "What is a Database?"
+        },
+        {
+          "start_sec": 1390.0,
+          "title": "Tables & Keys"
+        },
+        {
+          "start_sec": 2611.0,
+          "title": "SQL Basics"
+        },
+        {
+          "start_sec": 3146.0,
+          "title": "MySQL Windows Installation"
+        },
+        {
+          "start_sec": 3719.0,
+          "title": "MySQL Mac Installation"
+        },
+        {
+          "start_sec": 4549.0,
+          "title": "Creating Tables"
+        },
+        {
+          "start_sec": 5465.0,
+          "title": "Inserting Data"
+        },
+        {
+          "start_sec": 5897.0,
+          "title": "Constraints"
+        },
+        {
+          "start_sec": 6491.0,
+          "title": "Update & Delete"
+        },
+        {
+          "start_sec": 6971.0,
+          "title": "Basic Queries"
+        },
+        {
+          "start_sec": 7717.0,
+          "title": "Company Database Intro"
+        },
+        {
+          "start_sec": 8045.0,
+          "title": "Creating Company Database"
+        },
+        {
+          "start_sec": 9027.0,
+          "title": "More Basic Queries"
+        },
+        {
+          "start_sec": 9913.0,
+          "title": "Wildcards"
+        },
+        {
+          "start_sec": 10433.0,
+          "title": "Union"
+        },
+        {
+          "start_sec": 10896.0,
+          "title": "Joins"
+        },
+        {
+          "start_sec": 11509.0,
+          "title": "Nested Queries"
+        },
+        {
+          "start_sec": 12112.0,
+          "title": "On Delete"
+        },
+        {
+          "start_sec": 12605.0,
+          "title": "Triggers"
+        },
+        {
+          "start_sec": 13332.0,
+          "title": "ER Diagrams Intro"
+        },
+        {
+          "start_sec": 14153.0,
+          "title": "Designing an ER Diagram"
+        },
+        {
+          "start_sec": 14914.0,
+          "title": "Converting ER Diagrams to Schemas"
+        }
+      ]
+    },
+    {
+      "youtube_id": "kqtD5dpn9C8",
+      "title": "Python for Beginners - Learn Coding with Python in 1 Hour",
+      "channel": "Programming with Mosh",
+      "duration_sec": 3606,
+      "thumbnail_url": "https://i.ytimg.com/vi/kqtD5dpn9C8/hqdefault.jpg",
+      "language": "en-US",
+      "chapters": [
+        {
+          "start_sec": 0.0,
+          "title": "Introduction"
+        },
+        {
+          "start_sec": 30.0,
+          "title": "What You Can Do With Python"
+        },
+        {
+          "start_sec": 75.0,
+          "title": "Your First Python Program"
+        },
+        {
+          "start_sec": 330.0,
+          "title": "Variables"
+        },
+        {
+          "start_sec": 548.0,
+          "title": "Receiving Input"
+        },
+        {
+          "start_sec": 648.0,
+          "title": "Type Conversion"
+        },
+        {
+          "start_sec": 1129.0,
+          "title": "Strings"
+        },
+        {
+          "start_sec": 1421.0,
+          "title": "Arithmetic Operators"
+        },
+        {
+          "start_sec": 1559.0,
+          "title": "Operator Precedence"
+        },
+        {
+          "start_sec": 1631.0,
+          "title": "Comparison Operators"
+        },
+        {
+          "start_sec": 1732.0,
+          "title": "Logical Operators"
+        },
+        {
+          "start_sec": 1866.0,
+          "title": "If Statements"
+        },
+        {
+          "start_sec": 2176.0,
+          "title": "Exercise"
+        },
+        {
+          "start_sec": 2502.0,
+          "title": "While Loops"
+        },
+        {
+          "start_sec": 2711.0,
+          "title": "Lists"
+        },
+        {
+          "start_sec": 2927.0,
+          "title": "List Methods"
+        },
+        {
+          "start_sec": 3136.0,
+          "title": "For Loops"
+        },
+        {
+          "start_sec": 3294.0,
+          "title": "The range() Function"
+        },
+        {
+          "start_sec": 3463.0,
+          "title": "Tuples"
+        }
+      ]
+    },
+    {
+      "youtube_id": "Tk1t3WKK-ZY",
+      "title": "What is a database in under 4 minutes",
+      "channel": "Linux Academy",
+      "duration_sec": 226,
+      "thumbnail_url": "https://i.ytimg.com/vi/Tk1t3WKK-ZY/hqdefault.jpg",
+      "language": null,
+      "chapters": [
+        {
+          "start_sec": 0.0,
+          "title": "<Untitled Chapter 1>"
+        },
+        {
+          "start_sec": 65.0,
+          "title": "Flat Files Database"
+        },
+        {
+          "start_sec": 99.0,
+          "title": "STRUCTURED QUERY LANGUAGE (SQL)"
+        },
+        {
+          "start_sec": 115.0,
+          "title": "Non-Relational Database (NoSQL)"
+        }
+      ]
+    }
+  ]
+}

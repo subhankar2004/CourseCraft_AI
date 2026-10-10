@@ -295,10 +295,10 @@ Meta: phase=P2 | area=ai | type=test | depends=19,21
 **Goal:** A reliable, offline test base for everything that follows.
 **Tasks**
 
-- [ ] `tests/fixtures/`: 3 recorded transcripts (manual, auto, Whisper) and metadata JSON
-- [ ] Integration test: fixture → chunk → embed (fake) → upsert (mock)
-- [ ] A `make`/`uv` script that refreshes fixtures from the network
-- [ ] Mark P2 done in AGENTS.md
+- [x] `tests/fixtures/`: 3 recorded transcripts (manual, auto, Whisper) and metadata JSON
+- [x] Integration test: fixture → chunk → embed (fake) → store (in-memory and real pgvector)
+- [x] A `uv` script that refreshes fixtures from the network (`pnpm ai:fixtures`)
+- [x] Mark P2 done in AGENTS.md
 
 **Done when:** `pytest` (offline) covers the whole ingestion path; `pytest -m network` passes locally.
 

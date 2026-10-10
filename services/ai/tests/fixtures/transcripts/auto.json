@@ -1,0 +1,1406 @@
+{
+  "youtubeId": "kqtD5dpn9C8",
+  "recordedAt": "2026-10-10",
+  "excerptSec": 600.0,
+  "source": "YT_AUTO",
+  "language": "en",
+  "translatedFrom": null,
+  "fetchedWith": "youtube-transcript-api",
+  "segments": [
+    {
+      "text": "In this Python tutorial, you're going to",
+      "start": 2.24,
+      "duration": 3.04
+    },
+    {
+      "text": "learn everything you need to know to",
+      "start": 3.84,
+      "duration": 3.56
+    },
+    {
+      "text": "start programming in Python. If you want",
+      "start": 5.28,
+      "duration": 3.64
+    },
+    {
+      "text": "to learn Python programming for data",
+      "start": 7.4,
+      "duration": 3.24
+    },
+    {
+      "text": "science, machine learning, or web",
+      "start": 8.92,
+      "duration": 3.88
+    },
+    {
+      "text": "development, this Python tutorial is the",
+      "start": 10.64,
+      "duration": 4.08
+    },
+    {
+      "text": "perfect place to learn Python. You don't",
+      "start": 12.8,
+      "duration": 4.0
+    },
+    {
+      "text": "need any prior knowledge in Python or",
+      "start": 14.72,
+      "duration": 3.48
+    },
+    {
+      "text": "programming in general. I'm going to",
+      "start": 16.8,
+      "duration": 3.28
+    },
+    {
+      "text": "teach you everything from scratch. I'm",
+      "start": 18.2,
+      "duration": 3.8
+    },
+    {
+      "text": "Mosh Hamedani, and I've taught millions",
+      "start": 20.08,
+      "duration": 3.2
+    },
+    {
+      "text": "of people how to code through this",
+      "start": 22.0,
+      "duration": 3.08
+    },
+    {
+      "text": "channel. If you're new here, make sure",
+      "start": 23.28,
+      "duration": 3.6
+    },
+    {
+      "text": "to subscribe as I upload new videos",
+      "start": 25.08,
+      "duration": 3.68
+    },
+    {
+      "text": "every week. Now, let's jump in and get",
+      "start": 26.88,
+      "duration": 3.36
+    },
+    {
+      "text": "started.",
+      "start": 28.76,
+      "duration": 2.76
+    },
+    {
+      "text": "All right, before we get started, let me",
+      "start": 30.24,
+      "duration": 2.64
+    },
+    {
+      "text": "give you some ideas about what you can",
+      "start": 31.52,
+      "duration": 3.16
+    },
+    {
+      "text": "do with Python. That's a very common",
+      "start": 32.88,
+      "duration": 4.08
+    },
+    {
+      "text": "question. Python is a multi-purpose",
+      "start": 34.68,
+      "duration": 3.92
+    },
+    {
+      "text": "programming language, so you can use it",
+      "start": 36.96,
+      "duration": 3.68
+    },
+    {
+      "text": "for a variety of different tasks. You",
+      "start": 38.6,
+      "duration": 3.72
+    },
+    {
+      "text": "can use Python for machine learning and",
+      "start": 40.64,
+      "duration": 3.6
+    },
+    {
+      "text": "AI. In fact, Python is the number one",
+      "start": 42.32,
+      "duration": 3.52
+    },
+    {
+      "text": "language for machine learning and data",
+      "start": 44.24,
+      "duration": 3.48
+    },
+    {
+      "text": "science projects. Python is also very",
+      "start": 45.84,
+      "duration": 4.6
+    },
+    {
+      "text": "popular in web development. Using Python",
+      "start": 47.72,
+      "duration": 4.28
+    },
+    {
+      "text": "and a framework called Django, you can",
+      "start": 50.44,
+      "duration": 3.64
+    },
+    {
+      "text": "build amazing websites. Here are five",
+      "start": 52.0,
+      "duration": 4.48
+    },
+    {
+      "text": "websites powered with Python and Django:",
+      "start": 54.08,
+      "duration": 5.96
+    },
+    {
+      "text": "YouTube, Instagram, Spotify, Dropbox,",
+      "start": 56.48,
+      "duration": 5.56
+    },
+    {
+      "text": "and Pinterest. You can also use Python",
+      "start": 60.04,
+      "duration": 3.96
+    },
+    {
+      "text": "in automation. With Python, you can save",
+      "start": 62.04,
+      "duration": 4.36
+    },
+    {
+      "text": "your time and increase your productivity",
+      "start": 64.0,
+      "duration": 5.36
+    },
+    {
+      "text": "by automating repetitive tasks. So, why",
+      "start": 66.4,
+      "duration": 4.08
+    },
+    {
+      "text": "are you learning Python? Are you",
+      "start": 69.36,
+      "duration": 2.88
+    },
+    {
+      "text": "learning it for automation, for data",
+      "start": 70.48,
+      "duration": 3.64
+    },
+    {
+      "text": "science, or web development? Let me know",
+      "start": 72.24,
+      "duration": 5.04
+    },
+    {
+      "text": "in the comments section below.",
+      "start": 74.12,
+      "duration": 3.16
+    },
+    {
+      "text": "All right, the first thing I want you to",
+      "start": 79.92,
+      "duration": 3.92
+    },
+    {
+      "text": "do is to head over to python.org to",
+      "start": 80.92,
+      "duration": 5.24
+    },
+    {
+      "text": "download the latest version of Python.",
+      "start": 83.84,
+      "duration": 4.64
+    },
+    {
+      "text": "So, you go to downloads and select the",
+      "start": 86.16,
+      "duration": 5.56
+    },
+    {
+      "text": "latest version of Python.",
+      "start": 88.48,
+      "duration": 3.24
+    },
+    {
+      "text": "Here in your downloads folder, you",
+      "start": 93.24,
+      "duration": 3.12
+    },
+    {
+      "text": "should see this package. Simply",
+      "start": 94.6,
+      "duration": 3.4
+    },
+    {
+      "text": "double-click it.",
+      "start": 96.36,
+      "duration": 2.6
+    },
+    {
+      "text": "You're going to see this Python",
+      "start": 98.0,
+      "duration": 2.32
+    },
+    {
+      "text": "installer.",
+      "start": 98.96,
+      "duration": 2.96
+    },
+    {
+      "text": "If you're on Windows, you will see this",
+      "start": 100.32,
+      "duration": 4.84
+    },
+    {
+      "text": "checkbox over here, add Python to path.",
+      "start": 101.92,
+      "duration": 4.88
+    },
+    {
+      "text": "Make sure to check it. It's really",
+      "start": 105.16,
+      "duration": 3.36
+    },
+    {
+      "text": "important. Otherwise, you're not going",
+      "start": 106.8,
+      "duration": 4.2
+    },
+    {
+      "text": "to be able to follow this tutorial.",
+      "start": 108.52,
+      "duration": 4.4
+    },
+    {
+      "text": "Simply click on continue",
+      "start": 111.0,
+      "duration": 2.88
+    },
+    {
+      "text": "again",
+      "start": 112.92,
+      "duration": 2.36
+    },
+    {
+      "text": "one more time",
+      "start": 113.88,
+      "duration": 3.24
+    },
+    {
+      "text": "I agree with the terms",
+      "start": 115.28,
+      "duration": 3.76
+    },
+    {
+      "text": "and install the latest version of",
+      "start": 117.12,
+      "duration": 3.28
+    },
+    {
+      "text": "Python.",
+      "start": 119.04,
+      "duration": 3.04
+    },
+    {
+      "text": "Now, here you need to enter the username",
+      "start": 120.4,
+      "duration": 4.64
+    },
+    {
+      "text": "and password of your computer. So,",
+      "start": 122.08,
+      "duration": 6.12
+    },
+    {
+      "text": "let's do that real quick.",
+      "start": 125.04,
+      "duration": 3.16
+    },
+    {
+      "text": "Next, you need to install a code editor.",
+      "start": 129.0,
+      "duration": 4.08
+    },
+    {
+      "text": "We use a code editor to write our code",
+      "start": 131.32,
+      "duration": 4.04
+    },
+    {
+      "text": "and execute it. The most popular code",
+      "start": 133.08,
+      "duration": 4.88
+    },
+    {
+      "text": "editor for Python is PyCharm. You can",
+      "start": 135.36,
+      "duration": 5.96
+    },
+    {
+      "text": "get it from jetbrains.com/pycharm.",
+      "start": 137.96,
+      "duration": 5.4
+    },
+    {
+      "text": "So, on this page",
+      "start": 141.32,
+      "duration": 4.72
+    },
+    {
+      "text": "click on download.",
+      "start": 143.36,
+      "duration": 4.0
+    },
+    {
+      "text": "You should see two different editions.",
+      "start": 146.04,
+      "duration": 3.2
+    },
+    {
+      "text": "One is the professional edition, which",
+      "start": 147.36,
+      "duration": 3.96
+    },
+    {
+      "text": "is commercial. And we also have this",
+      "start": 149.24,
+      "duration": 3.8
+    },
+    {
+      "text": "community edition, which is free and",
+      "start": 151.32,
+      "duration": 3.76
+    },
+    {
+      "text": "open source. So, we're going to download",
+      "start": 153.04,
+      "duration": 5.16
+    },
+    {
+      "text": "the community edition.",
+      "start": 155.08,
+      "duration": 3.12
+    },
+    {
+      "text": "Now, in your downloads folder, you",
+      "start": 159.84,
+      "duration": 2.88
+    },
+    {
+      "text": "should have this package. Let's",
+      "start": 161.28,
+      "duration": 4.24
+    },
+    {
+      "text": "double-click it.",
+      "start": 162.72,
+      "duration": 4.24
+    },
+    {
+      "text": "If you're on Windows, you're going to",
+      "start": 165.52,
+      "duration": 3.4
+    },
+    {
+      "text": "see an installation wizard. So, simply",
+      "start": 166.96,
+      "duration": 3.76
+    },
+    {
+      "text": "click on the next button until you",
+      "start": 168.92,
+      "duration": 4.4
+    },
+    {
+      "text": "install PyCharm. If you're on a Mac, you",
+      "start": 170.72,
+      "duration": 4.96
+    },
+    {
+      "text": "need to drag this PyCharm and drop it",
+      "start": 173.32,
+      "duration": 5.76
+    },
+    {
+      "text": "onto the applications folder.",
+      "start": 175.68,
+      "duration": 3.4
+    },
+    {
+      "text": "Now",
+      "start": 180.2,
+      "duration": 2.84
+    },
+    {
+      "text": "let's open it.",
+      "start": 181.12,
+      "duration": 3.56
+    },
+    {
+      "text": "The first time you open PyCharm, you",
+      "start": 183.04,
+      "duration": 3.6
+    },
+    {
+      "text": "have to configure a few settings. We",
+      "start": 184.68,
+      "duration": 4.28
+    },
+    {
+      "text": "don't want to spend time on this. So,",
+      "start": 186.64,
+      "duration": 4.24
+    },
+    {
+      "text": "over here, we're going to click on skip",
+      "start": 188.96,
+      "duration": 5.32
+    },
+    {
+      "text": "remaining and set defaults.",
+      "start": 190.88,
+      "duration": 5.64
+    },
+    {
+      "text": "Now, let's create a new project.",
+      "start": 194.28,
+      "duration": 4.52
+    },
+    {
+      "text": "Over here, we can specify the location",
+      "start": 196.52,
+      "duration": 5.6
+    },
+    {
+      "text": "and the name of our Python project. So,",
+      "start": 198.8,
+      "duration": 6.36
+    },
+    {
+      "text": "let's append hello world to this path.",
+      "start": 202.12,
+      "duration": 4.84
+    },
+    {
+      "text": "This is where our Python project is",
+      "start": 205.16,
+      "duration": 4.24
+    },
+    {
+      "text": "going to be saved. So, let's click on",
+      "start": 206.96,
+      "duration": 4.92
+    },
+    {
+      "text": "create.",
+      "start": 209.4,
+      "duration": 2.48
+    },
+    {
+      "text": "In this window, you can see the content",
+      "start": 212.48,
+      "duration": 3.8
+    },
+    {
+      "text": "of our project. So, here's our hello",
+      "start": 214.08,
+      "duration": 4.04
+    },
+    {
+      "text": "world project. Currently, we have only",
+      "start": 216.28,
+      "duration": 4.04
+    },
+    {
+      "text": "one folder inside this project, that is",
+      "start": 218.12,
+      "duration": 3.88
+    },
+    {
+      "text": "VN, which is short for virtual",
+      "start": 220.32,
+      "duration": 3.6
+    },
+    {
+      "text": "environment. We'll talk about virtual",
+      "start": 222.0,
+      "duration": 3.6
+    },
+    {
+      "text": "environments in the future. So,",
+      "start": 223.92,
+      "duration": 3.2
+    },
+    {
+      "text": "currently, we don't have any Python",
+      "start": 225.6,
+      "duration": 3.84
+    },
+    {
+      "text": "files inside this project. A real",
+      "start": 227.12,
+      "duration": 4.64
+    },
+    {
+      "text": "application can consist of tens or",
+      "start": 229.44,
+      "duration": 4.0
+    },
+    {
+      "text": "hundreds or even thousands of Python",
+      "start": 231.76,
+      "duration": 4.08
+    },
+    {
+      "text": "files. So, let's right-click on the",
+      "start": 233.44,
+      "duration": 4.28
+    },
+    {
+      "text": "project name",
+      "start": 235.84,
+      "duration": 4.52
+    },
+    {
+      "text": "and go to new Python file.",
+      "start": 237.72,
+      "duration": 6.4
+    },
+    {
+      "text": "We're going to call this file app.",
+      "start": 240.36,
+      "duration": 5.4
+    },
+    {
+      "text": "Now, we can collapse this project window",
+      "start": 244.12,
+      "duration": 3.48
+    },
+    {
+      "text": "by clicking on this icon.",
+      "start": 245.76,
+      "duration": 3.8
+    },
+    {
+      "text": "So, now we have more space. Let's write",
+      "start": 247.6,
+      "duration": 3.68
+    },
+    {
+      "text": "our first Python code.",
+      "start": 249.56,
+      "duration": 3.28
+    },
+    {
+      "text": "We're going to write print, all in",
+      "start": 251.28,
+      "duration": 2.92
+    },
+    {
+      "text": "lowercase",
+      "start": 252.84,
+      "duration": 3.08
+    },
+    {
+      "text": "then add parentheses",
+      "start": 254.2,
+      "duration": 4.68
+    },
+    {
+      "text": "then add quotes, either single quotes or",
+      "start": 255.92,
+      "duration": 4.319
+    },
+    {
+      "text": "double quotes.",
+      "start": 258.88,
+      "duration": 2.6
+    },
+    {
+      "text": "And inside these quotes, we're going to",
+      "start": 260.239,
+      "duration": 3.401
+    },
+    {
+      "text": "write hello world.",
+      "start": 261.48,
+      "duration": 4.48
+    },
+    {
+      "text": "So, this is what we call a string. A",
+      "start": 263.64,
+      "duration": 4.72
+    },
+    {
+      "text": "string means a string or sequence of",
+      "start": 265.96,
+      "duration": 4.72
+    },
+    {
+      "text": "characters. In simple words, that means",
+      "start": 268.36,
+      "duration": 5.32
+    },
+    {
+      "text": "textual data. So, in Python and in many",
+      "start": 270.68,
+      "duration": 4.88
+    },
+    {
+      "text": "other programming languages, whenever",
+      "start": 273.68,
+      "duration": 3.92
+    },
+    {
+      "text": "we're dealing with textual data, we",
+      "start": 275.56,
+      "duration": 4.0
+    },
+    {
+      "text": "should always surround our text with",
+      "start": 277.6,
+      "duration": 3.24
+    },
+    {
+      "text": "quotes.",
+      "start": 279.56,
+      "duration": 3.32
+    },
+    {
+      "text": "In Python, we can use single or double",
+      "start": 280.84,
+      "duration": 3.16
+    },
+    {
+      "text": "quotes.",
+      "start": 282.88,
+      "duration": 2.8
+    },
+    {
+      "text": "Now, this print you see here is a",
+      "start": 284.0,
+      "duration": 4.16
+    },
+    {
+      "text": "function built into Python, and we can",
+      "start": 285.68,
+      "duration": 4.08
+    },
+    {
+      "text": "use it to print a message on our",
+      "start": 288.16,
+      "duration": 3.08
+    },
+    {
+      "text": "application window.",
+      "start": 289.76,
+      "duration": 3.04
+    },
+    {
+      "text": "So, let me show you how to run this",
+      "start": 291.24,
+      "duration": 2.96
+    },
+    {
+      "text": "code.",
+      "start": 292.8,
+      "duration": 4.04
+    },
+    {
+      "text": "On the top we go to the run menu and",
+      "start": 294.2,
+      "duration": 4.84
+    },
+    {
+      "text": "then select run. Note that there is a",
+      "start": 296.84,
+      "duration": 4.48
+    },
+    {
+      "text": "shortcut associated with this command. I",
+      "start": 299.04,
+      "duration": 3.92
+    },
+    {
+      "text": "always use shortcuts because they",
+      "start": 301.32,
+      "duration": 4.52
+    },
+    {
+      "text": "increase my productivity. So,",
+      "start": 302.96,
+      "duration": 6.24
+    },
+    {
+      "text": "let's click on this. Now, select app",
+      "start": 305.84,
+      "duration": 4.76
+    },
+    {
+      "text": "and over here",
+      "start": 309.2,
+      "duration": 3.08
+    },
+    {
+      "text": "you can see this little window. This is",
+      "start": 310.6,
+      "duration": 3.92
+    },
+    {
+      "text": "what we call the terminal window, and it",
+      "start": 312.28,
+      "duration": 4.56
+    },
+    {
+      "text": "shows the output of our program.",
+      "start": 314.52,
+      "duration": 3.84
+    },
+    {
+      "text": "So, here's the hello world message",
+      "start": 316.84,
+      "duration": 3.64
+    },
+    {
+      "text": "printed in the terminal window. Now, as",
+      "start": 318.36,
+      "duration": 3.76
+    },
+    {
+      "text": "you learn more Python, you will learn",
+      "start": 320.48,
+      "duration": 3.24
+    },
+    {
+      "text": "how to build applications that have a",
+      "start": 322.12,
+      "duration": 3.56
+    },
+    {
+      "text": "graphical user interface. That's an",
+      "start": 323.72,
+      "duration": 3.92
+    },
+    {
+      "text": "advanced topic, so for now, let's not",
+      "start": 325.68,
+      "duration": 4.6
+    },
+    {
+      "text": "worry about it.",
+      "start": 327.64,
+      "duration": 2.64
+    },
+    {
+      "text": "All right, now let's talk about",
+      "start": 334.8,
+      "duration": 3.16
+    },
+    {
+      "text": "variables. We use variables to",
+      "start": 335.68,
+      "duration": 4.48
+    },
+    {
+      "text": "temporarily store data in a computer's",
+      "start": 337.96,
+      "duration": 4.52
+    },
+    {
+      "text": "memory. For example, we can store the",
+      "start": 340.16,
+      "duration": 4.72
+    },
+    {
+      "text": "price of a product or someone's name,",
+      "start": 342.48,
+      "duration": 4.52
+    },
+    {
+      "text": "their email, their age, and so on. Let",
+      "start": 344.88,
+      "duration": 3.84
+    },
+    {
+      "text": "me show you. So,",
+      "start": 347.0,
+      "duration": 3.48
+    },
+    {
+      "text": "to declare a variable, we start by",
+      "start": 348.72,
+      "duration": 3.84
+    },
+    {
+      "text": "typing a name for that variable. Let's",
+      "start": 350.48,
+      "duration": 3.68
+    },
+    {
+      "text": "say age.",
+      "start": 352.56,
+      "duration": 3.88
+    },
+    {
+      "text": "Then we add an equal sign",
+      "start": 354.16,
+      "duration": 5.2
+    },
+    {
+      "text": "and then we type a value. Let's say 20.",
+      "start": 356.44,
+      "duration": 4.2
+    },
+    {
+      "text": "So, with this, we're storing the number",
+      "start": 359.36,
+      "duration": 4.16
+    },
+    {
+      "text": "20 somewhere in our computer's memory",
+      "start": 360.64,
+      "duration": 5.12
+    },
+    {
+      "text": "and we're attaching this age as a label",
+      "start": 363.52,
+      "duration": 4.6
+    },
+    {
+      "text": "for that memory location. So, now we can",
+      "start": 365.76,
+      "duration": 4.6
+    },
+    {
+      "text": "read the value at this memory location",
+      "start": 368.12,
+      "duration": 4.64
+    },
+    {
+      "text": "and print it on the terminal. So,",
+      "start": 370.36,
+      "duration": 4.32
+    },
+    {
+      "text": "instead of printing hello world, we want",
+      "start": 372.76,
+      "duration": 4.8
+    },
+    {
+      "text": "to print the value of the age variable.",
+      "start": 374.68,
+      "duration": 5.08
+    },
+    {
+      "text": "So, I'm going to delete what we have",
+      "start": 377.56,
+      "duration": 4.32
+    },
+    {
+      "text": "inside parentheses",
+      "start": 379.76,
+      "duration": 5.24
+    },
+    {
+      "text": "and type age. Note that I'm not adding",
+      "start": 381.88,
+      "duration": 5.56
+    },
+    {
+      "text": "quotes because if I run this program,",
+      "start": 385.0,
+      "duration": 4.72
+    },
+    {
+      "text": "we'll see the text age on the terminal.",
+      "start": 387.44,
+      "duration": 4.24
+    },
+    {
+      "text": "We don't want that. We want the value of",
+      "start": 389.72,
+      "duration": 4.4
+    },
+    {
+      "text": "the age variable. So,",
+      "start": 391.68,
+      "duration": 4.12
+    },
+    {
+      "text": "let's remove the quotes",
+      "start": 394.12,
+      "duration": 4.68
+    },
+    {
+      "text": "and print the value of the age variable.",
+      "start": 395.8,
+      "duration": 5.2
+    },
+    {
+      "text": "Now, here on the toolbar, you can click",
+      "start": 398.8,
+      "duration": 4.52
+    },
+    {
+      "text": "on this play icon to run your program,",
+      "start": 401.0,
+      "duration": 3.72
+    },
+    {
+      "text": "or you can use the shortcut that I",
+      "start": 403.32,
+      "duration": 3.96
+    },
+    {
+      "text": "showed you in the last video. So, the",
+      "start": 404.72,
+      "duration": 4.96
+    },
+    {
+      "text": "shortcut is over here. On a Mac, that's",
+      "start": 407.28,
+      "duration": 4.88
+    },
+    {
+      "text": "control, shift, and R.",
+      "start": 409.68,
+      "duration": 4.28
+    },
+    {
+      "text": "So,",
+      "start": 412.16,
+      "duration": 2.96
+    },
+    {
+      "text": "there you go.",
+      "start": 413.96,
+      "duration": 2.84
+    },
+    {
+      "text": "Now, you can see the value of the age",
+      "start": 415.12,
+      "duration": 3.2
+    },
+    {
+      "text": "variable.",
+      "start": 416.8,
+      "duration": 3.12
+    },
+    {
+      "text": "Now, we can also change the value of a",
+      "start": 418.32,
+      "duration": 4.64
+    },
+    {
+      "text": "variable. For example, on line two",
+      "start": 419.92,
+      "duration": 5.56
+    },
+    {
+      "text": "we can set age to 30.",
+      "start": 422.96,
+      "duration": 4.4
+    },
+    {
+      "text": "Now, when we run our program",
+      "start": 425.48,
+      "duration": 4.12
+    },
+    {
+      "text": "we see 30. So, as you can see, our",
+      "start": 427.36,
+      "duration": 4.36
+    },
+    {
+      "text": "program gets executed from top to",
+      "start": 429.6,
+      "duration": 3.44
+    },
+    {
+      "text": "bottom.",
+      "start": 431.72,
+      "duration": 3.16
+    },
+    {
+      "text": "So, this is how we can declare and use a",
+      "start": 433.04,
+      "duration": 3.8
+    },
+    {
+      "text": "variable. Now, let's look at a few more",
+      "start": 434.88,
+      "duration": 3.08
+    },
+    {
+      "text": "examples.",
+      "start": 436.84,
+      "duration": 3.08
+    },
+    {
+      "text": "So, I'm going to declare another",
+      "start": 437.96,
+      "duration": 4.2
+    },
+    {
+      "text": "variable called price and set it to",
+      "start": 439.92,
+      "duration": 5.12
+    },
+    {
+      "text": "19.95.",
+      "start": 442.16,
+      "duration": 4.68
+    },
+    {
+      "text": "So, in Python, we can use numbers with a",
+      "start": 445.04,
+      "duration": 5.16
+    },
+    {
+      "text": "decimal point or whole numbers.",
+      "start": 446.84,
+      "duration": 5.76
+    },
+    {
+      "text": "We can also declare a variable and",
+      "start": 450.2,
+      "duration": 5.72
+    },
+    {
+      "text": "assign it a string value. So, let's say",
+      "start": 452.6,
+      "duration": 5.76
+    },
+    {
+      "text": "first_name.",
+      "start": 455.92,
+      "duration": 4.28
+    },
+    {
+      "text": "So, if you want to use multiple words in",
+      "start": 458.36,
+      "duration": 3.52
+    },
+    {
+      "text": "the name of a variable, we should",
+      "start": 460.2,
+      "duration": 4.28
+    },
+    {
+      "text": "separate them using an underscore. This",
+      "start": 461.88,
+      "duration": 4.76
+    },
+    {
+      "text": "makes our code more readable. See what",
+      "start": 464.48,
+      "duration": 4.08
+    },
+    {
+      "text": "would happen if I didn't use this",
+      "start": 466.64,
+      "duration": 3.36
+    },
+    {
+      "text": "underline.",
+      "start": 468.56,
+      "duration": 3.76
+    },
+    {
+      "text": "This is not easily readable. So, we",
+      "start": 470.0,
+      "duration": 4.8
+    },
+    {
+      "text": "always separate multiple words by an",
+      "start": 472.32,
+      "duration": 3.88
+    },
+    {
+      "text": "underscore.",
+      "start": 474.8,
+      "duration": 3.64
+    },
+    {
+      "text": "Now, we set this to a string. So, we can",
+      "start": 476.2,
+      "duration": 4.08
+    },
+    {
+      "text": "use single quotes or",
+      "start": 478.44,
+      "duration": 3.08
+    },
+    {
+      "text": "double quotes.",
+      "start": 480.28,
+      "duration": 2.6
+    },
+    {
+      "text": "Let's say Mosh.",
+      "start": 481.52,
+      "duration": 3.04
+    },
+    {
+      "text": "We also have a special type of value",
+      "start": 482.88,
+      "duration": 3.72
+    },
+    {
+      "text": "called a boolean value, which can be",
+      "start": 484.56,
+      "duration": 5.04
+    },
+    {
+      "text": "true or false. That is like yes or no in",
+      "start": 486.6,
+      "duration": 5.76
+    },
+    {
+      "text": "English. Let me show you. So,",
+      "start": 489.6,
+      "duration": 4.76
+    },
+    {
+      "text": "I'm going to declare another variable",
+      "start": 492.36,
+      "duration": 4.08
+    },
+    {
+      "text": "called is_online",
+      "start": 494.36,
+      "duration": 4.28
+    },
+    {
+      "text": "and set it to true.",
+      "start": 496.44,
+      "duration": 4.68
+    },
+    {
+      "text": "We could also set it to false. What we",
+      "start": 498.64,
+      "duration": 5.32
+    },
+    {
+      "text": "have here is called a boolean value.",
+      "start": 501.12,
+      "duration": 4.08
+    },
+    {
+      "text": "Now, note that Python is a",
+      "start": 503.96,
+      "duration": 3.12
+    },
+    {
+      "text": "case-sensitive language, so it's",
+      "start": 505.2,
+      "duration": 3.96
+    },
+    {
+      "text": "sensitive to lowercase and uppercase",
+      "start": 507.08,
+      "duration": 4.6
+    },
+    {
+      "text": "letters. In this case, if I use a",
+      "start": 509.16,
+      "duration": 4.96
+    },
+    {
+      "text": "lowercase f",
+      "start": 511.68,
+      "duration": 4.2
+    },
+    {
+      "text": "we can see an error over here because",
+      "start": 514.12,
+      "duration": 3.96
+    },
+    {
+      "text": "this is not recognized in Python.",
+      "start": 515.88,
+      "duration": 5.08
+    },
+    {
+      "text": "So, false with a capital F is a special",
+      "start": 518.08,
+      "duration": 5.32
+    },
+    {
+      "text": "keyword in Python that represents the",
+      "start": 520.96,
+      "duration": 4.36
+    },
+    {
+      "text": "boolean false value.",
+      "start": 523.4,
+      "duration": 3.68
+    },
+    {
+      "text": "So, this is how we can declare and use",
+      "start": 525.32,
+      "duration": 3.64
+    },
+    {
+      "text": "variables in Python.",
+      "start": 527.08,
+      "duration": 3.24
+    },
+    {
+      "text": "All right, now here's a little exercise",
+      "start": 528.96,
+      "duration": 3.24
+    },
+    {
+      "text": "for you. Imagine you want to write a",
+      "start": 530.32,
+      "duration": 3.76
+    },
+    {
+      "text": "program for a hospital. So, we're going",
+      "start": 532.2,
+      "duration": 4.52
+    },
+    {
+      "text": "to check in a patient named John Smith.",
+      "start": 534.08,
+      "duration": 5.36
+    },
+    {
+      "text": "He's 20 years old and is a new patient.",
+      "start": 536.72,
+      "duration": 4.88
+    },
+    {
+      "text": "I want you to declare a few variables to",
+      "start": 539.44,
+      "duration": 4.44
+    },
+    {
+      "text": "store these values. Use the comment box",
+      "start": 541.6,
+      "duration": 6.2
+    },
+    {
+      "text": "below to share your code with others.",
+      "start": 543.88,
+      "duration": 3.92
+    },
+    {
+      "text": "In this tutorial, I'm going to show you",
+      "start": 552.52,
+      "duration": 3.72
+    },
+    {
+      "text": "how to receive input from the user.",
+      "start": 553.92,
+      "duration": 4.4
+    },
+    {
+      "text": "So, in Python, we have another built-in",
+      "start": 556.24,
+      "duration": 4.6
+    },
+    {
+      "text": "function called input. We use this to",
+      "start": 558.32,
+      "duration": 4.48
+    },
+    {
+      "text": "read a value from the terminal window.",
+      "start": 560.84,
+      "duration": 3.84
+    },
+    {
+      "text": "Let me show you. So,",
+      "start": 562.8,
+      "duration": 3.4
+    },
+    {
+      "text": "we add parentheses",
+      "start": 564.68,
+      "duration": 3.56
+    },
+    {
+      "text": "then we type a string. Here, we can type",
+      "start": 566.2,
+      "duration": 5.68
+    },
+    {
+      "text": "a message like what is your name? We add",
+      "start": 568.24,
+      "duration": 6.04
+    },
+    {
+      "text": "a question mark followed by a space.",
+      "start": 571.88,
+      "duration": 3.84
+    },
+    {
+      "text": "You'll see why we need this space in a",
+      "start": 574.28,
+      "duration": 5.12
+    },
+    {
+      "text": "second. So, let's run this program.",
+      "start": 575.72,
+      "duration": 5.44
+    },
+    {
+      "text": "We get this message. Now, we have to",
+      "start": 579.4,
+      "duration": 4.92
+    },
+    {
+      "text": "enter a value. So, we click over here.",
+      "start": 581.16,
+      "duration": 4.52
+    },
+    {
+      "text": "Now, you can see that the carrot is",
+      "start": 584.32,
+      "duration": 3.28
+    },
+    {
+      "text": "separated from the question mark. This",
+      "start": 585.68,
+      "duration": 3.88
+    },
+    {
+      "text": "is because of the white space that we",
+      "start": 587.6,
+      "duration": 3.4
+    },
+    {
+      "text": "added over here.",
+      "start": 589.56,
+      "duration": 3.44
+    },
+    {
+      "text": "So, now we have to type a value. Let's",
+      "start": 591.0,
+      "duration": 5.68
+    },
+    {
+      "text": "say John. When we press enter",
+      "start": 593.0,
+      "duration": 5.88
+    },
+    {
+      "text": "this function will return the value that",
+      "start": 596.68,
+      "duration": 4.4
+    },
+    {
+      "text": "we entered in the terminal window. So,",
+      "start": 598.88,
+      "duration": 4.0
+    }
+  ]
+}
