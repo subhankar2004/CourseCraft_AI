@@ -1,9 +1,9 @@
 import { GraduationCapIcon } from 'lucide-react';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Button } from '@/components/ui/button';
+import { UserMenu } from '@/components/user-menu';
 
-// Navigation targets are built in later issues (#12 auth, #14 domains, #37 dashboard).
+// Navigation targets are built in later issues (#14 domains, #37 dashboard).
 const navItems = [
   { href: '/domains', label: 'Domains' },
   { href: '/dashboard', label: 'Dashboard' },
@@ -26,9 +26,7 @@ export function SiteHeader() {
         </nav>
         <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
-          <Button asChild size="sm">
-            <Link href="/login">Sign in</Link>
-          </Button>
+          <UserMenu />
         </div>
       </div>
     </header>

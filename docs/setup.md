@@ -84,6 +84,12 @@ pnpm --filter api test            # unit + e2e tests (e2e needs PostgreSQL runni
 - `/health` pings PostgreSQL: `200` with `database: up`, or `503` with `database: down` (the reason is in the API log, never in the response).
 - The database schema lives in `apps/api/prisma/schema.prisma`. After changing it, run `pnpm --filter api prisma:migrate --name <what-changed>`. `pnpm --filter api prisma:studio` opens a browser UI for the data.
 
+### Signing in (web)
+
+With the API and the web app running, open http://localhost:3000/login and sign in with `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` (or the student account) from `.env`, or create a new account at `/register`. `/dashboard` and `/admin` need a session (students get a 403 page on `/admin`).
+
+> Rate limits apply to everyone on one IP (5 logins per minute, 5 sign-ups per hour). Locally they are in memory, so restarting the API resets them.
+
 ### Signing in (API)
 
 ```bash
