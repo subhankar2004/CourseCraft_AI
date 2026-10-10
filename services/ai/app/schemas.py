@@ -240,3 +240,50 @@ class DeleteLessonVectorsResponse(CamelModel):
     course_id: str
     lesson_id: str
     deleted: int
+
+
+# ─── Processing: course structure (#25) ─────────────────────────────────────
+
+
+class StructureLessonIn(CamelModel):
+    #: The API's lesson id (allocated before processing, #24).
+    ref: str = Field(pattern=ID_PATTERN)
+    title: str = Field(min_length=1, max_length=300)
+    summary: str = Field(default="", max_length=4000)
+    key_concepts: list[str] = Field(default_factory=list, max_length=20)
+
+
+class StructureRequest(CamelModel):
+    """Lessons in the order they were given (playlist or URL order)."""
+
+    domain: str = Field(min_length=1, max_length=100)
+    #: E.g. the playlist title; used as the course title only if the model fails.
+    title_hint: str | None = Field(default=None, max_length=300)
+    lessons: list[StructureLessonIn] = Field(min_length=1, max_length=200)
+
+    @model_validator(mode="after")
+    def _unique_refs(self) -> "StructureRequest":
+        refs = [lesson.ref for lesson in self.lessons]
+        if len(set(refs)) != len(refs):
+            raise ValueError("lesson refs must be unique")
+        return self
+
+
+class ModuleOut(CamelModel):
+    title: str
+    summary: str
+    lesson_refs: list[str]
+
+
+class StructureResponse(CamelModel):
+    title: str
+    description: str
+    level: Literal["Beginner", "Intermediate", "Advanced"] | None
+    modules: list[ModuleOut]
+    #: Corrections made to the model's outline (for the admin review page).
+    repairs: list[str]
+    #: True when the model failed and a plain outline in the given order was used.
+    fallback: bool
+    prompt_id: str
+    chat_model: str
+    usage: UsageOut

@@ -985,6 +985,46 @@ Both were then reverted. The new tests also passed on the first run, which is wh
 
 ---
 
+## Entry 25 — Course structuring (Issue #25, PR #76, 2026-10-11)
+
+**What:** SPEC §7.1 step 6, `app/generation/structure.py` and `POST /process/structure`. The titles and summaries of a course's lessons (from `/process/lesson`) become a course outline: title, description, level, and modules with ordered lessons.
+
+**Design (D67–D69):**
+
+- **JSON mode + Pydantic.** An outline is small structured data, unlike long notes (D62), so the model replies in JSON. The provider is asked for guaranteed-valid JSON (Ollama `format="json"`, which uses grammar-constrained decoding [R136]; OpenAI `response_format=json_object`). This is a new `json_mode` option of the provider factory. Pydantic then validates the shape.
+- **Lessons by number, not id.** The prompt lists lessons as 1..N and the model answers with numbers. Code maps them back to the API's lesson refs, because small models mangle long ids.
+- **Deterministic repair, reported.**
+  - Unknown numbers are dropped; a lesson placed twice keeps its first place.
+  - A **missing lesson is inserted right after the nearest earlier lesson** that was placed.
+  - Empty modules are removed, blank module titles get a default, and an unknown level becomes `null`.
+
+  Every correction is returned in `repairs` for the admin review page (#31).
+
+- **Retry, then fall back.**
+  - Output that can't be parsed, or that misplaces more than 30% of the lessons, is retried (3 attempts, backoff).
+  - If all attempts fail, the response is a plain outline in the given order (modules of 5, title from `titleHint`) with `fallback: true`. One bad answer doesn't fail a whole course job, and the admin reviews every outline anyway.
+  - A model **outage** is not hidden by the fallback: it gives 503 so the job retries.
+
+**Verification:**
+
+- **Tests** (12, `tests/test_structure.py`) use a scripted chat model and a **10-lesson fixture**: the real chapter titles of the seed SQL course, with hand-written summaries. They cover:
+  - a valid outline used as is (prompt snapshot);
+  - the **repair path**: a duplicate, an unknown lesson, a missing lesson, a blank title, an empty module, a lowercase level and a number written as a string, with an exact list of repairs;
+  - far-off outlines retried until a good one;
+  - the fallback after 3 failures;
+  - an unknown level;
+  - an outage → `LlmUnavailableError` / 503;
+  - a single-lesson course;
+  - HTTP validation (duplicate refs → 422).
+- **Property test** [R122]: for any outline the model could return (random modules, out-of-range numbers, duplicates, gaps; 2,000 examples in CI), the repair places **every lesson exactly once** with no empty module, and its count of misplaced lessons is exact.
+- **Real runs with `llama3.1:8b`** (`docs/eval/structure-samples/`):
+  - Three runs on the 10-lesson fixture were all valid on the first attempt (no repairs) in 11–18 s (~620 input / ~300 output tokens), with the same grouping of the first 7 lessons and varying titles.
+  - All 23 real chapters (titles only) gave 8 sensible modules in 18 s.
+  - **Limitation:** on shuffled input the model kept the given order instead of restoring a teaching order. Course generation passes the playlist order, and the admin can reorder (#31).
+- Python: 236 offline tests, Ruff, mypy `--strict`.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -1057,3 +1097,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D64 | 2026-10-11 | The **API allocates `lessonId`** before processing; vector rows store course, lesson and YouTube ids only (no module/video ids)                                             | Lesson rows are written after structuring (step 8); chunk ids must still match. Modules change on reorder, so storing them in vectors would go stale                                                      |
 | D65 | 2026-10-11 | `/process/lesson` generates **notes before indexing**; `DELETE /vectors/{courseId}/lessons/{lessonId}` as the compensating action                                           | A failed video leaves no citable vectors; later failures can be undone without touching other lessons [R135]                                                                                              |
 | D66 | 2026-10-11 | Only provider connection/timeout/HTTP errors map to **503**; unusable output → **502**; anything else stays a **500**                                                       | The job worker retries outages but not bugs; misclassifying a bug as an outage would retry it forever and hide it                                                                                         |
+| D67 | 2026-10-11 | Course outline as **JSON** (provider JSON mode) validated by Pydantic; lessons referred to by **number** and mapped back to refs in code                                    | Structured data that small models can produce reliably with constrained decoding [R136]; numbers avoid mangled ids                                                                                        |
+| D68 | 2026-10-11 | Outlines are **repaired deterministically** (every lesson exactly once, no empty modules) and each repair is reported                                                       | Small mistakes shouldn't cost another LLM call; the admin sees exactly what was corrected; a property test guarantees the invariant for any input                                                         |
+| D69 | 2026-10-11 | Retry outlines that misplace > 30% of lessons; after 3 failures return a plain outline in the given order (`fallback: true`); outages still give 503                        | One bad answer shouldn't fail a course job, but an outline that far off isn't worth repairing; outages are transient and should be retried by the job                                                     |
