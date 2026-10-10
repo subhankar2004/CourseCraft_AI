@@ -10,7 +10,7 @@ from collections.abc import Awaitable, Callable
 from fastapi import APIRouter, Depends, FastAPI, Request, Response
 
 from app import __version__
-from app.api import health
+from app.api import health, ingest
 from app.api.deps import require_internal_key
 from app.config import Settings, get_settings
 from app.core.errors import register_error_handlers
@@ -68,6 +68,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # Every other route must sit on this router so it requires X-Internal-Key.
     # Feature routers (ingest, process, rag, eval) are added here from #17 onwards.
     internal = APIRouter(dependencies=[Depends(require_internal_key)])
+    internal.include_router(ingest.router)
     app.include_router(internal)
 
     return app

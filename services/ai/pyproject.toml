@@ -11,6 +11,7 @@ dependencies = [
     "langchain-openai>=1.7,<2",
     "pydantic-settings>=2.15.0",
     "uvicorn[standard]>=0.54.0",
+    "yt-dlp>=2026.8.19",
 ]
 
 [tool.uv]
@@ -23,6 +24,7 @@ dev = [
     "mypy>=2.4.0",
     "pytest>=9.1.1",
     "ruff>=0.16.10",
+    "types-yt-dlp>=2026.8.19.20261008",
 ]
 
 [tool.ruff]

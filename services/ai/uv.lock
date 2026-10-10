@@ -156,6 +156,7 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "pydantic-settings" },
     { name = "uvicorn", extra = ["standard"] },
+    { name = "yt-dlp" },
 ]
 
 [package.dev-dependencies]
@@ -164,6 +165,7 @@ dev = [
     { name = "mypy" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "types-yt-dlp" },
 ]
 
 [package.metadata]
@@ -174,6 +176,7 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=1.7,<2" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
+    { name = "yt-dlp", specifier = ">=2026.8.19" },
 ]
 
 [package.metadata.requires-dev]
@@ -182,6 +185,7 @@ dev = [
     { name = "mypy", specifier = ">=2.4.0" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "ruff", specifier = ">=0.16.10" },
+    { name = "types-yt-dlp", specifier = ">=2026.8.19.20261008" },
 ]
 
 [[package]]
@@ -840,6 +844,15 @@ wheels = [
 ]
 
 [[package]]
+name = "types-yt-dlp"
+version = "2026.8.19.20261008"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/21/1d20665bc21051978d7d0e7c885c7273df5e4d96202b7b10899aa9684d53/types_yt_dlp-2026.8.19.20261008.tar.gz", hash = "sha256:f63bd6aaf9f05ec03ca908b3b14cbcc2c30d7d03bbce742c28d5ea6789c1b00d", size = 42388, upload-time = "2026-10-08T08:06:36.106Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/36/e6/703a5893845fb5514270e462ce39124ebc4029eecd2fac87d5627636ca30/types_yt_dlp-2026.8.19.20261008-py3-none-any.whl", hash = "sha256:0b34b248d02cdf5e5010dbb56688b1ea38ff17894dbb99a01601cfb82502cdd8", size = 55294, upload-time = "2026-10-08T08:06:34.263Z" },
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.16.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1013,6 +1026,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/40/4b/796ace33cdfb75c91ba6d11615c3bd436355b9f3103e05865bbee9abce57/xxhash-4.0.1-graalpy312-graalpy250_312_native-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:31d86f9e81f3e84e00131ac7c54caf5119ae4ddd82c09c31cff597c813ce1ee2", size = 38488, upload-time = "2026-08-17T08:23:59.901Z" },
     { url = "https://files.pythonhosted.org/packages/ad/23/2d549e5d5d7759eaf9ac2d2d2ab81ff60f1bb2b52cdaae8e5ec5c6524354/xxhash-4.0.1-graalpy312-graalpy250_312_native-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:deca2a30d983d240b8375ec2ee0a4288e72042827fc61df2f7671f8467e4cb2f", size = 38206, upload-time = "2026-08-17T08:36:32.193Z" },
     { url = "https://files.pythonhosted.org/packages/79/98/1ee576b27f78e6107ee4ea8ac03e8a52888dff256e57d560f8282c195563/xxhash-4.0.1-graalpy312-graalpy250_312_native-win_amd64.whl", hash = "sha256:7c343ee174d417a44d0c3355602c0cbbfa52a04d1bbbf1723378c7d2c8f60626", size = 37127, upload-time = "2026-08-17T08:23:42.705Z" },
+]
+
+[[package]]
+name = "yt-dlp"
+version = "2026.8.19"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/e0/832fa4ca334b766a06933a196066edc3dba37cdb6f14cd98d59bcc69a4b4/yt_dlp-2026.8.19.tar.gz", hash = "sha256:9e213e48cea35c66b378e4447903f118f6392a5fa380a2b6d7070ec86f4e0af1", size = 3052025, upload-time = "2026-08-19T23:48:59.291Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/69/b2/8cd1613f56eed7ceb64fbd4df3f1c01246bfb098e6f398228bafda22b80b/yt_dlp-2026.8.19-py3-none-any.whl", hash = "sha256:1d57897e94c6665a0a6f9bc54b34e584284e32c034ffab3a7df25d8f7b24eedf", size = 3185533, upload-time = "2026-08-19T23:48:56.925Z" },
 ]
 
 [[package]]
