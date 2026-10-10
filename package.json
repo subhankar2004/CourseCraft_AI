@@ -28,6 +28,7 @@
     "ai:sync": "uv --directory services/ai sync",
     "ai:dev": "uv --directory services/ai run uvicorn app.main:app --reload --port 8000",
     "ai:fixtures": "uv --directory services/ai run python -m scripts.record_fixtures",
+    "ai:notes-sample": "uv --directory services/ai run python -m scripts.generate_notes",
     "ai:lint": "uv --directory services/ai run ruff check . && uv --directory services/ai run ruff format --check .",
     "ai:format": "uv --directory services/ai run ruff format . && uv --directory services/ai run ruff check --fix .",
     "ai:typecheck": "uv --directory services/ai run mypy app tests scripts",

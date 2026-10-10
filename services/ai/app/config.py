@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_chat_model: str = "llama3.1:8b"
     ollama_embed_model: str = "nomic-embed-text"
+    # Ollama's context window in tokens. Its default is small (a few thousand), which silently
+    # truncates long prompts; notes prompts need prompt + output to fit.
+    ollama_num_ctx: Annotated[int, Field(ge=2048, le=131072)] = 8192
 
     # Vector store (SPEC §6). pgvector: vectors in PostgreSQL (schema `vector_store`, owned by
     # this service). Pinecone remains a documented option for later; it isn't implemented yet.
@@ -53,6 +56,8 @@ class Settings(BaseSettings):
     # Per-call limits for model requests.
     llm_timeout_s: Annotated[float, Field(gt=0, le=600)] = 120
     llm_max_retries: Annotated[int, Field(ge=0, le=10)] = 2
+    # Parallel model calls within one job (map step). Keep low for a local Ollama.
+    llm_concurrency: Annotated[int, Field(ge=1, le=16)] = 2
 
     whisper_model: str = "base"  # tiny | base | small | medium (faster-whisper)
     whisper_enabled: bool = True
@@ -61,6 +66,10 @@ class Settings(BaseSettings):
     # Transcript chunking (SPEC §7.1 step 3): tokens per chunk and repeated between neighbours.
     chunk_target_tokens: Annotated[int, Field(ge=50, le=8000)] = 800
     chunk_overlap_tokens: Annotated[int, Field(ge=0, le=2000)] = 120
+    # Lesson notes map-reduce (SPEC §7.1 step 5): transcript tokens per map call, and the most
+    # partial-notes tokens one reduce call receives (more are merged hierarchically first).
+    notes_map_tokens: Annotated[int, Field(ge=500, le=30000)] = 2500
+    notes_reduce_tokens: Annotated[int, Field(ge=1000, le=60000)] = 5000
     rag_top_k: Annotated[int, Field(ge=1, le=50)] = 6
     rag_min_score: Annotated[float, Field(ge=0, le=1)] = 0.35
     cli_max: Annotated[float, Field(ge=0, le=100)] = 60

@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #23 (lesson notes generation, map-reduce) with Ollama `llama3.1:8b`.
+**Next up:** Issue #24 (`/process/lesson` endpoint: chunks + embeddings + notes in one call).
 
 ## How we work: 50 issues → 50 PRs
 

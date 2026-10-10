@@ -1,0 +1,34 @@
+You are an expert teacher writing study notes for students from a lecture video.
+
+Lecture: "What is a database"
+This is ONE PART of the lecture, from 0:00 to 3:46. Other parts are handled separately.
+
+The transcript below is spoken language. Lines start with timestamps in square brackets, like [4:05].
+
+<transcript>
+[0:00] In this video, we're talking about what databases are, the different types, and various use cases. Companies, both large and small, rely heavily on databases to power their applications.
+[0:16] For instance, Shutterfly, the popular photo publishing site, uses something called a non-relational database to help manage their image data. But, at the same time, they also use a relational database to help organize their customer's billing information. Without those databases, Shutterfly wouldn't
+[0:35] be able to function. Now if you didn't understand the database types I just mentioned, that's totally okay because that's what we're covering here in this video. Simply put, databases store a variety of data, such as usernames, email addresses, hopefully encrypted passwords,
+[0:50] and virtually any other type of data that you can imagine. Now there's a variety of databases out there. The ones we'll be covering specifically are flat files, non-relational databases, relational databases. Flat files are databases that store data in plain files. Each data record is
+[1:09] separated by delimiters, such as commas or tabs, and the benefit of flat files is their simplicity. But when building an application, you often need more flexibility, which is where a database management system comes in. Database management systems are software that handle the storage,
+[1:26] retrieval and updating of data. The common two types are non-relational databases, or no SQL, and relational databases which use SQL, and if you don't know, SQL stands for Structured Query Language, which is a language
+[1:42] that makes it possible to easily manage the requested data. So when would you want to use a no SQL database? Well, as we talked about in the intro, Shutterfly uses no SQL to store image metadata. This is a good use case because the image data
+[1:59] doesn't necessarily require a lot of structure and can be stored as a key value pair. Now some examples of no SQL database management systems that are available are MongoDB, Couchbase, and Amazon DynamoDB. No SQL databases are fantastic for certain use cases,
+[2:16] but then other instances will require that you use a relational database. That's why, in our example at the beginning, Shutterfly uses both types of databases. In the relational database, they might have three separate tables, one for the customer's information, two for the billing information,
+[2:33] and the third for images that a user has uploaded. With a relational database in one SQL command, you're able to pull all that information across all of those tables, which would not be as easily accomplished with a non-relational database.
+[2:49] Some examples of relational database management systems our PostgreSQL, MSSQL, and mySQL. So overall, we covered what databases are, some of the various types of databases, and now the next thing to do is to actually learn
+[3:04] how to work with them. Now, I could show you how to do it, but honestly, the best way would be to learn by doing. Fortunately, we just launched a new course called Database Essentials, where we go into a lot more detail on what we covered in this quick video, but the course also guides you through
+[3:21] some of the hands-on labs where you install various databases like MongoDB, couchbase, and more in real environments. All handled safely inside of the platform. On top of that new course, we've also released 10 new hands-on labs, so check out the weekly
+[3:36] update blog for more information on all of that. Please like and subscribe, and then stay tuned for another cloud or Linux topic next week. See you then!
+</transcript>
+
+Write clear study notes for THIS PART ONLY, in English Markdown:
+
+- Use `###` headings for each topic, in the order they are taught.
+- Under each heading, explain the ideas in your own words with short paragraphs or bullet points. Keep definitions, examples, numbers, and step-by-step procedures.
+- Put a timestamp anchor right after each heading, written exactly like `[▶ 4:05]`. Use ONLY times that appear in the transcript above: the timestamp of the line where the speaker FIRST introduces that topic (often a question like "So when would you use ...?"), not a later line.
+- If code, SQL, commands, or formulas are shown or dictated, include them in fenced code blocks with the language name. Never put lists, names, or prose in code blocks.
+- Leave out greetings, jokes, filler, advertisements for courses or products, "next video" teasers, and "like and subscribe" requests.
+- Do not invent facts that are not in the transcript.
+
+Output only the notes. No introduction, no closing remarks.
