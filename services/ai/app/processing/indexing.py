@@ -18,7 +18,7 @@ from langchain_core.embeddings import Embeddings
 
 from app.generation.embedding_models import EmbeddingModelInfo
 from app.processing.chunking import Chunk
-from app.processing.vector_store import PgVectorStore, SearchHit, VectorRecord
+from app.processing.vector_store import SearchHit, VectorRecord, VectorStore
 
 logger = logging.getLogger("app.processing.indexing")
 
@@ -86,7 +86,7 @@ class LessonRef:
 
 
 class VectorIndex:
-    def __init__(self, store: PgVectorStore, embedder: Embedder):
+    def __init__(self, store: VectorStore, embedder: Embedder):
         if store.dimension != embedder.info.dimension:
             raise ValueError("vector store and embedding model dimensions differ")
         self.store = store

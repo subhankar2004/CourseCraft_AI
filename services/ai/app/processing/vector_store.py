@@ -18,7 +18,7 @@ Every value is a bound parameter and identifiers are composed with `psycopg.sql.
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol
 
 from pgvector import Vector
 from pgvector.psycopg import register_vector
@@ -66,6 +66,20 @@ class SearchHit:
     text: str
     #: Cosine similarity in [-1, 1]; higher is closer.
     score: float
+
+
+class VectorStore(Protocol):
+    """What the indexing layer needs from a store (PgVectorStore; an in-memory one in tests)."""
+
+    dimension: int
+
+    def replace_lesson(
+        self, course_id: str, lesson_id: str, records: Sequence[VectorRecord]
+    ) -> int: ...
+    def delete_course(self, course_id: str) -> int: ...
+    def search(self, course_id: str, embedding: Sequence[float], k: int) -> list[SearchHit]: ...
+    def count(self, course_id: str) -> int: ...
+    def close(self) -> None: ...
 
 
 def _configure(connection: Connection[Any]) -> None:

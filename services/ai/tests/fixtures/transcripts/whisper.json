@@ -1,0 +1,306 @@
+{
+  "youtubeId": "Tk1t3WKK-ZY",
+  "recordedAt": "2026-10-10",
+  "excerptSec": 600.0,
+  "source": "WHISPER",
+  "language": "en",
+  "translatedFrom": null,
+  "fetchedWith": "whisper",
+  "segments": [
+    {
+      "text": "In this video, we're talking about what databases are, the different types, and various use cases.",
+      "start": 0.0,
+      "duration": 5.28
+    },
+    {
+      "text": "Companies, both large and small, rely heavily on databases to power their applications.",
+      "start": 11.23,
+      "duration": 5.36
+    },
+    {
+      "text": "For instance, Shutterfly, the popular photo publishing site, uses something called a non-relational",
+      "start": 16.59,
+      "duration": 5.92
+    },
+    {
+      "text": "database to help manage their image data. But, at the same time, they also use a relational database",
+      "start": 22.51,
+      "duration": 7.04
+    },
+    {
+      "text": "to help organize their customer's billing information. Without those databases, Shutterfly wouldn't",
+      "start": 29.55,
+      "duration": 5.52
+    },
+    {
+      "text": "be able to function. Now if you didn't understand the database types I just mentioned, that's",
+      "start": 35.07,
+      "duration": 4.54
+    },
+    {
+      "text": "totally okay because that's what we're covering here in this video. Simply put, databases",
+      "start": 39.61,
+      "duration": 4.86
+    },
+    {
+      "text": "store a variety of data, such as usernames, email addresses, hopefully encrypted passwords,",
+      "start": 44.47,
+      "duration": 6.44
+    },
+    {
+      "text": "and virtually any other type of data that you can imagine. Now there's a variety of databases",
+      "start": 50.91,
+      "duration": 4.88
+    },
+    {
+      "text": "out there. The ones we'll be covering specifically are flat files, non-relational databases,",
+      "start": 55.79,
+      "duration": 6.4
+    },
+    {
+      "text": "relational databases. Flat files are databases that store data in plain files. Each data record is",
+      "start": 62.19,
+      "duration": 6.88
+    },
+    {
+      "text": "separated by delimiters, such as commas or tabs, and the benefit of flat files is their simplicity.",
+      "start": 69.07,
+      "duration": 6.4
+    },
+    {
+      "text": "But when building an application, you often need more flexibility, which is where a database",
+      "start": 75.47,
+      "duration": 5.2
+    },
+    {
+      "text": "management system comes in. Database management systems are software that handle the storage,",
+      "start": 80.67,
+      "duration": 5.68
+    },
+    {
+      "text": "retrieval and updating of data.",
+      "start": 86.35,
+      "duration": 2.8
+    },
+    {
+      "text": "The common two types are non-relational databases, or no SQL, and relational databases which",
+      "start": 89.15,
+      "duration": 6.84
+    },
+    {
+      "text": "use SQL, and if you don't know, SQL stands for Structured Query Language, which is a language",
+      "start": 95.99,
+      "duration": 6.4
+    },
+    {
+      "text": "that makes it possible to easily manage the requested data.",
+      "start": 102.39,
+      "duration": 4.24
+    },
+    {
+      "text": "So when would you want to use a no SQL database?",
+      "start": 106.63,
+      "duration": 3.12
+    },
+    {
+      "text": "Well, as we talked about in the intro, Shutterfly uses no SQL to store image metadata.",
+      "start": 109.75,
+      "duration": 6.56
+    },
+    {
+      "text": "This is a good use case because the image data",
+      "start": 116.31,
+      "duration": 2.88
+    },
+    {
+      "text": "doesn't necessarily require a lot of structure",
+      "start": 119.19,
+      "duration": 2.92
+    },
+    {
+      "text": "and can be stored as a key value pair.",
+      "start": 122.11,
+      "duration": 3.12
+    },
+    {
+      "text": "Now some examples of no SQL database management systems",
+      "start": 125.23,
+      "duration": 3.12
+    },
+    {
+      "text": "that are available are MongoDB,",
+      "start": 128.35,
+      "duration": 2.36
+    },
+    {
+      "text": "Couchbase, and Amazon DynamoDB.",
+      "start": 130.71,
+      "duration": 2.36
+    },
+    {
+      "text": "No SQL databases are fantastic for certain use cases,",
+      "start": 133.07,
+      "duration": 3.88
+    },
+    {
+      "text": "but then other instances will require",
+      "start": 136.95,
+      "duration": 2.36
+    },
+    {
+      "text": "that you use a relational database.",
+      "start": 139.31,
+      "duration": 2.16
+    },
+    {
+      "text": "That's why, in our example at the beginning,",
+      "start": 141.47,
+      "duration": 2.12
+    },
+    {
+      "text": "Shutterfly uses both types of databases.",
+      "start": 143.59,
+      "duration": 2.72
+    },
+    {
+      "text": "In the relational database,",
+      "start": 146.31,
+      "duration": 1.38
+    },
+    {
+      "text": "they might have three separate tables,",
+      "start": 147.69,
+      "duration": 2.18
+    },
+    {
+      "text": "one for the customer's information,",
+      "start": 149.87,
+      "duration": 1.84
+    },
+    {
+      "text": "two for the billing information,",
+      "start": 151.71,
+      "duration": 2.16
+    },
+    {
+      "text": "and the third for images that a user has uploaded.",
+      "start": 153.87,
+      "duration": 3.34
+    },
+    {
+      "text": "With a relational database in one SQL command,",
+      "start": 157.21,
+      "duration": 3.58
+    },
+    {
+      "text": "you're able to pull all that information",
+      "start": 160.79,
+      "duration": 2.12
+    },
+    {
+      "text": "across all of those tables,",
+      "start": 162.91,
+      "duration": 1.68
+    },
+    {
+      "text": "which would not be as easily accomplished",
+      "start": 164.59,
+      "duration": 2.44
+    },
+    {
+      "text": "with a non-relational database.",
+      "start": 167.03,
+      "duration": 2.2
+    },
+    {
+      "text": "Some examples of relational database management systems",
+      "start": 169.23,
+      "duration": 2.88
+    },
+    {
+      "text": "our PostgreSQL, MSSQL, and mySQL.",
+      "start": 172.11,
+      "duration": 5.32
+    },
+    {
+      "text": "So overall, we covered what databases are,",
+      "start": 177.43,
+      "duration": 2.78
+    },
+    {
+      "text": "some of the various types of databases,",
+      "start": 180.21,
+      "duration": 2.06
+    },
+    {
+      "text": "and now the next thing to do is to actually learn",
+      "start": 182.27,
+      "duration": 2.72
+    },
+    {
+      "text": "how to work with them.",
+      "start": 184.99,
+      "duration": 1.24
+    },
+    {
+      "text": "Now, I could show you how to do it,",
+      "start": 186.23,
+      "duration": 1.52
+    },
+    {
+      "text": "but honestly, the best way would be to learn by doing.",
+      "start": 187.75,
+      "duration": 3.16
+    },
+    {
+      "text": "Fortunately, we just launched a new course",
+      "start": 190.91,
+      "duration": 2.36
+    },
+    {
+      "text": "called Database Essentials,",
+      "start": 193.27,
+      "duration": 1.72
+    },
+    {
+      "text": "where we go into a lot more detail",
+      "start": 194.99,
+      "duration": 1.92
+    },
+    {
+      "text": "on what we covered in this quick video,",
+      "start": 196.91,
+      "duration": 2.36
+    },
+    {
+      "text": "but the course also guides you through",
+      "start": 199.27,
+      "duration": 2.24
+    },
+    {
+      "text": "some of the hands-on labs where you install various databases like MongoDB,",
+      "start": 201.51,
+      "duration": 4.88
+    },
+    {
+      "text": "couchbase, and more in real environments. All handled safely inside of the platform.",
+      "start": 206.39,
+      "duration": 5.84
+    },
+    {
+      "text": "On top of that new course, we've also released 10 new hands-on labs, so check out the weekly",
+      "start": 212.23,
+      "duration": 4.72
+    },
+    {
+      "text": "update blog for more information on all of that. Please like and subscribe,",
+      "start": 216.95,
+      "duration": 4.64
+    },
+    {
+      "text": "and then stay tuned for another cloud or Linux topic next week. See you then!",
+      "start": 221.59,
+      "duration": 4.64
+    }
+  ]
+}

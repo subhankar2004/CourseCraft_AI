@@ -54,17 +54,19 @@ docker compose exec postgres psql -U coursecraft -d coursecraft   # SQL shell
 docker compose exec redis redis-cli                               # Redis shell
 ```
 
-### Optional: local LLMs with Ollama
+### Local models with Ollama (default, free)
+
+`.env.example` uses `LLM_PROVIDER=ollama`: embeddings and notes run on your machine, with no API key. On macOS, use the native app, which can use the Apple GPU:
 
 ```bash
-pnpm infra:up:ollama                                    # = docker compose --profile ollama up -d
-docker compose exec ollama ollama pull llama3.1:8b
-docker compose exec ollama ollama pull nomic-embed-text
+brew install ollama && brew services start ollama       # listens on localhost:11434
+ollama pull nomic-embed-text                            # embeddings, 274 MB (#21)
+ollama pull llama3.1:8b                                 # notes and chat, 4.9 GB (#23 onwards)
 ```
 
-Then set `LLM_PROVIDER=ollama` in `.env`.
+On Linux or Windows you can instead run it in Docker: `pnpm infra:up:ollama`, then `docker compose exec ollama ollama pull <model>`. Docker on a Mac can't use the GPU, so the container is slow there. To use OpenAI instead, set `LLM_PROVIDER=openai` and `OPENAI_API_KEY`.
 
-> **macOS note:** Docker can't use the Apple GPU, so Ollama in a container runs on CPU only and is slow. On a Mac it's better to install the native app (`brew install ollama && ollama serve`). It listens on the same `localhost:11434`, so in that case don't start the `ollama` profile.
+Vectors are stored in PostgreSQL with pgvector (the Compose image includes it). The AI service creates its `vector_store` schema on first use.
 
 ## 3. Install JS dependencies
 
@@ -132,12 +134,14 @@ pnpm --filter web dev       # http://localhost:3000
 ```bash
 pnpm ai:sync        # creates services/ai/.venv with Python 3.12 (uv downloads it if needed)
 pnpm ai:dev         # http://localhost:8000/health · interactive docs at http://localhost:8000/docs
-pnpm ai:test        # pytest (live-network tests are opt-in: uv --directory services/ai run pytest -m network)
+pnpm ai:test        # pytest, offline (pgvector tests use coursecraft_test; skipped if it's down)
+uv --directory services/ai run pytest -m network   # opt-in: real YouTube, Whisper and Ollama
+pnpm ai:fixtures    # re-record the offline test fixtures from YouTube (review the diff)
 pnpm ai:lint && pnpm ai:typecheck
 ```
 
 - Configuration comes from the same root `.env`. At startup the service validates it and refuses to boot with a list of problems, e.g. a `change-me` `INTERNAL_API_KEY`.
-- `/health` is public and shows which LLM and vector-store providers are configured (it never shows keys). `configured: false` is expected until `OPENAI_API_KEY` and `PINECONE_API_KEY` are set (#16, #21).
+- `/health` is public and shows which LLM and vector-store providers are configured (it never shows keys). With the defaults it reports `ollama` (`nomic-embed-text`, 768-d) and `pgvector` (`vector_store.chunks_nomic`).
 - Every other endpoint requires the `X-Internal-Key` header. Only the NestJS API calls this service; browsers never do.
 - `/docs` is disabled when `NODE_ENV=production`.
 

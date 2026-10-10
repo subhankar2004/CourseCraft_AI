@@ -1,0 +1,886 @@
+{
+  "youtubeId": "HXV3zeQKqGY",
+  "recordedAt": "2026-10-10",
+  "excerptSec": 600.0,
+  "source": "YT_MANUAL",
+  "language": "en",
+  "translatedFrom": null,
+  "fetchedWith": "youtube-transcript-api",
+  "segments": [
+    {
+      "text": "SQL Tutorial - Full Database Course for Beginners",
+      "start": 0.0,
+      "duration": 1.0
+    },
+    {
+      "text": "In this course I’m going to teach you everything you need to know to get started using SQL.",
+      "start": 1.0,
+      "duration": 3.8
+    },
+    {
+      "text": "Now SQL is a language which is used to interact with relational database management systems.",
+      "start": 4.8,
+      "duration": 6.1
+    },
+    {
+      "text": "And a relational database management system",
+      "start": 10.9,
+      "duration": 2.4
+    },
+    {
+      "text": "is basically just a software application which we can use to create and manage different databases.",
+      "start": 13.3,
+      "duration": 6.1
+    },
+    {
+      "text": "And so, we're going to talk about all of this stuff in this course.",
+      "start": 19.4,
+      "duration": 3.0
+    },
+    {
+      "text": "We’re going to start off with the basics.",
+      "start": 22.4,
+      "duration": 2.0
+    },
+    {
+      "text": "So, we'll just look at what is a database.",
+      "start": 24.4,
+      "duration": 1.5
+    },
+    {
+      "text": "We’ll talk about the different types of databases.",
+      "start": 25.9,
+      "duration": 1.6
+    },
+    {
+      "text": "We'll talk about what SQL is and what it actually means and how you can use it to create databases.",
+      "start": 27.5,
+      "duration": 6.9
+    },
+    {
+      "text": "And then we're going to go ahead and we're going to install something",
+      "start": 34.4,
+      "duration": 3.0
+    },
+    {
+      "text": "called a relational database management system.",
+      "start": 37.4,
+      "duration": 2.6
+    },
+    {
+      "text": "Which like I said, is just software that we can use to manage a database.",
+      "start": 40.0,
+      "duration": 4.1
+    },
+    {
+      "text": "We're going to install a relational database management system called MySQL.",
+      "start": 44.1,
+      "duration": 4.8
+    },
+    {
+      "text": "And MySQL is one of the most popular database management systems for beginners.",
+      "start": 48.9,
+      "duration": 4.7
+    },
+    {
+      "text": "And also, just in general.",
+      "start": 53.6,
+      "duration": 1.6
+    },
+    {
+      "text": "So, MySQL is a great first system to learn.",
+      "start": 55.2,
+      "duration": 3.2
+    },
+    {
+      "text": "And so, once we have that all install, then we'll start writing SQL.",
+      "start": 58.4,
+      "duration": 3.7
+    },
+    {
+      "text": "So, we can write out little SQL code, little queries",
+      "start": 62.1,
+      "duration": 3.3
+    },
+    {
+      "text": "in order to create databases and create database tables",
+      "start": 65.4,
+      "duration": 4.2
+    },
+    {
+      "text": "and, you know, input information, retrieve information.",
+      "start": 69.6,
+      "duration": 3.9
+    },
+    {
+      "text": "And then we're going to get into writing SQL queries.",
+      "start": 73.5,
+      "duration": 2.3
+    },
+    {
+      "text": "And queries are used to query a database.",
+      "start": 75.8,
+      "duration": 2.8
+    },
+    {
+      "text": "So, we'll create a database.",
+      "start": 78.6,
+      "duration": 1.4
+    },
+    {
+      "text": "We’ll populate it with information.",
+      "start": 80.0,
+      "duration": 1.4
+    },
+    {
+      "text": "And I’ll show you guys how you can write these little SQL queries to get specific pieces of information.",
+      "start": 81.4,
+      "duration": 5.1
+    },
+    {
+      "text": "So, we'll start off with the basics and we'll just learn all of the fundamentals.",
+      "start": 86.5,
+      "duration": 3.6
+    },
+    {
+      "text": "And then I’m going to show you guys some more advanced techniques",
+      "start": 90.1,
+      "duration": 3.1
+    },
+    {
+      "text": "to getting information out of a database.",
+      "start": 93.2,
+      "duration": 3.4
+    },
+    {
+      "text": "And finally, I’m going to show you guys how you can actually design database schemas.",
+      "start": 96.6,
+      "duration": 4.6
+    },
+    {
+      "text": "So, a database schema is basically just like all of the different tables and all the different relations",
+      "start": 101.2,
+      "duration": 5.1
+    },
+    {
+      "text": "that the database is going to store.",
+      "start": 106.3,
+      "duration": 2.6
+    },
+    {
+      "text": "And if you don’t understand what any of that means, don’t worry, we're going to cover all of it.",
+      "start": 108.9,
+      "duration": 3.7
+    },
+    {
+      "text": "But this course will cover basically everything about SQL, all of the fundamentals,",
+      "start": 112.6,
+      "duration": 5.4
+    },
+    {
+      "text": "all of the things that you need to get started.",
+      "start": 118.0,
+      "duration": 2.9
+    },
+    {
+      "text": "And we'll also look at database design and schema design.",
+      "start": 120.9,
+      "duration": 3.8
+    },
+    {
+      "text": "So, it’s going to be a pretty awesome course.",
+      "start": 124.7,
+      "duration": 2.0
+    },
+    {
+      "text": "I’m excited to be bringing you guys this stuff.",
+      "start": 126.7,
+      "duration": 2.3
+    },
+    {
+      "text": "And just know that all of the code, all the stuff that’s in this course",
+      "start": 129.0,
+      "duration": 3.2
+    },
+    {
+      "text": "is going to be available on the Giraffe Academy website.",
+      "start": 132.2,
+      "duration": 2.8
+    },
+    {
+      "text": "GiraffeAcademy.com.",
+      "start": 135.0,
+      "duration": 1.7
+    },
+    {
+      "text": "And there’s also going to be some additional things on the website",
+      "start": 136.7,
+      "duration": 3.0
+    },
+    {
+      "text": "that isn’t going to be in course just because I didn’t have time to cover all of it.",
+      "start": 139.7,
+      "duration": 4.0
+    },
+    {
+      "text": "So, check out the website for more information.",
+      "start": 143.7,
+      "duration": 2.3
+    },
+    {
+      "text": "But without further ado, lets get into it.",
+      "start": 146.0,
+      "duration": 2.6
+    },
+    {
+      "text": "Let’s learn SQL which is one of the most popular languages for not only jobs,",
+      "start": 148.6,
+      "duration": 5.5
+    },
+    {
+      "text": "but just for developers in general.",
+      "start": 154.1,
+      "duration": 2.0
+    },
+    {
+      "text": "In this video I’m going to give you guys a full introduction into databases.",
+      "start": 159.7,
+      "duration": 4.1
+    },
+    {
+      "text": "So, we're not going to get too specific on any one point.",
+      "start": 163.8,
+      "duration": 2.8
+    },
+    {
+      "text": "Basically, I want to show you guys just what databases are in general.",
+      "start": 166.6,
+      "duration": 4.3
+    },
+    {
+      "text": "We're going to talk about how databases are used, why we use databases.",
+      "start": 170.9,
+      "duration": 4.2
+    },
+    {
+      "text": "And the different types of databases that you’ll find out in the world.",
+      "start": 175.1,
+      "duration": 4.5
+    },
+    {
+      "text": "So, this should basically just give you an introduction to databases in general.",
+      "start": 179.6,
+      "duration": 4.0
+    },
+    {
+      "text": "If you don’t know anything about databases, then this video will kind of walk you through",
+      "start": 183.6,
+      "duration": 4.3
+    },
+    {
+      "text": "and get you up to speed with what you need to know",
+      "start": 187.9,
+      "duration": 1.8
+    },
+    {
+      "text": "so you can then go off and start learning how to use an actual database.",
+      "start": 189.7,
+      "duration": 5.3
+    },
+    {
+      "text": "So, I just have a little PowerPoint slide here that I want to kind of walk you guys through.",
+      "start": 195.0,
+      "duration": 4.5
+    },
+    {
+      "text": "And we'll look at some different features of databases.",
+      "start": 199.5,
+      "duration": 2.2
+    },
+    {
+      "text": "So, the first question is, “What is a database?”",
+      "start": 201.7,
+      "duration": 2.7
+    },
+    {
+      "text": "You’ll often see databases abbreviated as DB.",
+      "start": 204.4,
+      "duration": 3.6
+    },
+    {
+      "text": "So DB would stand for database.",
+      "start": 208.0,
+      "duration": 1.6
+    },
+    {
+      "text": "And, a database is any collection of related information.",
+      "start": 209.6,
+      "duration": 4.9
+    },
+    {
+      "text": "What I’m sharing with you guys here is the absolute most general definition of this word.",
+      "start": 214.5,
+      "duration": 5.4
+    },
+    {
+      "text": "A database really, if you want to get down to it, is just any collection of related information.",
+      "start": 219.9,
+      "duration": 4.9
+    },
+    {
+      "text": "So, that could be something like a phonebook,",
+      "start": 224.8,
+      "duration": 2.0
+    },
+    {
+      "text": "a shopping lists, a to-do list, your five best friends, Facebook’s userbase.",
+      "start": 226.8,
+      "duration": 5.3
+    },
+    {
+      "text": "All of these are examples of databases.",
+      "start": 232.1,
+      "duration": 2.8
+    },
+    {
+      "text": "All of these are collections of information that store related stuff, right?",
+      "start": 234.9,
+      "duration": 5.7
+    },
+    {
+      "text": "So, the phone book, right?",
+      "start": 240.6,
+      "duration": 1.8
+    },
+    {
+      "text": "This stores people’s phone numbers.",
+      "start": 242.4,
+      "duration": 2.2
+    },
+    {
+      "text": "Their names and their phone numbers.",
+      "start": 244.6,
+      "duration": 1.6
+    },
+    {
+      "text": "It’s a collection of related information.",
+      "start": 246.2,
+      "duration": 2.1
+    },
+    {
+      "text": "A to-do list – this stores a list of things that you want to do during the day, right?",
+      "start": 248.3,
+      "duration": 5.8
+    },
+    {
+      "text": "It’s related information.",
+      "start": 254.1,
+      "duration": 1.0
+    },
+    {
+      "text": "Your five best friends.",
+      "start": 255.1,
+      "duration": 1.7
+    },
+    {
+      "text": "That’s information.",
+      "start": 256.8,
+      "duration": 1.4
+    },
+    {
+      "text": "It’s information that you’re storing somewhere.",
+      "start": 258.2,
+      "duration": 2.6
+    },
+    {
+      "text": "You have – you know, if I came up to you and asked you who your five best friends were,",
+      "start": 260.8,
+      "duration": 3.7
+    },
+    {
+      "text": "I’m sure you could list them off.",
+      "start": 264.5,
+      "duration": 0.8
+    },
+    {
+      "text": "That, in essence, is a database.",
+      "start": 265.3,
+      "duration": 1.6
+    },
+    {
+      "text": "It’s a collection of related information.",
+      "start": 266.9,
+      "duration": 1.8
+    },
+    {
+      "text": "And then Facebook’s userbase, right?",
+      "start": 268.7,
+      "duration": 2.3
+    },
+    {
+      "text": "So, all of the users that Facebook keeps track of and stores.",
+      "start": 271.0,
+      "duration": 3.8
+    },
+    {
+      "text": "That’s another example of a database.",
+      "start": 274.8,
+      "duration": 1.9
+    },
+    {
+      "text": "So, databases can be stored in different ways.",
+      "start": 276.7,
+      "duration": 3.8
+    },
+    {
+      "text": "So, you could store a database on paper.",
+      "start": 280.5,
+      "duration": 2.0
+    },
+    {
+      "text": "If I had a shopping list or a to-do list, I might just scribble that down on a piece of paper.",
+      "start": 282.5,
+      "duration": 4.9
+    },
+    {
+      "text": "You could store a database in your mind.",
+      "start": 287.4,
+      "duration": 2.0
+    },
+    {
+      "text": "So, your five best friends, for example.",
+      "start": 289.4,
+      "duration": 3.1
+    },
+    {
+      "text": "If I came up to you and I asked you, “List off your five best friends.”",
+      "start": 292.5,
+      "duration": 3.0
+    },
+    {
+      "text": "And you probably don’t have it written down somewhere.",
+      "start": 295.5,
+      "duration": 2.2
+    },
+    {
+      "text": "You don’t have an app on your phone that tells you who all your friends are, right?",
+      "start": 297.7,
+      "duration": 3.7
+    },
+    {
+      "text": "You just know that information in your mind naturally.",
+      "start": 301.4,
+      "duration": 2.0
+    },
+    {
+      "text": "And so, that’s another way that you can store a database.",
+      "start": 303.4,
+      "duration": 3.0
+    },
+    {
+      "text": "You can just store the information in your mind.",
+      "start": 306.4,
+      "duration": 1.8
+    },
+    {
+      "text": "You can store information on a computer.",
+      "start": 308.2,
+      "duration": 2.1
+    },
+    {
+      "text": "And this is probably the most common use case is people will create a database",
+      "start": 310.3,
+      "duration": 5.1
+    },
+    {
+      "text": "and they’ll store all the information on their computer.",
+      "start": 315.4,
+      "duration": 2.2
+    },
+    {
+      "text": "This PowerPoint, the PowerPoint that we're looking at right now.",
+      "start": 317.6,
+      "duration": 2.9
+    },
+    {
+      "text": "This is an example of a database.",
+      "start": 320.5,
+      "duration": 1.8
+    },
+    {
+      "text": "It has related information on it.",
+      "start": 322.3,
+      "duration": 1.9
+    },
+    {
+      "text": "And I’m using it to teach this lesson.",
+      "start": 324.2,
+      "duration": 2.8
+    },
+    {
+      "text": "And then finally like a comment section.",
+      "start": 327.0,
+      "duration": 2.4
+    },
+    {
+      "text": "So, if you go down to the comment section of this video, that’s a database, right?",
+      "start": 329.4,
+      "duration": 3.7
+    },
+    {
+      "text": "It’s a general database that’s storing comments for the video.",
+      "start": 333.1,
+      "duration": 4.6
+    },
+    {
+      "text": "So, that really, in essence, is everything you need to know about databases to get started.",
+      "start": 337.7,
+      "duration": 5.5
+    },
+    {
+      "text": "It’s a collection of related information that can be stored in different ways.",
+      "start": 343.2,
+      "duration": 4.2
+    },
+    {
+      "text": "So, now that we understand the very general definition,",
+      "start": 347.4,
+      "duration": 2.9
+    },
+    {
+      "text": "I want to kind of walk you guys through more specifically what we can do with databases.",
+      "start": 350.3,
+      "duration": 4.4
+    },
+    {
+      "text": "So, over here I have another slide.",
+      "start": 354.7,
+      "duration": 2.2
+    },
+    {
+      "text": "It’s Computers + Databases equals heart.",
+      "start": 356.9,
+      "duration": 2.1
+    },
+    {
+      "text": "Now, the point I’m trying to drive home with this slide is that storing a database,",
+      "start": 359.0,
+      "duration": 4.2
+    },
+    {
+      "text": "storing a collection of related information on a computer is extremely useful.",
+      "start": 363.2,
+      "duration": 5.9
+    },
+    {
+      "text": "And computers are actually great for storing databases.",
+      "start": 369.1,
+      "duration": 3.4
+    },
+    {
+      "text": "So, I have here two things.",
+      "start": 372.5,
+      "duration": 2.0
+    },
+    {
+      "text": "We have over here on the left Amazon vs a Shopping List.",
+      "start": 374.5,
+      "duration": 3.5
+    },
+    {
+      "text": "So, these are two examples of situations where we have a database.",
+      "start": 378.0,
+      "duration": 3.9
+    },
+    {
+      "text": "We kind of talked about how a shopping list is a database.",
+      "start": 381.9,
+      "duration": 3.0
+    },
+    {
+      "text": "It’s a collection of related information, right?",
+      "start": 384.9,
+      "duration": 2.3
+    },
+    {
+      "text": "A collection of products that you want to buy from the store.",
+      "start": 387.2,
+      "duration": 2.4
+    },
+    {
+      "text": "Amazon.com is also a database.",
+      "start": 389.6,
+      "duration": 2.4
+    },
+    {
+      "text": "Amazon is storing all this product information, all this user information.",
+      "start": 392.0,
+      "duration": 3.7
+    },
+    {
+      "text": "They’re storing reviews on the products, the prices of the products.",
+      "start": 395.7,
+      "duration": 3.0
+    },
+    {
+      "text": "They’re storing all of this information.",
+      "start": 398.7,
+      "duration": 2.0
+    },
+    {
+      "text": "So, let’s take a look and we'll compare and contrast these two databases",
+      "start": 400.7,
+      "duration": 4.7
+    },
+    {
+      "text": "and we'll see why computers are the preferred medium for storing data.",
+      "start": 405.4,
+      "duration": 4.2
+    },
+    {
+      "text": "So, Amazon.com keeps track of products, reviews, purchase orders, credit cards, users, media, etc.",
+      "start": 409.6,
+      "duration": 5.7
+    },
+    {
+      "text": "So, Amazon is keeping track of so much information.",
+      "start": 415.3,
+      "duration": 4.0
+    },
+    {
+      "text": "Trillions of pieces of information need to be stored and readily available.",
+      "start": 419.3,
+      "duration": 4.9
+    },
+    {
+      "text": "Over here we have a shopping list.",
+      "start": 424.2,
+      "duration": 1.4
+    },
+    {
+      "text": "A shopping list keeps track of consumer products that need to be purchased, right?",
+      "start": 425.6,
+      "duration": 3.7
+    },
+    {
+      "text": "We're talking 10 to 20 pieces of information need to be stored and readily available.",
+      "start": 429.3,
+      "duration": 5.6
+    },
+    {
+      "text": "So, Amazon, we need to store trillions of pieces of information.",
+      "start": 434.9,
+      "duration": 3.9
+    },
+    {
+      "text": "With the shopping list, we need to store 10 or 20.",
+      "start": 438.8,
+      "duration": 2.3
+    },
+    {
+      "text": "Both of these are databases, but the one we have trillions of stuff.",
+      "start": 441.1,
+      "duration": 4.8
+    },
+    {
+      "text": "The other one we have 10 to 20 things.",
+      "start": 445.9,
+      "duration": 2.2
+    },
+    {
+      "text": "And so, over here on Amazon, the information on Amazon is extremely valuable",
+      "start": 448.1,
+      "duration": 4.9
+    },
+    {
+      "text": "and it’s critical to Amazon.com’s functioning, right?",
+      "start": 453.0,
+      "duration": 3.1
+    },
+    {
+      "text": "So, the information that Amazon is storing it’s database is absolutely essential.",
+      "start": 456.1,
+      "duration": 4.1
+    },
+    {
+      "text": "And another thing is that security is essential, right?",
+      "start": 460.2,
+      "duration": 4.6
+    },
+    {
+      "text": "Amazon stores people’s personal information, like social security number or credit card, address, phone.",
+      "start": 464.8,
+      "duration": 4.9
+    },
+    {
+      "text": "Like that information needs to be locked down and secure.",
+      "start": 469.7,
+      "duration": 3.6
+    },
+    {
+      "text": "A shopping list on the other hand, the information is for convenience’s sake only, right?",
+      "start": 473.3,
+      "duration": 4.9
+    },
+    {
+      "text": "It’s not absolutely necessary for shopping.",
+      "start": 478.2,
+      "duration": 2.6
+    },
+    {
+      "text": "Like if you didn’t have a shopping list, you could still go to the store and, for the most part,",
+      "start": 480.8,
+      "duration": 4.9
+    },
+    {
+      "text": "you’d be able to find everything that you need.",
+      "start": 485.7,
+      "duration": 1.8
+    },
+    {
+      "text": "Also, with the shopping list, security is just not important at all, right?",
+      "start": 487.5,
+      "duration": 4.1
+    },
+    {
+      "text": "If you drop your shopping list on the ground – I mean if somebody else was to pick it up",
+      "start": 491.6,
+      "duration": 4.2
+    },
+    {
+      "text": "and look at it, it’s like not a big deal.",
+      "start": 495.8,
+      "duration": 1.2
+    },
+    {
+      "text": "It’s a shopping list.",
+      "start": 497.0,
+      "duration": 0.8
+    },
+    {
+      "text": "Finally, over here on Amazon, the information is stored on a computer.",
+      "start": 497.8,
+      "duration": 6.1
+    },
+    {
+      "text": "Whereas with the shopping list, the information is stored maybe on a piece of paper,",
+      "start": 503.9,
+      "duration": 4.5
+    },
+    {
+      "text": "or it could even just be stored in someone’s memory, right?",
+      "start": 508.4,
+      "duration": 3.2
+    },
+    {
+      "text": "So, maybe you just memorized your shopping list",
+      "start": 511.6,
+      "duration": 1.8
+    },
+    {
+      "text": "and that’s where you’re storing your shopping list database.",
+      "start": 513.4,
+      "duration": 3.2
+    },
+    {
+      "text": "So, what I’m trying to show you guys is that a database doesn’t just have to be on a computer",
+      "start": 516.6,
+      "duration": 4.5
+    },
+    {
+      "text": "and it doesn’t just have to be like in your memory or on a piece of paper, right?",
+      "start": 521.1,
+      "duration": 3.8
+    },
+    {
+      "text": "Databases are in all of these different environments.",
+      "start": 524.9,
+      "duration": 3.7
+    },
+    {
+      "text": "But here’s the thing, for an application like Amazon, storing information on something like a computer",
+      "start": 528.6,
+      "duration": 6.3
+    },
+    {
+      "text": "makes it really easy to store trillions of pieces of information.",
+      "start": 534.9,
+      "duration": 3.8
+    },
+    {
+      "text": "And really easy to secure the data and make sure that security is taken care of.",
+      "start": 538.7,
+      "duration": 5.3
+    },
+    {
+      "text": "And it also makes it really easy to back up that information",
+      "start": 544.0,
+      "duration": 2.8
+    },
+    {
+      "text": "and duplicate that information and store that information on different computers.",
+      "start": 546.8,
+      "duration": 5.1
+    },
+    {
+      "text": "So, the main point of this slide is that computers are great at keeping track of large amounts of information.",
+      "start": 551.9,
+      "duration": 6.2
+    },
+    {
+      "text": "And so, going forward, we're going to be talking about how can we create databases on the computers",
+      "start": 558.1,
+      "duration": 6.5
+    },
+    {
+      "text": "because computers are so good at storing that information.",
+      "start": 564.6,
+      "duration": 3.6
+    },
+    {
+      "text": "So, let’s talk about how we can go about creating databases on a computer.",
+      "start": 568.2,
+      "duration": 5.9
+    },
+    {
+      "text": "Now, a database could be as simple as like a text file where you store information.",
+      "start": 574.1,
+      "duration": 6.1
+    },
+    {
+      "text": "Or it could be like an Excel file, right?",
+      "start": 580.2,
+      "duration": 2.4
+    },
+    {
+      "text": "Microsoft Excel file.",
+      "start": 582.6,
+      "duration": 1.6
+    },
+    {
+      "text": "But generally, if you’re going to be using a database with an application",
+      "start": 584.2,
+      "duration": 4.7
+    },
+    {
+      "text": "or you’re going to be using a database to store huge amounts of information,",
+      "start": 588.9,
+      "duration": 3.4
+    },
+    {
+      "text": "a lot of times what people will do is they’ll use special software",
+      "start": 592.3,
+      "duration": 3.7
+    },
+    {
+      "text": "which is designed to help you create and maintain the database.",
+      "start": 596.0,
+      "duration": 3.9
+    },
+    {
+      "text": "This is called database management systems.",
+      "start": 599.9,
+      "duration": 3.0
+    }
+  ]
+}
