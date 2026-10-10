@@ -77,7 +77,8 @@ export class AuthController {
    */
   @Public()
   @Get('session')
-  @SkipThrottle()
+  // Named explicitly: a bare @SkipThrottle() only skips the throttler called 'default'.
+  @SkipThrottle({ auth: true })
   async session(@Req() req: Request): Promise<Session> {
     const user = await this.auth.resolveSession(req.cookies?.[SESSION_COOKIE]);
     return { user: user ? this.auth.toPublicUser(user) : null };

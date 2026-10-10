@@ -1,4 +1,7 @@
 import {
+  type CourseDetail,
+  courseDetailSchema,
+  courseListSchema,
   type Domain,
   type DomainDetail,
   domainDetailSchema,
@@ -74,4 +77,36 @@ export async function getDomainSlugsForBuild(): Promise<string[]> {
   if (res === UNAVAILABLE) return [];
   const parsed = domainSchema.array().safeParse(res.body);
   return parsed.success ? parsed.data.map((domain) => domain.slug) : [];
+}
+
+/** A published course outline, `null` if it doesn't exist (or isn't published). */
+export async function getCourse(slug: string): Promise<CourseDetail | null | Unavailable> {
+  'use cache';
+  cacheTag('courses', `course:${slug}`);
+  const res = await getJson(`courses/${encodeURIComponent(slug)}`);
+  if (res !== UNAVAILABLE && res.status === 404) {
+    cacheLife('minutes'); // the course may be published later
+    return null;
+  }
+  const parsed = res === UNAVAILABLE ? null : courseDetailSchema.safeParse(res.body);
+  if (!parsed?.success) {
+    cacheLife('minutes');
+    return UNAVAILABLE;
+  }
+  cacheLife('hours');
+  return parsed.data;
+}
+
+/** All published course slugs for `generateStaticParams` (build time only; walks the pages). */
+export async function getCourseSlugsForBuild(): Promise<string[]> {
+  const slugs: string[] = [];
+  for (let page = 1; page <= 20; page++) {
+    const res = await getJson(`courses?page=${page}&pageSize=50`);
+    if (res === UNAVAILABLE) return slugs;
+    const parsed = courseListSchema.safeParse(res.body);
+    if (!parsed.success) return slugs;
+    slugs.push(...parsed.data.items.map((course) => course.slug));
+    if (page >= parsed.data.totalPages) break;
+  }
+  return slugs;
 }

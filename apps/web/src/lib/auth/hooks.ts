@@ -9,12 +9,37 @@ import {
 } from '@coursecraft/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useSyncExternalStore } from 'react';
 import { api } from '@/lib/api';
 
 export const ME_QUERY_KEY = ['auth', 'me'] as const;
 
-/** The signed-in user, or `null` when signed out. Shared by every component through the cache. */
+const subscribeNever = () => () => {};
+
+/** `false` on the server and while hydrating, `true` afterwards (React's hydration-safe pattern). */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false,
+  );
+}
+
+/**
+ * The signed-in user, or `null` when signed out. Shared by every component through the cache.
+ *
+ * Hydration-safe: the server never knows the session, so it renders the pending state. A
+ * component inside a late-streamed <Suspense> boundary may hydrate after the session query has
+ * already resolved; reporting `pending` until hydration completes keeps server and client HTML
+ * identical (otherwise React throws a hydration mismatch).
+ */
 export function useMe() {
+  const hydrated = useHydrated();
+  const query = useMeQuery();
+  return hydrated ? query : { ...query, data: undefined, isPending: true as const };
+}
+
+function useMeQuery() {
   return useQuery({
     queryKey: ME_QUERY_KEY,
     // /auth/session answers 200 with `user: null` when signed out (no 401 noise in the console).

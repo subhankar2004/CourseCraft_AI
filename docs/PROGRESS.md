@@ -27,6 +27,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 12  | 2026-10-10 | [#12](https://github.com/subhankar2004/CourseCraft_AI/issues/12) / [#63](https://github.com/subhankar2004/CourseCraft_AI/pull/63) | P1    | Web auth: login/register forms, session hooks, user menu, proxy route protection, 403         |
 | 13  | 2026-10-10 | [#13](https://github.com/subhankar2004/CourseCraft_AI/issues/13) / [#64](https://github.com/subhankar2004/CourseCraft_AI/pull/64) | P1    | Landing page, responsive navigation, footer; `/auth/session`                                  |
 | 14  | 2026-10-10 | [#14](https://github.com/subhankar2004/CourseCraft_AI/issues/14) / [#65](https://github.com/subhankar2004/CourseCraft_AI/pull/65) | P1    | Domain catalog pages: ISR, search + level filter, empty states; build-resilient caching       |
+| 15  | 2026-10-10 | [#15](https://github.com/subhankar2004/CourseCraft_AI/issues/15) / [#66](https://github.com/subhankar2004/CourseCraft_AI/pull/66) | P1    | Course overview page with OG/JSON-LD; hydration and rate-limit fixes; **P1 complete**         |
 
 ---
 
@@ -562,6 +563,40 @@ Result: **all three build scenarios exit 0 with no errors**. With the API up, do
 
 ---
 
+## Entry 15 — Course overview page (Issue #15, PR #66, 2026-10-10) · P1 complete
+
+**What:** `/courses/[slug]`:
+
+- **Header:** breadcrumb (Domains / domain / course); title; description; facts (level, modules, lessons, **total video time** formatted as e.g. "12h 28m", counting each source video once); thumbnail; and an **enroll CTA** that is a placeholder until #33. Signed-out visitors see _Sign in to enroll_, which returns them to the course via `?next=`; signed-in students see a disabled _Enroll_ with "Enrollment opens soon".
+- **Curriculum:** an accessible **accordion** (Radix via shadcn; `aria-expanded`), first module open, each lesson with its order and reading time.
+- **Sharing and search:**
+  - **Open Graph and Twitter Card metadata** [R113] (title, description, absolute URL and thumbnail image via `metadataBase` from the new `NEXT_PUBLIC_SITE_URL`, canonical URL);
+  - **schema.org `Course` JSON-LD** [R112], with `<` escaped as `\u003c` so database content can't break out of the script tag (Next.js JSON-LD guidance).
+- **ISR**, same pattern as the domain pages: known courses prerendered (`generateStaticParams` walks the paginated course list at build), the App Shell for new ones, `UNAVAILABLE` cached for minutes when the API is down.
+
+**Two bugs found by the regression run and fixed:**
+
+1. **Hydration mismatch (latent since #12).** The course content streams in through a nested `<Suspense>`. When that late HTML hydrated, the client's session query had _already_ resolved, so `EnrollButton` rendered differently from the server's skeleton, and React threw _"Hydration failed"_. The fix was made **once, in `useMe()`**: a `useHydrated()` hook (`useSyncExternalStore` with a server snapshot of `false`, React's standard hydration-safe pattern [R114]) makes the hook report "pending" until hydration finishes, so server and client HTML always match. Every session-aware component benefits.
+2. **Rate limit on `/auth/session` (introduced in #13).** Re-running the earlier browser suites produced `429 Too Many Requests` on page views. `@SkipThrottle()` without arguments only skips a throttler named `default`, and ours is `auth`, so session checks counted against the 20-per-minute auth limit: a user opening more than 20 pages a minute would have looked signed out. Fixed with `@SkipThrottle({ auth: true })`. A **new e2e test** (30 rapid session checks from one IP, all 200) was **mutation-checked**: it fails with the bug restored and passes with the fix.
+
+- A browser check of the phone menu became timing-sensitive once `/domains` existed: client-side navigation now plays the close animation. The test now waits for the menu to hide, with a timeout.
+
+**Verification:**
+
+- **Course browser test, 16/16, 0 console problems:**
+  - reached from the domain page; breadcrumb; facts (Beginner, 2 modules, 4 lessons, 12h 28m of video); description;
+  - module 1 open, module 2 collapsed (`aria-expanded=false`); expanding shows its lessons; reading times;
+  - **signed-out CTA → login → back to the course as the seeded student → disabled Enroll placeholder**;
+  - OG image = the thumbnail; JSON-LD `@type: Course`;
+  - unknown course → 404; **360 px with no horizontal scroll**.
+- **Regression, all browser suites with 0 console problems:** #12 login 16/16, #13 landing 27/27, #14 domains 16/16.
+- Build: **API up**, `/courses/database-fundamentals` is prerendered with OG and JSON-LD in the HTML; **API unreachable and CI-like**, exit 0 with no prerender errors (only our own `[catalog]` log lines).
+- Unit tests: web 28 (new duration and plural formatting tests), shared 28, API 12 + **46** e2e. Root format, lint, typecheck, test (JS + Python) and build pass.
+
+**Phase P1 complete (#7–#15):** schema and migrations, seed, authentication, domains and courses API, and the web auth, landing, catalog and course pages. A visitor can now sign up, browse domains, filter courses and read a course outline.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -603,3 +638,5 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D33 | 2026-10-10 | Server-side catalog data via `'use cache'` + explicit `cacheLife` (`hours`, or `seconds` on failure)                                                       | Static, fast pages that refresh in the background [R107][R108]; builds and CI don't need a running API                                                                                                    |
 | D34 | 2026-10-10 | Cached catalog reads **never throw**; on failure return `UNAVAILABLE` with `cacheLife('minutes')`; uncached build-time fetch for `generateStaticParams`    | Builds succeed without an API (CI); avoids prerender failures and cache-warming misses; pages recover within about a minute (found by four tested hypotheses, Entry 14)                                   |
 | D35 | 2026-10-10 | Course search and filter run **client-side** with state in the URL                                                                                         | Instant results over a small, already-loaded list; shareable and bookmarkable filtered views; pages stay static                                                                                           |
+| D36 | 2026-10-10 | `useMe()` is **hydration-safe** (pending until hydrated via `useSyncExternalStore`)                                                                        | Session-aware client components can sit inside late-streamed Suspense boundaries without hydration mismatches [R114]; fixed centrally instead of per component                                            |
+| D37 | 2026-10-10 | Course pages publish **Open Graph/Twitter metadata and schema.org Course JSON-LD**                                                                         | Rich link previews and search-engine understanding of courses [R112][R113]; escaped against script injection                                                                                              |
