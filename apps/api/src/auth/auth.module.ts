@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
-import { ThrottlerModule } from '@nestjs/throttler';
 import type { Env } from '../config/env.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
@@ -21,8 +20,6 @@ import { RolesGuard } from './roles.guard.js';
         },
       }),
     }),
-    // In-memory counters; moves to Redis-backed storage when the API runs as several instances (#48).
-    ThrottlerModule.forRoot({ throttlers: [{ name: 'auth', ttl: 60_000, limit: 20 }] }),
   ],
   controllers: [AuthController],
   providers: [

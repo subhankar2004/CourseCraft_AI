@@ -11,6 +11,12 @@ import {
 } from './ingestion.constants.js';
 import type { GenerationInput } from './ingestion.pipeline.js';
 
+export class JobStillRunningError extends Error {
+  constructor(jobId: string) {
+    super(`job ${jobId} is still finishing; try again in a moment`);
+  }
+}
+
 export interface StartGeneration extends GenerationInput {
   domainId: string;
   createdById: string;
@@ -52,8 +58,21 @@ export class IngestionService {
     return { courseId, jobId };
   }
 
-  /** (Re-)queues a job. The BullMQ job id equals the job id, so it is never queued twice. */
-  async enqueue(jobId: string): Promise<void> {
+  /** An active BullMQ job is locked by its worker (still finishing) and can't be replaced. */
+  async assertNotActive(jobId: string): Promise<void> {
+    const job = await this.queue.getJob(jobId);
+    if (job && (await job.isActive())) throw new JobStillRunningError(jobId);
+  }
+
+  /**
+   * Queues a job. The BullMQ job id equals the job id, so it is never queued twice; `replace`
+   * removes a finished BullMQ job first (BullMQ ignores adding an id it still knows), for retries.
+   */
+  async enqueue(jobId: string, options: { replace?: boolean } = {}): Promise<void> {
+    if (options.replace) {
+      await this.assertNotActive(jobId);
+      await (await this.queue.getJob(jobId))?.remove();
+    }
     await this.queue.add(
       'generate',
       { jobId },

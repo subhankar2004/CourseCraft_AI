@@ -377,10 +377,10 @@ Meta: phase=P3 | area=api | type=feat | depends=27
 **Goal:** The public side of generation.
 **Tasks**
 
-- [ ] `POST /courses/generate` (admin) `{domainId, urls[] | playlistUrl, titleHint?}` → `{courseId, jobId}`; validates YouTube URLs
-- [ ] `GET /jobs/:id`, `GET /jobs/:id/events` (SSE: stage, progress, per-video status, done/error)
-- [ ] `POST /jobs/:id/retry`: restarts from the last completed stage
-- [ ] Rate limit on generate
+- [x] `POST /courses/generate` (admin) `{domainId, urls[] | playlistUrl, titleHint?}` → `{courseId, jobId}`; validates YouTube URLs
+- [x] `GET /jobs/:id`, `GET /jobs/:id/events` (SSE: stage, progress, per-video status, done/error)
+- [x] `POST /jobs/:id/retry`: restarts from the last completed stage
+- [x] Rate limit on generate
 
 **Done when:** Running `curl` against generate and then watching the SSE stream shows progress through to DONE with real services.
 

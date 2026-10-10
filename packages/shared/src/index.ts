@@ -5,5 +5,7 @@ export * from './auth.js';
 export * from './course.js';
 export * from './domain.js';
 export * from './error.js';
+export * from './generation.js';
 export * from './health.js';
 export * from './ingestion.js';
+export * from './youtube.js';

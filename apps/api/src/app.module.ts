@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConditionalModule, ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import type { Redis } from 'ioredis';
 import { AiClientModule } from './ai/ai-client.module.js';
 import { AuthModule } from './auth/auth.module.js';
@@ -25,6 +26,14 @@ import { REDIS, RedisModule } from './redis/redis.module.js';
       validate: validateEnv,
     }),
     LoggerModule,
+    // Named rate limits, applied where ThrottlerGuard is used (auth routes, course generation).
+    // In-memory counters; moves to Redis-backed storage when the API runs as several instances (#48).
+    ThrottlerModule.forRoot({
+      throttlers: [
+        { name: 'auth', ttl: 60_000, limit: 20 },
+        { name: 'generate', ttl: 60 * 60_000, limit: 10 },
+      ],
+    }),
     PrismaModule,
     RedisModule,
     AiClientModule,
