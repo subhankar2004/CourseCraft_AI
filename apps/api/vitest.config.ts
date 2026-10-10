@@ -15,6 +15,10 @@ export const testEnv = {
   JWT_EXPIRES_IN: '1h',
   // Lets each test act as a different client IP (X-Forwarded-For) so rate limits don't collide.
   TRUST_PROXY: '1',
+  // Parallel e2e files must not consume each other's (or the dev server's) generation jobs; the
+  // ingestion tests start their own worker.
+  INGESTION_WORKER: 'false',
+  QUEUE_PREFIX: 'cc-test',
 };
 
 export default defineConfig({

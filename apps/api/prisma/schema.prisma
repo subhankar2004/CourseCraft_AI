@@ -55,6 +55,16 @@ enum JobStage {
   @@map("job_stage")
 }
 
+/// Per-video state inside an ingestion job (#27).
+enum JobVideoStatus {
+  PENDING // metadata known, nothing fetched yet
+  TRANSCRIBED // transcript stored on the cached Video row
+  PROCESSED // notes + chunks + vectors done (result kept until the final transaction)
+  FAILED // skipped; `error` says why
+
+  @@map("job_video_status")
+}
+
 enum TranscriptSource {
   YT_MANUAL
   YT_AUTO
@@ -197,7 +207,7 @@ model Lesson {
 
 /// Mirror of the Pinecone vectors for a lesson, used for citations and debugging.
 model Chunk {
-  id         String @id // == Pinecone vector id
+  id         String @id // == vector row id ({lessonId}-{index}, #24)
   lessonId   String @map("lesson_id")
   index      Int
   text       String @db.Text
@@ -222,14 +232,40 @@ model IngestionJob {
   stage      JobStage?
   progress   Int       @default(0) // 0-100
   error      String?
+  /// Final report: usage totals, outline repairs, fallback flag (#27).
+  report     Json?
   startedAt  DateTime? @map("started_at")
   finishedAt DateTime? @map("finished_at")
   createdAt  DateTime  @default(now()) @map("created_at")
 
-  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  videos IngestionJobVideo[]
 
   @@index([courseId])
   @@map("ingestion_jobs")
+}
+
+/// One video of an ingestion job, in the order the admin gave (playlist or URL order).
+model IngestionJobVideo {
+  id        String         @id @default(cuid())
+  jobId     String         @map("job_id")
+  position  Int
+  youtubeId String         @map("youtube_id")
+  /// Allocated before processing (#24); the Lesson is created with this id.
+  lessonId  String         @map("lesson_id")
+  status    JobVideoStatus @default(PENDING)
+  error     String?
+  /// Video metadata from the METADATA stage (title, duration, language, ...).
+  metadata  Json?
+  /// The /process/lesson response (notes, chunks), kept until the final transaction.
+  result    Json?
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  job IngestionJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, position])
+  @@unique([jobId, youtubeId])
+  @@map("ingestion_job_videos")
 }
 
 // ─── Learning progress ──────────────────────────────────────────────────────

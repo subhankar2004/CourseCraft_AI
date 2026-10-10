@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #27 (API: BullMQ ingestion pipeline and persistence).
+**Next up:** Issue #28 (course generation endpoints, job status, SSE progress and retry).
 
 ## How we work: 50 issues → 50 PRs
 
