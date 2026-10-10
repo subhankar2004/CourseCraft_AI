@@ -8,3 +8,6 @@ services/ai/
 **/.next/
 **/dist/
 **/coverage/
+
+# Model outputs kept verbatim as evaluation evidence (#23)
+docs/eval/notes-samples/*.*.md

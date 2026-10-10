@@ -312,11 +312,11 @@ Meta: phase=P3 | area=ai | type=feat | depends=16,20
 **Goal:** SPEC §7.1 step 5: readable Markdown study notes.
 **Tasks**
 
-- [ ] Map prompt: chunk → partial notes that keep `[▶ mm:ss]` anchors from the chunk's timestamps
-- [ ] Reduce prompt: partial notes → one lesson document: title, summary, key concepts, sections with anchors, code blocks where relevant, recap
-- [ ] Structured output (Pydantic): `{title, summary, keyConcepts[], notesMarkdown, readingTimeMin}`
-- [ ] Retry with backoff (3 attempts), per-call timeout
-- [ ] Snapshot-style tests with a fake LLM; one manual quality check recorded in `docs/eval/notes-samples/`
+- [x] Map prompt: chunk → partial notes that keep `[▶ mm:ss]` anchors from the chunk's timestamps
+- [x] Reduce prompt: partial notes → one lesson document: title, summary, key concepts, sections with anchors, code blocks where relevant, recap
+- [x] Structured output (Pydantic): `{title, summary, keyConcepts[], notesMarkdown, readingTimeMin}` (parsed from a fixed Markdown layout, PROGRESS D62)
+- [x] Retry with backoff (3 attempts), per-call timeout
+- [x] Snapshot-style tests with a fake LLM; one manual quality check recorded in `docs/eval/notes-samples/`
 
 **Done when:** A fixture transcript produces well-formed notes with valid anchors.
 

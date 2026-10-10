@@ -1,11 +1,18 @@
-"""Offline stand-ins for embedding models and the vector store."""
+"""Offline stand-ins for chat and embedding models and the vector store."""
 
 import math
 import re
+import threading
 import zlib
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
+from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.embeddings import Embeddings
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import AIMessage, BaseMessage
+from langchain_core.outputs import ChatGeneration, ChatResult
+from pydantic import Field
 
 from app.generation.embedding_models import EmbeddingModelInfo
 from app.processing.vector_store import SearchHit, VectorRecord
@@ -132,3 +139,31 @@ class InMemoryVectorStore:
 
     def close(self) -> None:
         pass
+
+
+class ScriptedChatModel(BaseChatModel):
+    """A chat model whose reply is computed from the prompt by `reply` (snapshot-style tests).
+
+    Records every prompt; thread-safe, so it works with batched (parallel) calls.
+    """
+
+    reply: Callable[[str], str]
+    prompts: list[str] = Field(default_factory=list)
+    lock: Any = Field(default_factory=threading.Lock)
+
+    @property
+    def _llm_type(self) -> str:
+        return "scripted"
+
+    def _generate(
+        self,
+        messages: list[BaseMessage],
+        stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
+        **kwargs: Any,
+    ) -> ChatResult:
+        prompt = "\n".join(str(m.content) for m in messages)
+        with self.lock:
+            self.prompts.append(prompt)
+        text = self.reply(prompt)
+        return ChatResult(generations=[ChatGeneration(message=AIMessage(content=text))])

@@ -53,6 +53,8 @@ def get_chat_model(
         model=settings.ollama_chat_model,
         base_url=settings.ollama_base_url,
         temperature=temperature,
+        num_ctx=settings.ollama_num_ctx,
+        client_kwargs={"timeout": settings.llm_timeout_s},  # httpx timeout per request
         callbacks=callbacks,
     )
 
