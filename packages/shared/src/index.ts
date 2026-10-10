@@ -6,3 +6,4 @@ export * from './course.js';
 export * from './domain.js';
 export * from './error.js';
 export * from './health.js';
+export * from './ingestion.js';

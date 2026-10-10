@@ -11,3 +11,6 @@ allowBuilds:
   esbuild: false
   sharp: false
   unrs-resolver: false
+  # BullMQ → msgpackr: prebuilt binaries come from optional platform packages; the script only
+  # builds from source (msgpackr falls back to pure JavaScript without it).
+  msgpackr-extract: false

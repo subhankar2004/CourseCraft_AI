@@ -363,11 +363,11 @@ Meta: phase=P3 | area=api | type=feat | depends=8,24,25,26
 **Goal:** Orchestrate SPEC §7.1 end to end.
 **Tasks**
 
-- [ ] BullMQ queue `ingestion` on Redis; processor runs the stages METADATA → TRANSCRIPT → (per video) PROCESS → STRUCTURING → DONE
-- [ ] Updates `IngestionJob.stage/progress` and publishes progress events (Redis pub/sub)
-- [ ] Caches `Video` rows by `youtubeId` (skips re-fetching transcripts)
-- [ ] Per-video failures are recorded but don't stop the job; the job fails only if every video fails
-- [ ] Final persistence of Modules, Lessons, Chunks in **one transaction**; `Course.status = DRAFT`
+- [x] BullMQ queue `ingestion` on Redis; processor runs the stages METADATA → TRANSCRIPT → (per video) PROCESS → STRUCTURING → DONE
+- [x] Updates `IngestionJob.stage/progress` and publishes progress events (Redis pub/sub)
+- [x] Caches `Video` rows by `youtubeId` (skips re-fetching transcripts)
+- [x] Per-video failures are recorded but don't stop the job; the job fails only if every video fails
+- [x] Final persistence of Modules, Lessons, Chunks in **one transaction**; `Course.status = DRAFT`
 
 **Done when:** An integration test (AI client mocked) produces a full course in the DB.
 

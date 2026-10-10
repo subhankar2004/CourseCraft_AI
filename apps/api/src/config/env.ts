@@ -53,6 +53,16 @@ export const envSchema = z.object({
     .string()
     .min(32, 'INTERNAL_API_KEY must be at least 32 characters (openssl rand -hex 32)'),
   MAX_VIDEOS_PER_COURSE: z.coerce.number().int().positive().default(25),
+  // Course generation (#27): run the BullMQ worker in this process, and the Redis key prefix
+  // for its queue (tests use their own so they never touch the dev server's jobs).
+  INGESTION_WORKER: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
+  QUEUE_PREFIX: z
+    .string()
+    .regex(/^[a-z0-9-]{1,40}$/)
+    .default('coursecraft'),
 });
 
 export type Env = z.infer<typeof envSchema>;
