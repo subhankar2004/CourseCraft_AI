@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Least privilege for the GITHUB_TOKEN.
+permissions:
+  contents: read
+
+# A newer push to the same PR/branch cancels the older run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Third-party actions are pinned to full commit SHAs (tag in the comment) so a moved or
+# compromised tag cannot change what runs in CI.
+
+jobs:
+  js:
+    name: Web + API + shared (Node)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      # Available for API integration tests (Prisma arrives in #7, Redis/BullMQ in #27).
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: coursecraft
+          POSTGRES_PASSWORD: coursecraft
+          POSTGRES_DB: coursecraft_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U coursecraft -d coursecraft_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://coursecraft:coursecraft@localhost:5432/coursecraft_test
+      REDIS_URL: redis://localhost:6379
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          cache: true # version comes from package.json "packageManager"
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false # pnpm/action-setup handles the store cache
+
+      - name: Install (also builds @coursecraft/shared via its prepare script)
+        run: pnpm install --frozen-lockfile
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint:js
+
+      - name: Typecheck
+        run: pnpm typecheck:js
+
+      - name: Test
+        run: pnpm test:js
+
+      - name: Build
+        run: pnpm build
+
+  ai:
+    name: AI service (Python)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/ai
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          working-directory: services/ai
+          enable-cache: true
+
+      - name: Install (Python version from .python-version, exact versions from uv.lock)
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format
+        run: uv run ruff format --check .
+
+      - name: Typecheck
+        run: uv run mypy app tests
+
+      - name: Test
+        run: uv run pytest

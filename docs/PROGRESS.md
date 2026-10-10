@@ -18,6 +18,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging       |
 | 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages      |
 | 5   | 2026-10-09 | [#5](https://github.com/subhankar2004/CourseCraft_AI/issues/5) / [#56](https://github.com/subhankar2004/CourseCraft_AI/pull/56) | P0    | FastAPI AI service skeleton: config, internal-key auth, health |
+| 6   | 2026-10-09 | [#6](https://github.com/subhankar2004/CourseCraft_AI/issues/6) / [#57](https://github.com/subhankar2004/CourseCraft_AI/pull/57) | P0    | Shared contracts package + GitHub Actions CI; **P0 complete**  |
 
 ---
 
@@ -193,6 +194,43 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 6 — Shared contracts and CI (Issue #6, PR #57, 2026-10-09) · P0 complete
+
+**What:**
+
+- **`packages/shared`**: Zod [R44] schemas, with inferred TypeScript types, for the cross-service contracts so far:
+  - the **error body** used by every service;
+  - the API health response (`@nestjs/terminus` shape);
+  - the AI service health response.
+
+  It is an ESM package compiled with `tsc`. A `prepare` script builds it on every `pnpm install`, so consumers always resolve real JavaScript and declaration files.
+
+- **Consumers:**
+  - The API's exception filter types its responses with the shared `ErrorResponse`, and its e2e tests validate real responses against the schemas.
+  - The web app's `api()` client and footer health check use the shared types and the shared `apiHealthSchema`.
+- **Contract tests:** the shared package's tests parse **real response bodies captured from the running NestJS and FastAPI services** (#3, #5). This proves both services emit the same error shape, a lightweight form of contract testing [R80].
+- **Continuous integration** [R78][R79] with **GitHub Actions** [R81] (`.github/workflows/ci.yml`), on every PR and every push to `main`:
+  - **Node job**: install with a frozen lockfile → format → lint → typecheck → test → build. PostgreSQL 16 and Redis 7 run as service containers, ready for #7/#27.
+  - **Python job**: uv sync with `--locked` → Ruff lint and format → mypy `--strict` → pytest.
+- **Root scripts:** `pnpm lint | typecheck | test` now cover JS and Python together. `:js` variants exist for the Node CI job.
+
+**Security practices in the pipeline** [R82]:
+
+- Third-party actions are **pinned to full commit SHAs**. The tags were resolved through the GitHub API at the time of writing.
+- The token has **read-only `contents` permission**.
+- Superseded runs are cancelled (`concurrency`), and every job has a timeout.
+- Installs are reproducible from lockfiles (`--frozen-lockfile`, `uv sync --locked`).
+- The action inputs were checked against each action's `action.yml` for the new major versions (checkout v7, setup-node v7, pnpm v6, setup-uv v10).
+
+**Verification:**
+
+- Locally: `pnpm install` rebuilds `packages/shared/dist` through `prepare`, and the shared package's 5 contract tests pass.
+- Root `lint`, `typecheck`, `test` and `build` pass for both JS and Python.
+- The compiled API (`node dist/main.js`) runs and returns the shared error shape.
+- **GitHub Actions, first run on PR #57: both jobs green.** Node job (format → lint → typecheck → test → build, with Postgres and Redis service containers) took 1 min 3 s. Python job (uv → Ruff → mypy → pytest) took 17 s. [Run 37835402977](https://github.com/subhankar2004/CourseCraft_AI/actions/runs/37835402977).
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -212,3 +250,5 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D11 | 2026-10-09 | AI service pinned to **Python 3.12**, managed by uv                                                                      | The planned ML/AI dependencies publish wheels for established Python versions first. uv makes the interpreter reproducible without touching the system Python [R68]                                       |
 | D12 | 2026-10-09 | AI service mirrors the API's **error shape, camelCase JSON and `x-request-id`**                                          | One error format and one correlation ID across services make debugging and the API's AI client (#26) simpler [R37]                                                                                        |
 | D13 | 2026-10-09 | Internal-key auth uses **constant-time comparison**; only `/health` is public; OpenAPI docs off in production            | Prevents timing side channels [R76] and reduces exposed surface. Protection is checked automatically through the OpenAPI schema                                                                           |
+| D14 | 2026-10-09 | `packages/shared` is a **compiled ESM package** (built on `prepare`), not raw TypeScript                                 | The NestJS API runs compiled ESM under Node, which can't import `.ts` from a workspace package. One build artefact works for Node, Next.js and Vitest                                                     |
+| D15 | 2026-10-09 | CI actions **pinned by commit SHA**, least-privilege token, lockfile-frozen installs                                     | Supply-chain hardening recommended by GitHub [R82]: a moved or compromised tag can't change what runs                                                                                                     |

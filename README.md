@@ -1,5 +1,7 @@
 # CourseCraft AI
 
+[![CI](https://github.com/subhankar2004/CourseCraft_AI/actions/workflows/ci.yml/badge.svg)](https://github.com/subhankar2004/CourseCraft_AI/actions/workflows/ci.yml)
+
 **An AI-integrated learning management system that turns scattered YouTube lectures into structured courses with readable study notes and a course-aware chatbot.**
 
 CourseCraft AI takes YouTube videos or playlists and does three things:
@@ -79,7 +81,7 @@ One issue → one branch → one pull request:
 1. Branch from `main` as `<type>/<issue>-<slug>`, e.g. `feat/9-auth-api`.
 2. Commit using [Conventional Commits](https://www.conventionalcommits.org/) (`feat(api): add login endpoint`).
 3. Open a PR with `Closes #<issue>` and fill in the PR template.
-4. Merge only after review and green CI.
+4. Merge only after review and green CI (`.github/workflows/ci.yml` runs format, lint, typecheck, test and build for the JS packages and the Python service on every PR).
 
 Every PR also updates the research record: the development log [docs/PROGRESS.md](docs/PROGRESS.md) and the IEEE-style citations [docs/REFERENCES.md](docs/REFERENCES.md) / [docs/references.bib](docs/references.bib).
 

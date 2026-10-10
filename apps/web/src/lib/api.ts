@@ -1,3 +1,4 @@
+import type { ErrorResponse } from '@coursecraft/shared';
 import type { ZodType } from 'zod';
 
 /**
@@ -10,15 +11,9 @@ import type { ZodType } from 'zod';
 // Must be referenced literally so Next.js can inline it into the browser bundle.
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-/** Mirrors the API's error response shape. */
-export interface ApiErrorBody {
-  statusCode: number;
-  error: string;
-  message: string | string[];
-  path?: string;
-  timestamp?: string;
-  requestId?: string;
-}
+/** The API's error body; path/timestamp are absent for client-side (network) failures. */
+export type ApiErrorBody = Pick<ErrorResponse, 'statusCode' | 'error' | 'message'> &
+  Partial<ErrorResponse>;
 
 export class ApiError extends Error {
   readonly status: number;

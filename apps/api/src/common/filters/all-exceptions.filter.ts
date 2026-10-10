@@ -8,16 +8,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
-
-/** The single error shape every API error response uses. */
-export interface ErrorResponse {
-  statusCode: number;
-  error: string;
-  message: string | string[];
-  path: string;
-  timestamp: string;
-  requestId?: string;
-}
+import type { ErrorResponse } from '@coursecraft/shared';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
