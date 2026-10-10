@@ -76,9 +76,13 @@ pnpm install
 ## 4. Run the API
 
 ```bash
-pnpm --filter api dev       # http://localhost:4000/api/v1/health
-pnpm --filter api test      # unit + e2e tests (no database needed yet)
+pnpm --filter api prisma:deploy   # apply database migrations (first run, and after pulling new ones)
+pnpm --filter api dev             # http://localhost:4000/api/v1/health
+pnpm --filter api test            # unit + e2e tests (e2e needs PostgreSQL running: pnpm infra:up)
 ```
+
+- `/health` pings PostgreSQL: `200` with `database: up`, or `503` with `database: down` (the reason is in the API log, never in the response).
+- The database schema lives in `apps/api/prisma/schema.prisma`. After changing it, run `pnpm --filter api prisma:migrate --name <what-changed>`. `pnpm --filter api prisma:studio` opens a browser UI for the data.
 
 The API validates its environment at startup. If a variable is missing or invalid (e.g. a `change-me` secret), it exits immediately and lists every problem.
 

@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #7, database schema with Prisma (starts P1).
+**Next up:** Issue #8, seed script with demo data.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -70,7 +70,11 @@ pnpm test                            # vitest (shared, api) + pytest (ai)
 pnpm build
 
 # Per package
-pnpm --filter api test               # unit (src/**/*.spec.ts) + e2e (test/**/*.e2e-spec.ts)
+pnpm --filter api test               # unit (src/**/*.spec.ts) + e2e (test/**/*.e2e-spec.ts); e2e needs PostgreSQL (infra:up)
+pnpm --filter api prisma:migrate --name <change>   # create + apply a migration (dev DB)
+pnpm --filter api prisma:generate    # regenerate the client (also runs on pnpm install)
+pnpm --filter api prisma:deploy      # apply pending migrations (test/prod; non-destructive)
+pnpm --filter api prisma:studio      # browse the database
 pnpm --filter shared build           # rebuild contracts after editing packages/shared
 uv --directory services/ai run pytest -m network   # opt-in live-API tests
 ```
@@ -93,6 +97,10 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - Streaming (chat tokens, job progress) uses **SSE**, not WebSockets.
 
 **Database**
+
+- Prisma **7** (`apps/api/prisma/schema.prisma`, config in `apps/api/prisma.config.ts`): the client is generated into `apps/api/src/generated/prisma` (git-ignored) and connects through the `@prisma/adapter-pg` driver adapter. Import it from `../generated/prisma/client.js`, and use the injected `PrismaService` (one pool per process).
+- PostgreSQL names are snake_case (`@@map`/`@map`); the TypeScript stays camelCase.
+- **Never** run destructive commands (`migrate reset`, `db push --force-reset`, dropping data) without the user's explicit consent. Prisma itself blocks AI agents from doing this.
 
 - Schema changes only through Prisma migrations, with descriptive names (`add_lesson_cognitive_load`).
 - Ordered children (modules, lessons) use an `order` int with a unique `(parentId, order)` pair.

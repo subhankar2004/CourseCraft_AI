@@ -144,6 +144,13 @@ CourseCraft_AI/
 
 ## 6. Data Model (PostgreSQL / Prisma)
 
+> **Implemented in #7:** [`apps/api/prisma/schema.prisma`](apps/api/prisma/schema.prisma) is the source of truth; the sketch below is the original design. Differences from the sketch:
+>
+> - Tables and columns are snake_case in PostgreSQL (`@@map`/`@map`).
+> - Added the relations `Course.createdBy → User` and `ChatSession.course → Course`, plus `createdAt`/`updatedAt` columns.
+> - Delete rules are explicit: deleting a course cascades to its content, but a domain, author or cached video that is still referenced cannot be deleted (Restrict).
+> - The unique constraint `Chunk (lessonId, index)` was added. Redundant single-column indexes are omitted where a composite unique index already starts with that column.
+
 ```prisma
 enum Role            { STUDENT ADMIN }
 enum CourseStatus    { DRAFT GENERATING PUBLISHED FAILED }

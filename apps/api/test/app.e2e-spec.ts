@@ -5,6 +5,7 @@ import { IsInt, IsString, Min } from 'class-validator';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
+import { PrismaService } from '../src/prisma/prisma.service.js';
 
 // Test-only routes to exercise the global pipe and exception filter.
 class EchoDto {
@@ -49,9 +50,11 @@ describe('API (e2e)', () => {
   });
 
   describe('GET /api/v1/health', () => {
-    it('returns ok', async () => {
+    it('returns ok with the database up (needs PostgreSQL: pnpm infra:up)', async () => {
       const res = await request(app.getHttpServer()).get('/api/v1/health').expect(200);
-      expect(apiHealthSchema.parse(res.body).status).toBe('ok');
+      const body = apiHealthSchema.parse(res.body);
+      expect(body.status).toBe('ok');
+      expect(body.details.database?.status).toBe('up');
     });
 
     it('is only served under the /api/v1 prefix', async () => {
@@ -144,5 +147,37 @@ describe('API (e2e)', () => {
         .set('Origin', 'https://evil.example');
       expect(res.headers['access-control-allow-origin']).toBeUndefined();
     });
+  });
+});
+
+describe('API (e2e) with the database unavailable', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(PrismaService)
+      .useValue({
+        $queryRaw: () => Promise.reject(new Error('connect ECONNREFUSED 127.0.0.1:5432')),
+        $disconnect: () => Promise.resolve(),
+      })
+      .compile();
+    app = moduleRef.createNestApplication({ logger: false });
+    configureApp(app);
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('reports the database as down with HTTP 503', async () => {
+    const res = await request(app.getHttpServer()).get('/api/v1/health').expect(503);
+    const body = apiHealthSchema.parse(res.body);
+    expect(body.status).toBe('error');
+    expect(body.details.database).toMatchObject({
+      status: 'down',
+      message: 'Database unreachable',
+    });
+    expect(JSON.stringify(res.body)).not.toContain('ECONNREFUSED');
   });
 });

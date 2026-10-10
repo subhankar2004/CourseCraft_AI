@@ -10,15 +10,16 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ## Summary
 
-| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                        |
-| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | -------------------------------------------------------------- |
-| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report       |
-| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions                   |
-| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env         |
-| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging       |
-| 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages      |
-| 5   | 2026-10-09 | [#5](https://github.com/subhankar2004/CourseCraft_AI/issues/5) / [#56](https://github.com/subhankar2004/CourseCraft_AI/pull/56) | P0    | FastAPI AI service skeleton: config, internal-key auth, health |
-| 6   | 2026-10-09 | [#6](https://github.com/subhankar2004/CourseCraft_AI/issues/6) / [#57](https://github.com/subhankar2004/CourseCraft_AI/pull/57) | P0    | Shared contracts package + GitHub Actions CI; **P0 complete**  |
+| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                           |
+| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------- |
+| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report          |
+| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions                      |
+| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env            |
+| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging          |
+| 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages         |
+| 5   | 2026-10-09 | [#5](https://github.com/subhankar2004/CourseCraft_AI/issues/5) / [#56](https://github.com/subhankar2004/CourseCraft_AI/pull/56) | P0    | FastAPI AI service skeleton: config, internal-key auth, health    |
+| 6   | 2026-10-09 | [#6](https://github.com/subhankar2004/CourseCraft_AI/issues/6) / [#57](https://github.com/subhankar2004/CourseCraft_AI/pull/57) | P0    | Shared contracts package + GitHub Actions CI; **P0 complete**     |
+| 7   | 2026-10-10 | [#7](https://github.com/subhankar2004/CourseCraft_AI/issues/7) / [#58](https://github.com/subhankar2004/CourseCraft_AI/pull/58) | P1    | Database schema (Prisma 7, 13 tables), migration, DB health check |
 
 ---
 
@@ -231,6 +232,41 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 7 — Database schema with Prisma (Issue #7, PR #58, 2026-10-10)
+
+**What:** the relational data model from SPEC §6 [R86], implemented with **Prisma ORM 7** [R53] on PostgreSQL 16 [R40]:
+
+- **13 tables** cover identity (users), the catalog hierarchy (domains → courses → modules → lessons, plus videos and chunks), generation jobs, learning progress (enrollments, lesson_progress), RAG chat (chat_sessions, chat_messages) and evaluation runs. There are **7 PostgreSQL enums**.
+- **Integrity in the database itself:**
+  - 15 foreign keys with explicit delete rules: 12 `CASCADE` (deleting a course removes its content) and 3 `RESTRICT` (a domain, author or shared cached video that is still referenced can't be deleted).
+  - Unique constraints on slugs, emails, YouTube ids, and on `(course, order)`, `(module, order)` and `(lesson, chunk index)`, so the hierarchy can't contain duplicate positions.
+- **16 indexes**, including the ones the issue requires (courses by domain and by status, lessons by module, chunks by lesson, chat messages by session) plus foreign-key lookups. **Redundant single-column indexes were dropped** where a composite unique index already starts with that column, because PostgreSQL can use the leading column of a multicolumn B-tree index [R84] and extra indexes only slow writes.
+- **snake_case** table and column names in SQL; camelCase in TypeScript (D16).
+- **Prisma 7 setup:** `prisma.config.ts` loads the shared root `.env` with Node's `process.loadEnvFile`. The new `prisma-client` generator emits ESM TypeScript (`.js` import extensions for `nodenext`) into `src/generated/prisma` (git-ignored, regenerated on install). Connections go through the `@prisma/adapter-pg` driver adapter on node-postgres [R83].
+- **`PrismaService`**: one client and connection pool per process. It connects lazily, so the API still boots and can report the database as down, and it disconnects on shutdown.
+- **`/health` now pings PostgreSQL** (`SELECT 1`, 1.5 s timeout): `200` + `database: up`, or `503` + `database: down`.
+- **CI** applies the migrations to the fresh PostgreSQL service container on every run (`prisma migrate deploy`) before the tests.
+
+**Problems and resolutions:**
+
+- **Prisma's npm `latest` tag pointed at a release candidate** (`8.0.0-rc.22`) while `@prisma/client`'s was `7.10.0`. The CLI and client must match, so the stable **7.10.0** was pinned for both (D17).
+- **Prisma 7 changed the setup.** Before writing code we generated a reference project with `prisma init` and read the official v7 references it ships (config file, driver adapters, ESM, `migrate dev` no longer running `generate`/seed).
+- **pnpm 12 blocked Prisma's install scripts** (engine download). `@prisma/engines` and `prisma` were added explicitly to the `allowBuilds` allowlist.
+- **Human-in-the-loop safety:** recreating the init migration needed `prisma migrate reset`. **Prisma detected the AI agent and refused** to run the destructive command without the user's explicit consent. The agent stopped and presented the command, the target (the local Docker dev database, verified to contain 0 rows), the reason, and the data-loss and production warnings. **The developer approved**, and the command was rerun with the consent recorded. This is a concrete example of guardrails on AI-assisted development.
+- **Terminus failures were being hidden.** The global error filter replaced Terminus' 503 body (which dependency is down) with the generic error shape. Fixed: health-check results pass through unchanged.
+- **Information disclosure on a public endpoint.** The built-in Prisma indicator returned the driver's error text ("Invalid `prisma.$queryRawUnsafe()` invocation…"). It was replaced with a small indicator that logs the reason server-side and returns only "Database unreachable" [R85] (D18).
+- **Stale dev server:** the Nest watch process stopped recompiling, which briefly made a fixed bug look unfixed. It was caught by checking the compiled output and process start time, and fixed by restarting.
+
+**Verification:**
+
+- `prisma validate` is clean.
+- `migrate dev` created all 13 tables on the dev DB, and `migrate deploy` applied the same migration **cleanly to the separate, fresh `coursecraft_test` database**.
+- 13 API e2e tests, including **database up** (against real PostgreSQL) and **database down** (503, sanitised message, no driver error text).
+- **Real outage test** on a running server: `200 up` → stop the Postgres container → `503 down` with "Database unreachable" → start it → `200 up`.
+- Root format, lint, typecheck, test (JS and Python) and build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -252,3 +288,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D13 | 2026-10-09 | Internal-key auth uses **constant-time comparison**; only `/health` is public; OpenAPI docs off in production            | Prevents timing side channels [R76] and reduces exposed surface. Protection is checked automatically through the OpenAPI schema                                                                           |
 | D14 | 2026-10-09 | `packages/shared` is a **compiled ESM package** (built on `prepare`), not raw TypeScript                                 | The NestJS API runs compiled ESM under Node, which can't import `.ts` from a workspace package. One build artefact works for Node, Next.js and Vitest                                                     |
 | D15 | 2026-10-09 | CI actions **pinned by commit SHA**, least-privilege token, lockfile-frozen installs                                     | Supply-chain hardening recommended by GitHub [R82]: a moved or compromised tag can't change what runs                                                                                                     |
+| D16 | 2026-10-10 | **snake_case** SQL names via `@@map`/`@map`; camelCase in TypeScript                                                     | Follows PostgreSQL convention (unquoted identifiers, friendlier raw SQL and BI tools) without changing the application code                                                                               |
+| D17 | 2026-10-10 | Pin **Prisma 7.10.0** (CLI and client), not the `8.0.0-rc` that npm marked `latest`                                      | Stable release; the CLI and client versions must match. Upgrade deliberately later                                                                                                                        |
+| D18 | 2026-10-10 | Custom database health indicator returning a **generic "Database unreachable"**                                          | `/health` is public; driver errors can reveal internals. Details go to the server log only [R85]                                                                                                          |

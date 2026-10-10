@@ -1,6 +1,8 @@
 pnpm-lock.yaml
 LICENSE
 docs/report/
+apps/api/src/generated/
+apps/api/prisma/migrations/
 services/ai/
 **/node_modules/
 **/.next/

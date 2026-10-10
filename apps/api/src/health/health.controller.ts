@@ -1,15 +1,18 @@
 import { Controller, Get } from '@nestjs/common';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
+import { DatabaseHealthIndicator } from './database.health.js';
 
 @Controller('health')
 export class HealthController {
-  constructor(private readonly health: HealthCheckService) {}
+  constructor(
+    private readonly health: HealthCheckService,
+    private readonly database: DatabaseHealthIndicator,
+  ) {}
 
   @Get()
   @HealthCheck()
   check() {
-    // Dependency indicators are added as they arrive:
-    // PostgreSQL in #7, Redis in #27, AI service in #26.
-    return this.health.check([]);
+    // Redis is added in #27 and the AI service in #26.
+    return this.health.check([() => this.database.isHealthy('database')]);
   }
 }

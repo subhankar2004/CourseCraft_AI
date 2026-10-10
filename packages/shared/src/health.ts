@@ -5,7 +5,7 @@ const indicatorSchema = z.record(z.string(), z.object({ status: z.string() }).lo
 
 /** `GET /api/v1/health` on the NestJS API (@nestjs/terminus shape). */
 export const apiHealthSchema = z.object({
-  status: z.enum(['ok', 'error', 'shutting_down']),
+  status: z.enum(['ok', 'degraded', 'error', 'shutting_down']),
   info: indicatorSchema.optional(),
   error: indicatorSchema.optional(),
   details: indicatorSchema,

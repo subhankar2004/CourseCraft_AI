@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
-      # Available for API integration tests (Prisma arrives in #7, Redis/BullMQ in #27).
+      # Migrations are applied here and the API e2e tests use it (Redis is used from #27).
       postgres:
         image: postgres:16-alpine
         env:
@@ -60,6 +60,11 @@ jobs:
 
       - name: Format
         run: pnpm format:check
+
+      - name: Apply database migrations to a fresh database
+        run: pnpm --filter api prisma:deploy
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
 
       - name: Lint
         run: pnpm lint:js
