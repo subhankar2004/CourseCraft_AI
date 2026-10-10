@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #17, YouTube URL parsing and metadata via yt-dlp.
+**Next up:** Issue #18, transcript fetching (youtube-transcript-api + yt-dlp fallback).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -131,6 +131,7 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - All LLM / embedding calls go through `app/generation/providers.py` (`get_chat_model(settings, operation=…)` / `get_embeddings(settings)`), which respects `LLM_PROVIDER` (openai | ollama). Never hard-code a model name outside config. Pass a descriptive `operation` (it labels the token-usage log) and, for jobs, a shared `UsageTotals`.
 - New embedding models must be added to `app/generation/embedding_models.py` (dimension + index suffix).
 - Prompts: `load_prompt("name").render(...)`; record `prompt.id` (`name@version`) with generated content and bump `version` on any wording change.
+- **Never pass user-supplied URLs to yt-dlp or any fetcher.** Parse them with `app.ingestion.youtube_urls.parse_youtube_url()` and build canonical URLs from the validated ids; keep yt-dlp's `allowed_extractors` restricted to YouTube.
 - Chunks must keep `startSec/endSec`. Citations and timestamp seeking depend on it.
 - The RAG answer path must keep the **grounding gate** (`RAG_MIN_SCORE`) and the "answer only from context" system prompt. Do not weaken these to make a demo look better. They are the core claim of the project.
 - Use real YouTube calls only in tests marked `@pytest.mark.network`. Default unit tests use the fixtures in `services/ai/tests/fixtures/`.

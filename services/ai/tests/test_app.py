@@ -156,8 +156,3 @@ def test_docs_disabled_in_production() -> None:
     with TestClient(app) as test_client:
         assert test_client.get("/docs").status_code == 404
         assert test_client.get("/openapi.json").status_code == 404
-
-
-@pytest.mark.network
-def test_network_marker_is_deselected_by_default() -> None:
-    raise AssertionError("network tests must be opt-in (uv run pytest -m network)")

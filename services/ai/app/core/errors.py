@@ -43,7 +43,9 @@ def _error_response(
 async def http_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     if not isinstance(exc, StarletteHTTPException):  # narrows the type for mypy
         raise exc
-    return _error_response(request, exc.status_code, str(exc.detail), exc.headers)
+    detail = exc.detail
+    message = [str(m) for m in detail] if isinstance(detail, list) else str(detail)
+    return _error_response(request, exc.status_code, message, exc.headers)
 
 
 async def validation_exception_handler(request: Request, exc: Exception) -> JSONResponse:

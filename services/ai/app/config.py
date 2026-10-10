@@ -52,6 +52,8 @@ class Settings(BaseSettings):
     rag_top_k: Annotated[int, Field(ge=1, le=50)] = 6
     rag_min_score: Annotated[float, Field(ge=0, le=1)] = 0.35
     cli_max: Annotated[float, Field(ge=0, le=100)] = 60
+    # Shared with the API: the most videos one course can be generated from.
+    max_videos_per_course: Annotated[int, Field(ge=1, le=200)] = 25
 
     @field_validator("log_level", mode="before")
     @classmethod

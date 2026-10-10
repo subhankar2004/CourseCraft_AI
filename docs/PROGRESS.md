@@ -29,6 +29,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 14  | 2026-10-10 | [#14](https://github.com/subhankar2004/CourseCraft_AI/issues/14) / [#65](https://github.com/subhankar2004/CourseCraft_AI/pull/65) | P1    | Domain catalog pages: ISR, search + level filter, empty states; build-resilient caching       |
 | 15  | 2026-10-10 | [#15](https://github.com/subhankar2004/CourseCraft_AI/issues/15) / [#66](https://github.com/subhankar2004/CourseCraft_AI/pull/66) | P1    | Course overview page with OG/JSON-LD; hydration and rate-limit fixes; **P1 complete**         |
 | 16  | 2026-10-10 | [#16](https://github.com/subhankar2004/CourseCraft_AI/issues/16) / [#67](https://github.com/subhankar2004/CourseCraft_AI/pull/67) | P2    | AI provider factory (OpenAI/Ollama), embedding registry, prompt loader, token-usage logging   |
+| 17  | 2026-10-10 | [#17](https://github.com/subhankar2004/CourseCraft_AI/issues/17) / [#68](https://github.com/subhankar2004/CourseCraft_AI/pull/68) | P2    | YouTube URL parsing (SSRF-safe) and metadata via yt-dlp; `/ingest/metadata`                   |
 
 ---
 
@@ -639,6 +640,49 @@ No real model calls are made yet; the first will be in #21 (embeddings) and #23 
 
 ---
 
+## Entry 17 — YouTube URL parsing and metadata via yt-dlp (Issue #17, PR #68, 2026-10-10)
+
+**What:** SPEC §7.1 step 1, in `services/ai/app/ingestion/`:
+
+- **`youtube_urls.py`: a strict parser** for `watch`, `youtu.be`, `shorts`, `embed`, `live` and `playlist` URLs, including `m.`, `music.` and `youtube-nocookie.com`. It extracts an 11-character video id or a playlist id.
+  - **Rejected:** other sites, look-alike hosts (`youtube.com.evil.example`), credentials in URLs, unusual ports, non-HTTP schemes (`javascript:`, `file:`), malformed ids, channels and searches, and over-long input.
+  - A watch URL carrying `list=` is treated as the single video it points to; whole playlists use `/playlist?list=`.
+- **SSRF defence (D42).** yt-dlp supports over a thousand sites, so a user's URL **never reaches it**. Only **canonical URLs rebuilt from validated ids** are passed to yt-dlp, which is also restricted to the `youtube`, `youtube:playlist` and `youtube:tab` extractors (`allowed_extractors`, anchored regexes). This follows the OWASP SSRF guidance of allow-listing inputs rather than trying to filter bad ones [R116].
+- **`metadata.py`: yt-dlp** [R23] with `skip_download` (nothing is downloaded):
+  - per video: title, channel, duration, language, **chapters** (start and title), and a stable `i.ytimg.com/.../hqdefault.jpg` thumbnail (already allow-listed by the web app);
+  - **playlists are listed flat** (no per-video resolution) and fetch one extra entry to detect truncation beyond `MAX_VIDEOS_PER_COURSE` (now shared by the API and the AI service);
+  - per-video lookups run **in parallel** (4 threads, input order kept);
+  - duplicates are removed;
+  - **unavailable videos (private, removed, live or upcoming, no duration) are reported with a clean reason instead of failing the batch** (D43).
+- **`POST /ingest/metadata`** (internal key required): `{urls[]}` or `{playlistUrl}` → `{videos, failed, truncated, maxVideos}`. **Every invalid URL is listed at once** (`urls[1]: …`). The error handler now passes lists of messages through as arrays, as the shared error contract allows.
+
+**Problems and resolutions:**
+
+- **A crash found by the tests:** `javascript:alert(...)` became `https://javascript:alert(...)`, and Python's `urlsplit` raises `ValueError` _lazily_ when `.port` is read on a non-numeric port. The port is now read inside the guarded block.
+- **Readable failure reasons:** yt-dlp errors (`ERROR: [youtube] <id>: Private video`) are cleaned with one anchored pattern, leaving just `Private video`.
+- **Typing:** yt-dlp has no inline types, so the typeshed stubs (`types-yt-dlp`) were added, keeping strict mypy meaningful rather than ignoring the module.
+- `HTTP_422_UNPROCESSABLE_ENTITY` is deprecated in Starlette in favour of `…_CONTENT` (the RFC 9110 name) [R99]. The suite now runs cleanly with deprecation warnings treated as errors.
+- The #5 "network tests must be opt-in" canary (a test that always fails if network tests run) was retired, now that real network tests exist.
+
+**Verification:**
+
+- **33 URL tests:** 13 valid video forms, 2 playlist forms, and **17 rejected inputs**, including the cloud metadata address `169.254.169.254`, `file://`, a look-alike host, credentials, an odd port, `javascript:` and script injection in the id.
+- **Metadata and endpoint tests** (fake extractor):
+  - canonical URL and options passed to yt-dlp; field mapping, chapters and thumbnail;
+  - live, upcoming and no-duration videos rejected; clean error reasons (3 cases);
+  - flat playlist listing with truncation;
+  - de-duplication, order, failure collection, the cap;
+  - endpoint: camelCase response, playlist, every invalid URL listed, 5 bad request shapes, wrong internal key → 401.
+- **Live YouTube (`pytest -m network`): 2/2 in about 6 s**: the seed's SQL course (title, channel, over 4 h, 20+ chapters) and a 6-video freeCodeCamp playlist capped at 3 (`truncated: true`).
+- **Real service with the internal key:**
+  - playlist → 6 videos, `truncated: false`;
+  - a mixed list with a duplicate, a `&t=` timestamp and a non-existent id → 2 videos plus `failed: "This video is unavailable"`;
+  - **SSRF attempt** with `http://169.254.169.254/…` → 422, nothing fetched;
+  - no key → 401.
+- Python: 97 offline + 2 network tests, Ruff, mypy `--strict` (33 files). JS: all checks and build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -686,3 +730,5 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D39 | 2026-10-10 | **Versioned Markdown prompts** with strict `{{variable}}` rendering; `name@version` stored with outputs                                                    | Prompts are reviewable and diffable; no silently blank variables; generated content is traceable to the exact prompt (reproducible evaluation)                                                            |
 | D40 | 2026-10-10 | Token usage logged per call via a LangChain callback, with job totals                                                                                      | Cost visibility and control (SPEC §11) without touching call sites                                                                                                                                        |
 | D41 | 2026-10-10 | Request id captured at **log-record creation** (record factory)                                                                                            | Correct correlation even when records are formatted later or on another thread [R115]                                                                                                                     |
+| D42 | 2026-10-10 | **User URLs never reach yt-dlp**: strict parse → canonical URL from the id; yt-dlp limited to YouTube extractors                                           | yt-dlp can fetch over a thousand sites; allow-listing prevents server-side request forgery through the ingestion API [R116]                                                                               |
+| D43 | 2026-10-10 | Unavailable videos are **reported per video**, not fatal to the batch                                                                                      | One private or removed video shouldn't block a whole course; admins see why in the job (#27/#30)                                                                                                          |
