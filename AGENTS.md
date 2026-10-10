@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #12, web authentication pages and session handling.
+**Next up:** Issue #13, web landing page and global navigation.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -97,6 +97,14 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - Validate request bodies with the shared Zod schemas: `@Body(new ZodValidationPipe(schema))`.
 - Never return `passwordHash`; select only public user fields.
 - e2e tests: use `test/helpers.ts`. Each suite creates its own `createE2eScope()` and builds every slug, YouTube id and email from that scope's `prefix`/`emailDomain`; `cleanupE2eData(prisma, scope)` then deletes only that suite's data. Test files run **in parallel** on one database, so never clean up by a global pattern, and never assume an empty database.
+
+**Auth (web)**
+
+- Session state: `useMe()` / `useLogin()` / `useRegister()` / `useLogout()` in `src/lib/auth/hooks.ts` (TanStack Query, key `['auth','me']`). Don't read cookies in Server Components (it would break the static shell under Cache Components).
+- Route protection lives in `src/proxy.ts` + `src/lib/auth/access.ts` and is optimistic only. Every real permission check happens in the API.
+- Redirect targets from the URL go through `safeNextPath()`.
+- Forms: react-hook-form + `zodResolver(<shared schema>)`, `FormField` for accessible inputs, `applyApiError()` for server errors.
+- Avoid experimental Next.js APIs (e.g. `forbidden()` / `authInterrupts`) unless there's a strong reason.
 
 **API contracts**
 

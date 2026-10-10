@@ -24,6 +24,7 @@ A running record of what was built, why, and how it was verified. It is written 
 | 9   | 2026-10-10 | [#9](https://github.com/subhankar2004/CourseCraft_AI/issues/9) / [#60](https://github.com/subhankar2004/CourseCraft_AI/pull/60)   | P1    | Authentication API: register/login/logout/me, JWT cookie sessions, global guards, rate limits |
 | 10  | 2026-10-10 | [#10](https://github.com/subhankar2004/CourseCraft_AI/issues/10) / [#61](https://github.com/subhankar2004/CourseCraft_AI/pull/61) | P1    | Domains API: public catalog reads, admin CRUD with slugs and delete protection                |
 | 11  | 2026-10-10 | [#11](https://github.com/subhankar2004/CourseCraft_AI/issues/11) / [#62](https://github.com/subhankar2004/CourseCraft_AI/pull/62) | P1    | Courses & lessons read API: catalog list/search/pagination, course outline, lesson reader     |
+| 12  | 2026-10-10 | [#12](https://github.com/subhankar2004/CourseCraft_AI/issues/12) / [#63](https://github.com/subhankar2004/CourseCraft_AI/pull/63) | P1    | Web auth: login/register forms, session hooks, user menu, proxy route protection, 403         |
 
 ---
 
@@ -436,6 +437,50 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 12 — Web authentication pages and session handling (Issue #12, PR #63, 2026-10-10)
+
+**What:** the browser side of authentication in `apps/web`.
+
+| Concern          | Design                                                                                                                                                                                                                                                                                                                                                                                                                           | Ref          |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| Forms            | `/login` and `/register` with **react-hook-form** [R103] and `zodResolver` over the **same shared Zod schemas the API uses** (#9). Inline field errors; API errors mapped back to fields (400) or shown as a form alert (401 generic, 409 duplicate, 429 rate-limited, network)                                                                                                                                                  | [R103][R44]  |
+| Accessibility    | Labelled inputs, `aria-invalid` and `aria-describedby` linking each field to its error, `role="alert"` for form errors, appropriate `autocomplete` values                                                                                                                                                                                                                                                                        | [R105]       |
+| Session state    | `useMe()` (TanStack Query, `GET /auth/me`, 401 → `null`) shared by every component through the cache. Login and register write the user into the cache; logout **clears the whole cache** so no previous user's data survives                                                                                                                                                                                                    | [R62]        |
+| Header           | User menu: initials, name and email, Dashboard, Admin (admins only), Log out. Skeleton while loading; Sign in when signed out                                                                                                                                                                                                                                                                                                    |              |
+| Route protection | `src/proxy.ts` (Next.js 16's renamed middleware) makes **optimistic checks** as the Next.js authentication guide recommends [R106]. No cookie on `/dashboard`, `/learn/*` or `/admin/*` → redirect to `/login?next=…`. On `/admin/*`, the role claim is read **without verifying the JWT** (the web app never holds the secret) and non-admins get a **real HTTP 403** page. **The API remains the authority** for every request | [R106][R102] |
+| Redirect safety  | `safeNextPath()` accepts only same-site relative paths, rejecting `//host`, `/\host`, `javascript:` and control-character tricks (unvalidated-redirect prevention)                                                                                                                                                                                                                                                               | [R104]       |
+| Rendering        | No cookie reads on the server, so **every page stays statically prerendered** under Cache Components; session UI streams in on the client (Next.js "authentication with Cache Components" guidance)                                                                                                                                                                                                                              | [R106]       |
+
+**Decisions:** D29 (same-site deployment), D30 (optimistic proxy plus client session), D31 (no experimental `forbidden()`).
+
+**Problems and resolutions:**
+
+- **Next.js 16 changes**, read from the bundled docs before coding: middleware is now `proxy.ts`; with Cache Components, request-time reads must sit behind `<Suspense>` (the forms read `?next=`, so they're wrapped); `forbidden()` is still experimental, so a normal `/forbidden` page is served with status 403 instead.
+- **Browser-test findings, all in the test harness, none in the app:**
+  - Next's accessible **route announcer** repeats the page heading and uses `role="alert"`, which made text and alert locators ambiguous. The tests now target headings and in-form alerts specifically.
+  - A **hydration-mismatch warning** came from Playwright hiding the text cursor (`caret-color: transparent`) during a screenshot taken before hydration. It disappeared when caret hiding was turned off, which confirms the app itself was clean.
+  - Repeated runs from one IP hit **our own rate limits** (5 logins per minute, 5 sign-ups per hour). Restarting the API reset the in-memory counters, and the limiter is shown working as designed.
+
+**Verification:**
+
+- **13 web unit tests** (Vitest): route decisions (public, signed-out, student, admin, malformed token, prefix-vs-segment) and redirect safety (7 attack strings).
+- **Real-browser test** (headless Chrome via playwright-core) against the running API and web app, **16/16 checks** with **0 console errors or warnings**:
+  1. signed-out `/dashboard` → `/login?next=/dashboard`;
+  2. inline Zod errors and `aria-invalid`;
+  3. **register → signed in on `/dashboard`**, account menu visible;
+  4. **refresh keeps the session**;
+  5. duplicate email → 409 message;
+  6. wrong password → generic error;
+  7. **login → returns to the `?next=` path** (with its query string);
+  8. student on `/admin` → **HTTP 403** page;
+  9. **logout via the menu** → home with Sign in, and `/dashboard` requires login again;
+  10. `?next=//evil.example` ignored;
+  11. the seeded admin can open `/admin`, and the menu shows the Admin link.
+- The test accounts created by the browser runs were deleted afterwards; only the seeded users remain.
+- Production build: all 7 routes static, plus the proxy. Root format, lint, typecheck, test (shared 28, web 13, API 12 + 44, Python) and build pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -470,3 +515,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D26 | 2026-10-10 | Public catalog shows **published** courses only (filtered in the query); slugs stable unless explicitly changed; domain delete blocked while courses exist | No draft leaks; shareable URLs don't break; no orphaned or accidentally deleted content (application check + FK RESTRICT)                                                                                 |
 | D27 | 2026-10-10 | **Per-suite e2e fixture scopes**; cleanup never by a global pattern                                                                                        | Test files run in parallel on one database; isolation keeps them deterministic and safe on a seeded database [R101]                                                                                       |
 | D28 | 2026-10-10 | Unpublished lessons → **404 for students**, visible to admins; outline excludes note bodies                                                                | Object-level authorisation without revealing that drafts exist [R102]; smaller course payloads                                                                                                            |
+| D29 | 2026-10-10 | Web and API must be served from the **same site** in production (one domain, `/api` → API)                                                                 | Lets the web proxy see the httpOnly session cookie for route protection; also keeps cookies first-party. Implemented in #48/#50                                                                           |
+| D30 | 2026-10-10 | **Optimistic** route checks in `proxy.ts` (cookie presence, unverified role claim) + client-side session via `useMe()`                                     | Follows the Next.js 16 guidance: no secret in the web tier, no DB/API calls in the proxy, static pages preserved; the API enforces all real authorisation [R106]                                          |
+| D31 | 2026-10-10 | No experimental Next.js APIs (`forbidden()` / `authInterrupts`); plain `/forbidden` page with status 403                                                   | Stability for a graded project; the same user-facing result                                                                                                                                               |
