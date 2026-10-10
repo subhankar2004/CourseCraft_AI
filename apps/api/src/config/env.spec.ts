@@ -21,6 +21,18 @@ describe('validateEnv', () => {
     expect(env.WEB_ORIGIN).toEqual(['http://a.test', 'https://b.test']);
   });
 
+  it('parses JWT_EXPIRES_IN into seconds', () => {
+    expect(validateEnv(valid).JWT_EXPIRES_IN).toBe(604800);
+    expect(validateEnv({ ...valid, JWT_EXPIRES_IN: '15m' }).JWT_EXPIRES_IN).toBe(900);
+    expect(() => validateEnv({ ...valid, JWT_EXPIRES_IN: 'forever' })).toThrow(/JWT_EXPIRES_IN/);
+  });
+
+  it('parses TRUST_PROXY as boolean or hop count', () => {
+    expect(validateEnv(valid).TRUST_PROXY).toBe(false);
+    expect(validateEnv({ ...valid, TRUST_PROXY: '1' }).TRUST_PROXY).toBe(1);
+    expect(() => validateEnv({ ...valid, TRUST_PROXY: 'maybe' })).toThrow(/TRUST_PROXY/);
+  });
+
   it('coerces API_PORT from a string', () => {
     expect(validateEnv({ ...valid, API_PORT: '5000' }).API_PORT).toBe(5000);
   });

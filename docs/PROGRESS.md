@@ -10,17 +10,18 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ## Summary
 
-| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                                       |
-| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | ----------------------------------------------------------------------------- |
-| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report                      |
-| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions                                  |
-| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env                        |
-| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging                      |
-| 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages                     |
-| 5   | 2026-10-09 | [#5](https://github.com/subhankar2004/CourseCraft_AI/issues/5) / [#56](https://github.com/subhankar2004/CourseCraft_AI/pull/56) | P0    | FastAPI AI service skeleton: config, internal-key auth, health                |
-| 6   | 2026-10-09 | [#6](https://github.com/subhankar2004/CourseCraft_AI/issues/6) / [#57](https://github.com/subhankar2004/CourseCraft_AI/pull/57) | P0    | Shared contracts package + GitHub Actions CI; **P0 complete**                 |
-| 7   | 2026-10-10 | [#7](https://github.com/subhankar2004/CourseCraft_AI/issues/7) / [#58](https://github.com/subhankar2004/CourseCraft_AI/pull/58) | P1    | Database schema (Prisma 7, 13 tables), migration, DB health check             |
-| 8   | 2026-10-10 | [#8](https://github.com/subhankar2004/CourseCraft_AI/issues/8) / [#59](https://github.com/subhankar2004/CourseCraft_AI/pull/59) | P1    | Idempotent demo seed: users, 4 domains, 1 real-video course; Argon2id hashing |
+| #   | Date       | Issue / PR                                                                                                                      | Phase | Outcome                                                                                       |
+| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----- | --------------------------------------------------------------------------------------------- |
+| 0   | 2026-10-08 | — / (direct commit)                                                                                                             | —     | SPEC, AGENTS guide, 50-issue roadmap created from report                                      |
+| 1   | 2026-10-08 | [#1](https://github.com/subhankar2004/CourseCraft_AI/issues/1) / [#51](https://github.com/subhankar2004/CourseCraft_AI/pull/51) | P0    | Monorepo template, tooling, repo conventions                                                  |
+| 2   | 2026-10-09 | [#2](https://github.com/subhankar2004/CourseCraft_AI/issues/2) / [#52](https://github.com/subhankar2004/CourseCraft_AI/pull/52) | P0    | Local infrastructure (PostgreSQL, Redis, Ollama) + env                                        |
+| 3   | 2026-10-09 | [#3](https://github.com/subhankar2004/CourseCraft_AI/issues/3) / [#53](https://github.com/subhankar2004/CourseCraft_AI/pull/53) | P0    | NestJS API skeleton: config, validation, errors, logging                                      |
+| 4   | 2026-10-09 | [#4](https://github.com/subhankar2004/CourseCraft_AI/issues/4) / [#55](https://github.com/subhankar2004/CourseCraft_AI/pull/55) | P0    | Next.js web shell: theme, layout, API client, error pages                                     |
+| 5   | 2026-10-09 | [#5](https://github.com/subhankar2004/CourseCraft_AI/issues/5) / [#56](https://github.com/subhankar2004/CourseCraft_AI/pull/56) | P0    | FastAPI AI service skeleton: config, internal-key auth, health                                |
+| 6   | 2026-10-09 | [#6](https://github.com/subhankar2004/CourseCraft_AI/issues/6) / [#57](https://github.com/subhankar2004/CourseCraft_AI/pull/57) | P0    | Shared contracts package + GitHub Actions CI; **P0 complete**                                 |
+| 7   | 2026-10-10 | [#7](https://github.com/subhankar2004/CourseCraft_AI/issues/7) / [#58](https://github.com/subhankar2004/CourseCraft_AI/pull/58) | P1    | Database schema (Prisma 7, 13 tables), migration, DB health check                             |
+| 8   | 2026-10-10 | [#8](https://github.com/subhankar2004/CourseCraft_AI/issues/8) / [#59](https://github.com/subhankar2004/CourseCraft_AI/pull/59) | P1    | Idempotent demo seed: users, 4 domains, 1 real-video course; Argon2id hashing                 |
+| 9   | 2026-10-10 | [#9](https://github.com/subhankar2004/CourseCraft_AI/issues/9) / [#60](https://github.com/subhankar2004/CourseCraft_AI/pull/60) | P1    | Authentication API: register/login/logout/me, JWT cookie sessions, global guards, rate limits |
 
 ---
 
@@ -303,6 +304,50 @@ A running record of what was built, why, and how it was verified. It is written 
 
 ---
 
+## Entry 9 — Authentication API (Issue #9, PR #60, 2026-10-10)
+
+**What:** `apps/api/src/auth`:
+
+| Concern                | Design                                                                                                                                                                                                                                                                         | Ref             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
+| Endpoints              | `POST /auth/register` (201), `POST /auth/login` (200), `POST /auth/logout` (204), `GET /auth/me`                                                                                                                                                                               | [R46]           |
+| Credentials            | Argon2id via the shared `password.ts` (#8). Public sign-up **always creates a STUDENT**; a `role` field in the body is rejected (mass-assignment protection)                                                                                                                   | [R87][R39]      |
+| Session token          | **JWT** [R54], HS256 with an explicit algorithm allow-list and `iss`/`aud` checks, following the JWT Best Current Practices [R96]. Lifetime from `JWT_EXPIRES_IN`                                                                                                              | [R54][R96]      |
+| Transport              | **httpOnly, SameSite=Lax cookie** (`Secure` in production) [R93]: the token is unreadable from JavaScript (limits XSS token theft), and SameSite plus the JSON-only API and strict CORS defend against CSRF [R95]                                                              | [R93][R95][R97] |
+| Authorisation          | **Secure-by-default global `JwtAuthGuard`**: every route needs a session unless marked `@Public()`. A global `RolesGuard` enforces `@Roles('ADMIN')`. The user is **reloaded from the database on each request**, so deleted accounts and role changes take effect immediately | [R38]           |
+| Enumeration resistance | Login gives **one generic error** for an unknown email or a wrong password, and verifies against a dummy hash when the email is unknown, so **both paths take similar time**                                                                                                   | [R94]           |
+| Brute force            | `@nestjs/throttler`: **5 logins per IP per minute**, 5 sign-ups per IP per hour → HTTP 429 [R98], in the standard error body                                                                                                                                                   | [R94][R98]      |
+| Validation             | **Shared Zod schemas** (`packages/shared`: register, login, user) through a `ZodValidationPipe`. The web forms in #12 reuse the same rules. Emails are trimmed and lower-cased; passwords are 12–128 characters                                                                | [R44]           |
+| Proxies                | New `TRUST_PROXY` setting: client IPs come from `X-Forwarded-For` **only** behind a known proxy (#48); off by default to prevent IP spoofing                                                                                                                                   |                 |
+
+**Problems and resolutions:**
+
+- **Passport vs a plain guard.** SPEC listed Passport-JWT. The current NestJS documentation shows a plain guard with `@nestjs/jwt`, which does the same with fewer dependencies, so we used that (D23).
+- **Testing per-IP rate limits** without the tests blocking each other: the test environment enables `TRUST_PROXY=1`, and each test sends its own `X-Forwarded-For` address. That also exercises the proxy configuration production will use.
+- A test helper declared `async` wrapped supertest's chainable request in a Promise (`.expect is not a function`). Fixed by returning the request directly.
+
+**Verification:**
+
+- **11 new auth e2e tests** against real PostgreSQL:
+  - register → me → logout, with cookie flags (HttpOnly, SameSite=Lax, Path, Max-Age, no Secure in dev) and no hash in responses;
+  - `/me` without a session → 401;
+  - duplicate email, case-insensitive → 409;
+  - self-assigned `role: ADMIN` → 400 with no user created;
+  - every invalid field listed;
+  - login success;
+  - **wrong password and unknown email give an identical 401**;
+  - **6th attempt from one IP → 429** while another IP still gets 401;
+  - tampered and foreign-signed tokens → 401;
+  - a deleted user's token → 401;
+  - admin route: student → 403, anonymous → 401, admin → 200.
+- New unit tests for env parsing (`JWT_EXPIRES_IN` → seconds, `TRUST_PROXY`) and the shared schemas (normalisation, role rejection).
+- **Real server:** the seeded admin logs in (credentials read from `.env`, not printed) → `/me` returns `ADMIN` → logout 204 → `/me` 401. The CORS preflight from the web origin allows credentials.
+- Root format, lint, typecheck, test (JS and Python) and build pass.
+
+**Known limitation (documented):** JWTs are stateless, so logout clears the cookie but a copied token stays valid until it expires. Mitigated by the short configurable lifetime and the per-request user reload. A server-side revocation list or token versioning can be added later if needed.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -330,3 +375,7 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D19 | 2026-10-10 | Passwords hashed with **Argon2id** (m=19 MiB, t=2, p=1), not bcrypt                                                      | OWASP's first recommendation [R87]; Argon2 won the Password Hashing Competition and is standardised in RFC 9106 [R88][R89]. Switched before any password existed                                          |
 | D20 | 2026-10-10 | Seed course uses **real videos with yt-dlp-verified chapter timestamps**                                                 | Demo data that behaves like real data: anchors seek to real moments, and no fabricated video IDs                                                                                                          |
 | D21 | 2026-10-10 | Seed credentials only via `SEED_*` env (generated into `.env`, never printed); production guard                          | Secrets never enter code, git or chat logs [R38]; demo accounts can't be created in production by accident                                                                                                |
+| D22 | 2026-10-10 | **Secure-by-default** global auth guard with an explicit `@Public()` opt-out                                             | Forgetting a decorator can't expose a route; public routes are a visible, reviewable choice [R38]                                                                                                         |
+| D23 | 2026-10-10 | JWT in an **httpOnly SameSite=Lax cookie**, `@nestjs/jwt` + plain guard (no Passport), user reloaded per request         | Keeps the token away from JavaScript; CSRF mitigated by SameSite, JSON-only bodies and strict CORS [R93][R95]; fewer dependencies; instant effect of deletions and role changes                           |
+| D24 | 2026-10-10 | Request validation for auth uses the **shared Zod schemas** via a `ZodValidationPipe`                                    | One definition of the rules for API and web forms, which can't drift apart [R44]                                                                                                                          |
+| D25 | 2026-10-10 | `TRUST_PROXY` off by default; per-IP login/register rate limits                                                          | Prevents IP spoofing through `X-Forwarded-For`, and slows brute-force and sign-up abuse [R94][R98]                                                                                                        |

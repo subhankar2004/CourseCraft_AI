@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module.js';
 import { LoggerModule } from './common/logging/logger.module.js';
 import { validateEnv } from './config/env.js';
 import { HealthModule } from './health/health.module.js';
@@ -18,6 +19,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
     }),
     LoggerModule,
     PrismaModule,
+    AuthModule,
     HealthModule,
   ],
 })

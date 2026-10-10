@@ -97,7 +97,7 @@ _Alternative considered:_ LangChain.js inside NestJS. It means one less service,
 | Layer      | Technologies                                                                                                                                                                                                                                           |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Frontend   | Next.js 16 (App Router, Cache Components), React 19, TypeScript, Tailwind CSS 4, shadcn/ui (Radix), Zod, TanStack Query, Sonner, react-markdown + remark-gfm + rehype-highlight, react-youtube                                                         |
-| API server | Node.js, NestJS, TypeScript, Prisma ORM, Passport-JWT, class-validator, BullMQ                                                                                                                                                                         |
+| API server | Node.js, NestJS, TypeScript, Prisma ORM, @nestjs/jwt (httpOnly cookie sessions), @nestjs/throttler, Zod (shared schemas) + class-validator, BullMQ                                                                                                     |
 | AI service | Python 3.12 (uv), FastAPI, Uvicorn, Pydantic v2 + pydantic-settings, LangChain (`langchain`, `langchain-openai`, `langchain-ollama`, `langchain-pinecone`), youtube-transcript-api, yt-dlp, openai-whisper / faster-whisper, tiktoken, ragas, textstat |
 | Data       | PostgreSQL 16, Pinecone (serverless index), Redis 7                                                                                                                                                                                                    |
 | LLMs       | `gpt-4o-mini` (default), Ollama (`llama3.1:8b` or similar)                                                                                                                                                                                             |
@@ -373,26 +373,27 @@ Rules:
 
 ### 8.1 Public REST API (NestJS, prefix `/api/v1`)
 
-| Method            | Path                                    | Auth  | Purpose                                                               |
-| ----------------- | --------------------------------------- | ----- | --------------------------------------------------------------------- |
-| POST              | `/auth/register` · `/auth/login`        | –     | Returns JWT (httpOnly cookie)                                         |
-| GET               | `/auth/me`                              | user  | Current user                                                          |
-| GET               | `/domains` · `/domains/:slug`           | –     | Catalog                                                               |
-| POST/PATCH/DELETE | `/domains[/:id]`                        | admin | Manage domains                                                        |
-| GET               | `/courses?domain=&q=&level=`            | –     | List published courses                                                |
-| GET               | `/courses/:slug`                        | –     | Course + modules + lesson titles                                      |
-| POST              | `/courses/generate`                     | admin | `{domainId, urls[] \| playlistUrl, titleHint?}` → `{courseId, jobId}` |
-| GET               | `/jobs/:id` · `/jobs/:id/events` (SSE)  | admin | Job status / live progress                                            |
-| PATCH             | `/courses/:id` · `/courses/:id/publish` | admin | Edit metadata, reorder, publish                                       |
-| PATCH             | `/lessons/:id`                          | admin | Edit notes Markdown                                                   |
-| GET               | `/lessons/:id`                          | user  | Lesson + notes + video info                                           |
-| POST              | `/courses/:id/enroll`                   | user  | Enroll                                                                |
-| GET               | `/me/courses`                           | user  | Enrolled courses + progress                                           |
-| PUT               | `/lessons/:id/progress`                 | user  | `{status?, lastPositionSec}`                                          |
-| GET               | `/courses/:id/next`                     | user  | Next recommended lesson                                               |
-| POST              | `/courses/:id/chat`                     | user  | `{sessionId?, message}` → SSE stream                                  |
-| GET               | `/courses/:id/chat/sessions[/:sid]`     | user  | Chat history                                                          |
-| POST              | `/courses/:id/evaluate`                 | admin | Run the RAG eval set → `EvaluationRun`                                |
+| Method            | Path                                         | Auth  | Purpose                                                                                                                                                                                  |
+| ----------------- | -------------------------------------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST              | `/auth/register` (201) · `/auth/login` (200) | –     | Validated with shared Zod schemas; sets the `cc_session` httpOnly cookie and returns the public user. Rate-limited per IP (register 5/h, login 5/min). Register always creates a STUDENT |
+| POST              | `/auth/logout` (204)                         | –     | Clears the session cookie                                                                                                                                                                |
+| GET               | `/auth/me`                                   | user  | Current user (reloaded from the DB on every request)                                                                                                                                     |
+| GET               | `/domains` · `/domains/:slug`                | –     | Catalog                                                                                                                                                                                  |
+| POST/PATCH/DELETE | `/domains[/:id]`                             | admin | Manage domains                                                                                                                                                                           |
+| GET               | `/courses?domain=&q=&level=`                 | –     | List published courses                                                                                                                                                                   |
+| GET               | `/courses/:slug`                             | –     | Course + modules + lesson titles                                                                                                                                                         |
+| POST              | `/courses/generate`                          | admin | `{domainId, urls[] \| playlistUrl, titleHint?}` → `{courseId, jobId}`                                                                                                                    |
+| GET               | `/jobs/:id` · `/jobs/:id/events` (SSE)       | admin | Job status / live progress                                                                                                                                                               |
+| PATCH             | `/courses/:id` · `/courses/:id/publish`      | admin | Edit metadata, reorder, publish                                                                                                                                                          |
+| PATCH             | `/lessons/:id`                               | admin | Edit notes Markdown                                                                                                                                                                      |
+| GET               | `/lessons/:id`                               | user  | Lesson + notes + video info                                                                                                                                                              |
+| POST              | `/courses/:id/enroll`                        | user  | Enroll                                                                                                                                                                                   |
+| GET               | `/me/courses`                                | user  | Enrolled courses + progress                                                                                                                                                              |
+| PUT               | `/lessons/:id/progress`                      | user  | `{status?, lastPositionSec}`                                                                                                                                                             |
+| GET               | `/courses/:id/next`                          | user  | Next recommended lesson                                                                                                                                                                  |
+| POST              | `/courses/:id/chat`                          | user  | `{sessionId?, message}` → SSE stream                                                                                                                                                     |
+| GET               | `/courses/:id/chat/sessions[/:sid]`          | user  | Chat history                                                                                                                                                                             |
+| POST              | `/courses/:id/evaluate`                      | admin | Run the RAG eval set → `EvaluationRun`                                                                                                                                                   |
 
 ### 8.2 Internal AI service API (FastAPI, reachable only from the API; protected by a shared `X-Internal-Key`)
 
@@ -444,7 +445,7 @@ UI conventions: shadcn/ui components, dark/light themes, loading skeletons, ever
 
 ## 11. Non-Functional Requirements
 
-- **Security**: Argon2id password hashing (OWASP parameters, `apps/api/src/auth/password.ts`; replaces the originally planned bcrypt, see D19); JWT in an httpOnly cookie; role guards; rate limits on chat and generate endpoints; the AI service is never publicly exposed; secrets only in env; validate that YouTube URLs really are YouTube.
+- **Security**: secure-by-default global auth guard (`@Public()` opts out) + `@Roles()` guard; JWT (HS256, `iss`/`aud`, `JWT_EXPIRES_IN`) in an httpOnly, SameSite=Lax, Secure-in-production cookie; generic login errors and equal-time checks (no account enumeration); login/register rate limits; Argon2id password hashing (OWASP parameters, `apps/api/src/auth/password.ts`; replaces the originally planned bcrypt, see D19); JWT in an httpOnly cookie; role guards; rate limits on chat and generate endpoints; the AI service is never publicly exposed; secrets only in env; validate that YouTube URLs really are YouTube.
 - **Performance**: catalog pages are SSR/ISR; chat first token < 3 s with OpenAI; generating a 10-video course < 15 min.
 - **Cost control**: `gpt-4o-mini` by default; cache transcripts/videos; `MAX_VIDEOS_PER_COURSE=25`; log token usage per job.
 - **Reliability**: idempotent per-video steps; failed jobs can be retried from the last completed stage.

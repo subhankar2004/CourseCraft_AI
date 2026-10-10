@@ -12,6 +12,9 @@ export const testEnv = {
   JWT_SECRET: 'test-jwt-secret-that-is-at-least-32-characters-long',
   AI_SERVICE_URL: 'http://localhost:8000',
   INTERNAL_API_KEY: 'test-internal-key-that-is-at-least-32-characters',
+  JWT_EXPIRES_IN: '1h',
+  // Lets each test act as a different client IP (X-Forwarded-For) so rate limits don't collide.
+  TRUST_PROXY: '1',
 };
 
 export default defineConfig({

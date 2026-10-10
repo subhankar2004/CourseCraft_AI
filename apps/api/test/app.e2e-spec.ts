@@ -5,6 +5,7 @@ import { IsInt, IsString, Min } from 'class-validator';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
+import { Public } from '../src/auth/auth.decorators.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
 // Test-only routes to exercise the global pipe and exception filter.
@@ -17,6 +18,7 @@ class EchoDto {
   count!: number;
 }
 
+@Public()
 @Controller('test')
 class TestController {
   @Post('echo')

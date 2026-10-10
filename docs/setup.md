@@ -84,6 +84,17 @@ pnpm --filter api test            # unit + e2e tests (e2e needs PostgreSQL runni
 - `/health` pings PostgreSQL: `200` with `database: up`, or `503` with `database: down` (the reason is in the API log, never in the response).
 - The database schema lives in `apps/api/prisma/schema.prisma`. After changing it, run `pnpm --filter api prisma:migrate --name <what-changed>`. `pnpm --filter api prisma:studio` opens a browser UI for the data.
 
+### Signing in (API)
+
+```bash
+curl -c cookies.txt -H 'Content-Type: application/json' \
+  -d '{"email":"admin@coursecraft.local","password":"<SEED_ADMIN_PASSWORD from .env>"}' \
+  localhost:4000/api/v1/auth/login
+curl -b cookies.txt localhost:4000/api/v1/auth/me
+```
+
+The session is an httpOnly `cc_session` cookie. `POST /api/v1/auth/logout` clears it. After 5 failed logins in a minute from one IP, the API answers `429` until the minute passes.
+
 ### Demo data
 
 ```bash

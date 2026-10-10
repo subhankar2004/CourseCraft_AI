@@ -1,7 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
+import { Public } from '../auth/auth.decorators.js';
 import { DatabaseHealthIndicator } from './database.health.js';
 
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(
