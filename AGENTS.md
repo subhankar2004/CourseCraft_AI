@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #10, Domains API.
+**Next up:** Issue #11, Courses and lessons read API.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -96,6 +96,7 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - **Secure by default:** the global `JwtAuthGuard` protects every route. Mark intentionally public routes with `@Public()`, and admin routes with `@Roles('ADMIN')`. Get the signed-in user with `@CurrentUser()`.
 - Validate request bodies with the shared Zod schemas: `@Body(new ZodValidationPipe(schema))`.
 - Never return `passwordHash`; select only public user fields.
+- e2e tests: use `test/helpers.ts` (`createTestApp`, `signInAs`, `cleanupE2eData`). Prefix fixtures with `e2e-` / `@e2e.coursecraft.test` so cleanup deletes only test data, and never assume an empty database.
 
 **API contracts**
 
