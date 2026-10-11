@@ -10,6 +10,18 @@ import type {
 } from '@coursecraft/shared';
 import { AiServiceError, type AiErrorKind } from '../src/ai/ai-client.errors.js';
 
+/** A Cognitive Load Index as the AI service reports it (#43). */
+export const FAKE_LOAD = {
+  fleschKincaid: 9.5,
+  avgSentenceLen: 14.2,
+  conceptDensity: 3.1,
+  index: 30,
+  words: 120,
+  simplified: false,
+  simplifyAttempted: false,
+  originalIndex: null,
+};
+
 export const fail = (kind: AiErrorKind, message: string) =>
   new AiServiceError(kind, message, 'fake', 'fake-request');
 
@@ -103,6 +115,7 @@ export class FakeAi {
         readingTimeMin: 2,
         anchors: [5],
         promptIds: ['lesson-notes-map@2', 'lesson-notes-reduce@2'],
+        cognitiveLoad: { ...FAKE_LOAD, index: 42 },
       },
       usage: { llmCalls: 2, inputTokens: 100, outputTokens: 50 },
       elapsedSec: 1,

@@ -8,6 +8,7 @@ import { getQueueToken } from '@nestjs/bullmq';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import {
+  adminCourseDetailSchema,
   generateCourseResponseSchema,
   jobDetailSchema,
   jobStreamEvents,
@@ -136,6 +137,15 @@ describe('Course generation API (e2e, AI client faked)', () => {
         titleHint: 'SQL basics',
       });
       await waitFor(jobId, 'SUCCEEDED');
+
+      // Each lesson keeps its Cognitive Load Index (#43), shown on the admin review page.
+      const detail = adminCourseDetailSchema.parse(
+        (await http().get(`/api/v1/admin/courses/${courseId}`).set('Cookie', admin).expect(200))
+          .body,
+      );
+      const lessons = detail.modules.flatMap((m) => m.lessons);
+      expect(lessons.length).toBeGreaterThan(0);
+      expect(lessons.every((l) => l.cognitiveLoad?.index === 42)).toBe(true);
     });
 
     it('is rate limited per client', async () => {

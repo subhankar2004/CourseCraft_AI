@@ -2,6 +2,7 @@
 
 import {
   type AdminCourseDetail,
+  type CognitiveLoad,
   COURSE_LEVELS,
   type UpdateCourseInput,
   updateCourseSchema,
@@ -63,6 +64,7 @@ import {
 import { ApiError } from '@/lib/api';
 import { formatDuration, plural } from '@/lib/format';
 import { NotesRenderer } from '@/components/notes/notes-renderer';
+import { CognitiveLoadDetails, courseLoadSummary } from './cognitive-load';
 import { OutlineEditor } from './outline-editor';
 import { StatusBadge } from './status-badge';
 
@@ -116,6 +118,7 @@ function Review({ course }: { course: AdminCourseDetail }) {
   const dirty = outlineChanged(saved, draft);
   const problems = outlineProblems(draft);
   const lessons = new Map(course.modules.flatMap((m) => m.lessons.map((l) => [l.id, l] as const)));
+  const loadSummary = courseLoadSummary([...lessons.values()].map((l) => l.cognitiveLoad));
   const totalSec = course.modules
     .flatMap((m) => m.lessons)
     .reduce((s, l) => s + l.videoDurationSec, 0);
@@ -154,6 +157,7 @@ function Review({ course }: { course: AdminCourseDetail }) {
               <StatusBadge status={course.status} />
               {course.level ?? 'No level'} · {plural(course.moduleCount, 'module')},{' '}
               {plural(course.lessonCount, 'lesson')} · {formatDuration(totalSec)} of video
+              {loadSummary && ` · ${loadSummary}`}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -286,7 +290,11 @@ function Review({ course }: { course: AdminCourseDetail }) {
         )}
       </section>
 
-      <LessonPreview lessonId={previewId} onClose={() => setPreviewId(null)} />
+      <LessonPreview
+        lessonId={previewId}
+        load={previewId ? (lessons.get(previewId)?.cognitiveLoad ?? null) : null}
+        onClose={() => setPreviewId(null)}
+      />
       <Dialog open={dialog === 'details'} onOpenChange={(open) => !open && setDialog(null)}>
         {dialog === 'details' && <DetailsDialog course={course} onDone={() => setDialog(null)} />}
       </Dialog>
@@ -481,7 +489,15 @@ function DeleteDialog({ course, onCancel }: { course: AdminCourseDetail; onCance
 }
 
 /** The lesson as students will see it (anchors become clickable on the lesson page, #34). */
-function LessonPreview({ lessonId, onClose }: { lessonId: string | null; onClose: () => void }) {
+function LessonPreview({
+  lessonId,
+  load,
+  onClose,
+}: {
+  lessonId: string | null;
+  load: CognitiveLoad | null;
+  onClose: () => void;
+}) {
   const { data: lesson, isPending } = useLessonPreview(lessonId);
   return (
     <Sheet open={lessonId !== null} onOpenChange={(open) => !open && onClose()}>
@@ -538,6 +554,7 @@ function LessonPreview({ lessonId, onClose }: { lessonId: string | null; onClose
                 ))}
               </ul>
             )}
+            <CognitiveLoadDetails load={load} />
             <NotesRenderer
               markdown={lesson.notesMarkdown}
               youtubeId={lesson.video.youtubeId}

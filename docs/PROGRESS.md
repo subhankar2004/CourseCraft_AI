@@ -1895,6 +1895,82 @@ Also: the mobile switch first had lowercase labels styled with `capitalize`, so 
 - **Accessibility (axe, light/dark at 1280 px and 390 px):** no violations with the drawer closed or open, no horizontal overflow, full width on a phone, Tab stays inside the drawer, and Escape returns focus to "Ask this course".
 - **Full checks:** format, lint and typecheck are clean; the build passes. Tests: web 141, shared 91, API 37 unit + 97 e2e, AI 279.
 
+## Entry 43 — Cognitive Load Index and the simplify loop (Issue #43, PR #94, 2026-10-11) · P6 begins
+
+**What:** how hard each lesson's notes are to read, as one number (SPEC §9, report Table 3), and an automatic rewrite when notes are too heavy.
+
+- **`app/evaluation/cognitive_load.py`** computes the **Cognitive Load Index** (0 light .. 100 heavy) from three parts:
+  - **readability:** the Flesch-Kincaid grade [R12], via textstat [R27];
+  - **average words per sentence;**
+  - **concept density:** distinct key terms (the lesson's key concepts, bold terms and inline code) per 100 words. This is the number of new elements a reader must hold at once, the intrinsic load of cognitive load theory [R10].
+- **The formula:** each part is scaled to 0..1 between a "light" and a "heavy" bound and clamped, then:
+  `CLI = 100 · (0.35·FK + 0.25·sentence length + 0.40·density)`.
+  - The bounds are FK grade 6..16, 10..30 words per sentence, and 2..12 terms per 100 words.
+  - FK and sentence length overlap (the FK formula contains sentence length), so together they weigh 0.60, while density, the only part about how much is taught at once, gets 0.40.
+- **Only prose is measured:** code blocks, headings and timestamp anchors are excluded; list items and table rows each count as a sentence; and a paragraph wrapped over several lines stays one paragraph.
+- **The simplify loop** (`NotesGenerator`, inside `/process/lesson`):
+  - Notes above `CLI_MAX` (60) are rewritten **once** with a versioned prompt, `lesson-notes-simplify`: short sentences, plain words, fewer new terms at once, the same structure, every anchor and code block kept, no new facts.
+  - The rewrite is parsed and anchor-grounded like any notes.
+  - It is **kept only if it is lighter, keeps every original anchor, and keeps ≥ 60% of the words**; anything else means content was lost, not simplified.
+  - A rewrite that fails (bad output three times, or the model unavailable) never fails the lesson.
+  - The metrics travel with the notes: `cognitiveLoad {fleschKincaid, avgSentenceLen, conceptDensity, index, words, simplified, simplifyAttempted, originalIndex}`.
+- **`POST /eval/cognitive-load`** measures notes as they are. The API calls it when an admin edits a lesson's notes or key concepts. It's best effort: if the AI service is down, the edit is saved and the stored value is **cleared**, since it would describe other text.
+- **API and web:**
+  - Generated lessons store the metrics in `Lesson.cognitiveLoad` (the column existed since #7).
+  - The admin course detail returns them, checked against the shared schema on the way out.
+  - The review page shows a badge per lesson ("CLI 15↓" when simplified, amber above 60, with a screen-reader label), a course summary in the header ("cognitive load avg 17 · 0 of 2 above 60"), and a **Readability** panel in the lesson preview (the index, its three parts, and what the loop did).
+
+**How the formula was set (D138).** I measured before fixing the weights.
+
+- **All 29 real lessons:**
+
+| Notes                             | n   | CLI min | median | max  | FK grade | words/sentence | key terms/100 words |
+| --------------------------------- | --- | ------- | ------ | ---- | -------- | -------------- | ------------------- |
+| Generated (demo course, Fireship) | 25  | 13.4    | 21.1   | 31.6 | 7.4–12.5 | 9.9–18.6       | 1.1–5.1             |
+| Handwritten seed notes            | 4   | 34.5    | —      | 51.7 | 7.4–9.1  | 9.9–12.1       | 7.8–16.5            |
+
+- **Reference texts:** a dense textbook paragraph on normal forms scores 78.7, and a plain beginner text scores 0.2.
+- **Reading the results:**
+  - All 29 lessons are within the SPEC target (≤ 60), so the loop rarely fires on short beginner videos, as intended.
+  - The densest notes are the handwritten ones, because they pack many bold terms into few words; density, not grade level, separates them.
+- **Problem found by the tests:** the first prose extractor treated each _line_ as a sentence. A wrapped paragraph was cut into fragments, which halved the average sentence length, so the dense sample scored only 50.8. Wrapped lines are now joined into one paragraph, and the real (one-line-per-paragraph) notes score exactly as before.
+
+**The loop on the real model (D139).** I generated a two-video course (Big-O, RegEx) with `CLI_MAX` temporarily at **15**, so that the loop would run on real notes.
+
+| Lesson                             | First version | Rewrite                                      | Kept                                    |
+| ---------------------------------- | ------------- | -------------------------------------------- | --------------------------------------- |
+| Big-O Notation in 100 Seconds      | 22.9          | 15.1                                         | **the rewrite** (lighter, nothing lost) |
+| Regular Expressions in 100 Seconds | 19.5          | 22.3                                         | **the original** ("not lighter")        |
+| (one earlier attempt)              | —             | output without any valid anchor, three times | **the original** (failed safely)        |
+
+- All three outcomes happened with llama3.1:8b. "Simplifying" doesn't always simplify, which is exactly why the rewrite is measured before it's kept.
+- On the review page the course showed "cognitive load avg 17 · 0 of 2 above 60", the badges "CLI 15↓" and "CLI 20", and the Readability panel for the Big-O lesson with grade 8.8, 14.3 words/sentence, 1.3 terms/100 words, "Simplified automatically from 23". No page errors.
+- The AI service was then restarted with the normal `CLI_MAX=60`.
+
+**A pre-existing bug found while testing (D140, not fixed here).** The first test course also had a 30-minute lecture, and it **failed: "AI service unreachable: Headers Timeout Error"**.
+
+- **Cause:** the API calls the AI service with Node's built-in `fetch` (undici), which gives up waiting for response headers after **300 s by default**, whatever the `AiClient`'s own limit (30 min for `/process/lesson`).
+- **Effect:** a lecture whose notes take more than 5 minutes always fails, even though the AI service finished (it logged 200 after 847 s and 1,194 s). The demo playlist's 100-second videos never came close, which is why #30 didn't show it.
+- **A second gap it exposed:** when the API gives up on a request, or restarts mid-job (hot reload restarted it here, and BullMQ re-ran the stalled job), the AI service keeps working on the abandoned request, competing for the local model.
+- **The fix needs `undici`** (to give `fetch` a dispatcher without the 300 s limit), a dependency outside SPEC §4. So it is reported to Subhankar for a decision instead of being added here.
+
+**Verification:**
+
+- **Python tests** (13 new):
+  - the index on sample texts (dense > 70, plain < 20), and shorter sentences lowering it;
+  - weights summing to 1, and clamping;
+  - prose extraction (code, headings, anchors, links, lists, tables, quotes, wrapped paragraphs) and key terms;
+  - the loop: one rewrite kept when lighter, with its prompt id recorded; rejected when it drops an anchor, keeps < 60% of the words, isn't lighter, or the output is unusable three times; never run without a limit or below it;
+  - the endpoint: 200, 401 without the internal key, 422 for empty notes.
+  - **Mutation checks:** no anchor check failed 1 test, no word-share check 1, no paragraph joining 6.
+- **API e2e:**
+  - Generated lessons carry the metrics in the admin course detail.
+  - An edit re-measures, a title-only edit doesn't, and an AI outage saves the edit but clears the value.
+  - **Mutation checks:** not storing failed 1 test, not re-measuring 1.
+- **Web:** 3 component tests (badge labels including "above the target of 60", the details panel in its three states, the course summary).
+- **Shared:** the `process-lesson` fixture was recaptured from the real service with `cognitiveLoad` (index 11.2 for "Git Explained"), and the demo vectors it created were deleted.
+- **Full checks:** format, lint and typecheck are clean; the build passes. Tests: AI 292, web 144, shared 91, API 37 + 98 e2e.
+
 ---
 
 ## Decision log
@@ -2040,3 +2116,7 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D135 | 2026-10-11 | The open conversation per course in `sessionStorage`, restored when the drawer opens                                                                                                               | Following a citation (a new page) or reloading continues the conversation                                                                                                                                 |
 | D136 | 2026-10-11 | `useId()` for the drawer's form ids                                                                                                                                                                | Next keeps the previous page hidden in the DOM, which duplicated fixed ids (found in the browser run)                                                                                                     |
 | D137 | 2026-10-11 | Drawer = modal sheet (focus trap, Escape returns focus); `role="log"` with `aria-busy` while streaming; own-scroll following; full width on phones                                                 | Accessible chat without a token-by-token screen-reader flood [R166]                                                                                                                                       |
+| D138 | 2026-10-11 | CLI = 100·(0.35·FK grade 6..16 + 0.25·words/sentence 10..30 + 0.40·key terms/100 words 2..12), each clamped; prose only (no code, headings, anchors; wrapped paragraphs joined)                    | Readability and sentence length overlap, density is the only intrinsic-load part; set on 29 real lessons (13–52) and reference texts (0.2 vs 78.7) [R10][R12][R27]                                        |
+| D139 | 2026-10-11 | Simplify once above CLI_MAX; keep the rewrite only if lighter, every anchor kept and ≥ 60% of the words; failures keep the original                                                                | On the real model a rewrite was kept (22.9 → 15.1), one was heavier (rejected) and one lost every anchor (failed safely)                                                                                  |
+| D140 | 2026-10-11 | Report, don't silently fix, the 300 s undici headers timeout on `/process/lesson` (needs the `undici` dependency)                                                                                  | Long lectures fail although the AI finishes; a dependency outside SPEC §4 needs the owner's decision                                                                                                      |
+| D141 | 2026-10-11 | `POST /eval/cognitive-load`; an admin edit re-measures (best effort, clearing the value on failure)                                                                                                | The stored index always describes the notes as they are; reusable by #46                                                                                                                                  |

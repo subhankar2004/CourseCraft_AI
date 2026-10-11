@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { Logger } from '@nestjs/common';
 import {
   aiHealthSchema,
+  cognitiveLoadSchema,
   deleteVectorsResponseSchema,
   errorResponseSchema,
   ingestMetadataResponseSchema,
@@ -10,6 +11,8 @@ import {
   structureResponseSchema,
   vectorSearchResponseSchema,
   type AiHealth,
+  type CognitiveLoad,
+  type CognitiveLoadRequest,
   type DeleteVectorsResponse,
   type IngestMetadataRequest,
   type IngestMetadataResponse,
@@ -37,6 +40,8 @@ export const ENDPOINTS = {
   processLesson: { timeoutMs: 30 * 60_000, retries: 1, retryTimeouts: false },
   processStructure: { timeoutMs: 5 * 60_000, retries: 2, retryTimeouts: true },
   vectors: { timeoutMs: 30_000, retries: 2, retryTimeouts: true },
+  // Pure computation (no model calls): quick.
+  evaluate: { timeoutMs: 15_000, retries: 1, retryTimeouts: true },
   // Chat answers: the AI service condenses the question and retrieves BEFORE it replies, and a
   // cold local model can take a while to load. Never retried: a retry would run the LLM twice
   // (the student can simply ask again).
@@ -152,6 +157,20 @@ export class AiClient {
         path: '/process/lesson',
         body,
         schema: processLessonResponseSchema,
+      },
+      options,
+    );
+  }
+
+  /** `POST /eval/cognitive-load` (#43): the Cognitive Load Index of notes as they are. */
+  cognitiveLoad(body: CognitiveLoadRequest, options?: CallOptions): Promise<CognitiveLoad> {
+    return this.call(
+      {
+        endpoint: 'evaluate',
+        method: 'POST',
+        path: '/eval/cognitive-load',
+        body,
+        schema: cognitiveLoadSchema,
       },
       options,
     );

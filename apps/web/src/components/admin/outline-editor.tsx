@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { formatDuration } from '@/lib/format';
+import { CognitiveLoadBadge } from './cognitive-load';
 import {
   addModule,
   type DraftModule,
@@ -325,6 +326,7 @@ function LessonRow({
           {lesson.readingTimeMin ? ` · ${lesson.readingTimeMin} min read` : ''}
         </span>
       )}
+      {lesson && <CognitiveLoadBadge load={lesson.cognitiveLoad} />}
       {others.length > 0 && (
         <NativeSelect
           aria-label={`Move ${title} to another module`}

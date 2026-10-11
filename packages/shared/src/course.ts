@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cognitiveLoadSchema } from './ai.js';
 import { courseSummarySchema, slugSchema } from './domain.js';
 
 export const COURSE_LEVELS = ['Beginner', 'Intermediate', 'Advanced'] as const;
@@ -136,6 +137,8 @@ export const adminCourseDetailSchema = adminCourseSchema.extend({
           readingTimeMin: z.number().int().nullable(),
           youtubeId: z.string(),
           videoDurationSec: z.number().int(),
+          /** Null for lessons generated before #43, or when measuring failed. */
+          cognitiveLoad: cognitiveLoadSchema.nullable(),
         }),
       ),
     }),

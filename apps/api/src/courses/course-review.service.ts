@@ -6,10 +6,11 @@ import {
   NotFoundException,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import type {
-  AdminCourseDetail,
-  CourseOutlineUpdate,
-  UpdateCourseInput,
+import {
+  cognitiveLoadSchema,
+  type AdminCourseDetail,
+  type CourseOutlineUpdate,
+  type UpdateCourseInput,
 } from '@coursecraft/shared';
 import { AiServiceError } from '../ai/ai-client.errors.js';
 import { AiClient } from '../ai/ai-client.service.js';
@@ -44,6 +45,7 @@ const detailSelect = {
           order: true,
           summary: true,
           readingTimeMin: true,
+          cognitiveLoad: true,
           video: { select: { youtubeId: true, durationSec: true } },
         },
       },
@@ -96,10 +98,12 @@ export class CourseReviewService {
         : [],
       modules: modules.map(({ lessons, ...module }) => ({
         ...module,
-        lessons: lessons.map(({ video, ...lesson }) => ({
+        lessons: lessons.map(({ video, cognitiveLoad, ...lesson }) => ({
           ...lesson,
           youtubeId: video.youtubeId,
           videoDurationSec: video.durationSec,
+          // Stored JSON, checked on the way out: anything malformed shows as "not measured".
+          cognitiveLoad: cognitiveLoadSchema.safeParse(cognitiveLoad).data ?? null,
         })),
       })),
     };

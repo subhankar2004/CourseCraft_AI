@@ -86,6 +86,35 @@ export const processLessonRequestSchema = z.strictObject({
   segments: z.array(transcriptSegmentSchema).min(1).max(50_000),
 });
 
+/**
+ * Cognitive Load Index of lesson notes (SPEC §9, #43): 0 light .. 100 heavy, from the
+ * Flesch-Kincaid grade, average sentence length and key-term density. Notes above CLI_MAX are
+ * simplified once during generation.
+ */
+export const cognitiveLoadSchema = z.object({
+  fleschKincaid: z.number(),
+  avgSentenceLen: z.number(),
+  /** Distinct key terms per 100 words. */
+  conceptDensity: z.number(),
+  index: z.number().min(0).max(100),
+  words: z.number().int().nonnegative(),
+  /** The stored notes are the simplified rewrite. */
+  simplified: z.boolean(),
+  /** The first version was above CLI_MAX, so a rewrite was tried. */
+  simplifyAttempted: z.boolean(),
+  /** The index before simplifying (when the rewrite was kept). */
+  originalIndex: z.number().nullable(),
+});
+
+/** SPEC §9 target: notes above it are "heavy" (the AI service's CLI_MAX default). */
+export const COGNITIVE_LOAD_TARGET = 60;
+
+/** `POST /eval/cognitive-load`: measures notes as they are (e.g. after an admin edit). */
+export const cognitiveLoadRequestSchema = z.strictObject({
+  notesMarkdown: z.string().min(1),
+  keyConcepts: z.array(z.string()).max(50).default([]),
+});
+
 export const lessonNotesSchema = z.object({
   title: z.string(),
   summary: z.string(),
@@ -94,6 +123,7 @@ export const lessonNotesSchema = z.object({
   readingTimeMin: z.number().int().min(1),
   anchors: z.array(z.number()),
   promptIds: z.array(z.string()),
+  cognitiveLoad: cognitiveLoadSchema.nullable(),
 });
 
 export const processLessonResponseSchema = z.object({
@@ -254,3 +284,5 @@ export type RagAnswerRequest = z.input<typeof ragAnswerRequestSchema>;
 export type RagCitation = z.infer<typeof ragCitationSchema>;
 export type RagRefusal = z.infer<typeof ragRefusalSchema>;
 export type RagDoneEvent = z.infer<typeof ragDoneEventSchema>;
+export type CognitiveLoad = z.infer<typeof cognitiveLoadSchema>;
+export type CognitiveLoadRequest = z.input<typeof cognitiveLoadRequestSchema>;

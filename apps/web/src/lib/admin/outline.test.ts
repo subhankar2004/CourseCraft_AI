@@ -20,6 +20,7 @@ const lesson = (id: string) => ({
   readingTimeMin: 2,
   youtubeId: 'x',
   videoDurationSec: 100,
+  cognitiveLoad: null,
 });
 const saved = draftFrom({
   modules: [

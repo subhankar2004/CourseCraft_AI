@@ -576,9 +576,9 @@ Meta: phase=P6 | area=ai | type=feat | depends=23
 **Goal:** SPEC §9, Cognitive Load Index.
 **Tasks**
 
-- [ ] `evaluation/cognitive_load.py`: Flesch-Kincaid grade, average sentence length, concept density (key terms per 100 words) → normalized index 0–100 (document the weights)
-- [ ] In `/process/lesson`: if the index is above `CLI_MAX`, regenerate once with the "simplify" prompt and keep the better version; return the metrics
-- [ ] API stores the metrics in `Lesson.cognitiveLoad`; the admin review page shows them
+- [x] `evaluation/cognitive_load.py`: Flesch-Kincaid grade, average sentence length, concept density (key terms per 100 words) → normalized index 0–100 (document the weights)
+- [x] In `/process/lesson`: if the index is above `CLI_MAX`, regenerate once with the "simplify" prompt and keep the better version; return the metrics
+- [x] API stores the metrics in `Lesson.cognitiveLoad`; the admin review page shows them
 
 **Done when:** Unit tests on sample texts pass, and the metrics appear on generated lessons.
 
