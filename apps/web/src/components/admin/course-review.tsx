@@ -139,7 +139,7 @@ function Review({ course }: { course: AdminCourseDetail }) {
   };
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-1 gap-6">
       <header className="grid gap-3">
         <p className="text-sm text-muted-foreground">
           <Link href="/admin/courses" className="hover:underline">
@@ -238,7 +238,7 @@ function Review({ course }: { course: AdminCourseDetail }) {
         </details>
       )}
 
-      <section aria-labelledby="outline-heading" className="grid gap-3">
+      <section aria-labelledby="outline-heading" className="grid grid-cols-1 gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id="outline-heading" className="text-lg font-semibold">
             Outline

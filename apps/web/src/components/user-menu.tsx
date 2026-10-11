@@ -38,11 +38,15 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" aria-label={`Account menu for ${user.name}`}>
-          <span className="flex size-6 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+        {/* Named by its content (the user's name), so the label matches what is visible. */}
+        <Button variant="outline" size="sm">
+          <span
+            aria-hidden
+            className="flex size-6 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground"
+          >
             {initials}
           </span>
-          <span className="hidden max-w-32 truncate sm:inline">{user.name}</span>
+          <span className="sr-only max-w-32 truncate sm:not-sr-only">{user.name}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

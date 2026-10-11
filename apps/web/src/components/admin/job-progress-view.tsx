@@ -84,7 +84,7 @@ export function JobProgressView({ jobId }: { jobId: string }) {
   const working = currentVideoPosition(job);
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-1 gap-6">
       <header className="grid gap-1">
         <p className="text-sm text-muted-foreground">
           {{ SUCCEEDED: 'Generated', FAILED: 'Generation failed' }[job.status as string] ??
@@ -184,7 +184,7 @@ export function JobProgressView({ jobId }: { jobId: string }) {
 
       {truncated && <p className="text-sm text-muted-foreground">{truncated}</p>}
 
-      <section aria-label="Videos" className="grid gap-2">
+      <section aria-label="Videos" className="grid grid-cols-1 gap-2">
         <h2 className="text-sm font-medium">
           Videos <span className="text-muted-foreground">({job.videos.length})</span>
         </h2>

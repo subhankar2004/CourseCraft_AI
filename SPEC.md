@@ -496,6 +496,7 @@ UI conventions: shadcn/ui components, dark/light themes, loading skeletons, ever
 - **Performance**: catalog pages are SSR/ISR; chat first token < 3 s with OpenAI; generating a 10-video course < 15 min.
 - **Cost control**: `gpt-4o-mini` by default; cache transcripts/videos; `MAX_VIDEOS_PER_COURSE=25`; log token usage per job.
 - **Reliability**: idempotent per-video steps; failed jobs can be retried from the last completed stage.
+- **Accessibility & responsiveness** (#38): WCAG 2.2 AA as the target. Every page works from 360 px without horizontal scrolling, has one `h1`, a visible focus indicator on every control, a “Skip to main content” link, and passes axe (WCAG 2.0–2.2 A/AA) in light and dark mode; Lighthouse accessibility ≥ 90 on the landing, course and lesson pages (100 at the last audit). Procedure and results: [docs/a11y/](docs/a11y/README.md); re-run before each phase ends.
 - **Observability**: structured JSON logs with a `jobId` / `requestId` correlation id across API ↔ AI.
 
 ---

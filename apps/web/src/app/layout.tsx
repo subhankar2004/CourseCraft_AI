@@ -30,8 +30,17 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       </head>
       <body className="flex min-h-full flex-col">
         <Providers>
+          {/* First stop for keyboard users: past the header to the page's content (WCAG 2.4.1). */}
+          <a
+            href="#main-content"
+            className="sr-only z-50 rounded-md bg-background px-3 py-2 text-sm font-medium shadow focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:ring-3 focus:ring-ring/50"
+          >
+            Skip to main content
+          </a>
           <SiteHeader />
-          <main className="flex-1">{children}</main>
+          <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
+            {children}
+          </main>
           <SiteFooter />
         </Providers>
       </body>

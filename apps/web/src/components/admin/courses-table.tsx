@@ -80,7 +80,8 @@ export function CoursesTable() {
             : 'No courses match these filters.'}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        // `relative`: absolutely positioned descendants (sr-only labels) are clipped here too.
+        <div className="relative overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
             <caption className="sr-only">All courses</caption>
             <thead className="bg-muted/50 text-left text-xs text-muted-foreground">

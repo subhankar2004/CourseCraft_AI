@@ -26,12 +26,12 @@ Track progress here. Update this section at the end of every working session.
 - [x] P1 Core — Prisma schema, auth, domains/courses read API, seed, web auth, landing, catalog and course pages (#7–#15)
 - [x] P2 Ingestion — metadata, transcripts (+ Whisper fallback), chunking, embeddings + pgvector, fixtures (#16–#22)
 - [x] P3 Generation — notes map-reduce, structuring, job + SSE progress, admin UI (#23–#32)
-- [ ] P4 Learning UX — split view, timestamp seek, progress, next lesson, dashboard
+- [x] P4 Learning UX — split view, timestamp seek, progress, next lesson, dashboard, accessibility pass (#33–#38)
 - [ ] P5 RAG chat — grounding gate, citations, chat drawer
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #38 (web: responsiveness and accessibility pass), the last P4 issue: it ticks P4 above. The learner pages to audit: landing, domains, course, `/learn/...` (split view, sidebar, sheet) and `/dashboard`.
+**Next up:** Issue #39 (AI: RAG retrieval, grounding gate and streaming answers), the start of P5. Retrieval is per course over `vector_store` chunks (with `startSec/endSec`); keep the grounding gate (`RAG_MIN_SCORE`) and the answer-only-from-context prompt (see the AI pipeline rules below).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -111,6 +111,8 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - `useMe()` reads `GET /auth/session` (always 200), never `/auth/me`. It is **hydration-safe**: it reports `isPending` until the component has hydrated, so session-aware components can live inside late-streamed `<Suspense>` boundaries. Always handle `isPending` (render a skeleton).
 - Component tests: add the `// @vitest-environment jsdom` docblock (the default environment is Node), use Testing Library with plain assertions (jest-dom isn't installed) and `afterEach(cleanup)`.
 - The YouTube player: react-youtube passes the IFrame API's own events, so `event.target` is the **synchronous** `YT.Player` (no promises), and it can report events from a player it already replaced. Use `components/learn/lesson-player.tsx` rather than react-youtube directly.
+- Layout: a vertical stack written `grid gap-*` that can hold `truncate`/`whitespace-nowrap` content (titles, tables, toolbars) needs `grid-cols-1`; otherwise its single `auto` column can't shrink below that content and the page scrolls sideways on phones. Scroll boxes holding `sr-only` (absolutely positioned) content need `relative`. Re-run the audit in `scripts/a11y/` (see docs/a11y/) after layout changes.
+- Don't scroll with `scrollIntoView` on page load: Chrome also moves the sequential focus starting point, so the next Tab skips the header. Scroll the container (`scrollTop`) instead.
 - Never return a call's value from an effect (`useEffect(() => el.scrollIntoView())`): `scrollIntoView` returns a promise in current browsers, and React then fails with "destroy is not a function". Use a block body.
 - Tests that touch `localStorage` must stub it (`vi.stubGlobal`): Node 25's built-in, incomplete `localStorage` shadows jsdom's.
 - Lesson notes: always render with `NotesRenderer` (no raw HTML; timestamp chips; highlighted code). Code colours are plain CSS in `globals.css`, outside `@layer` (rules inside `@layer components` were dropped from the build).
