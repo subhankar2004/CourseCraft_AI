@@ -123,7 +123,11 @@ async function CourseContent({ params }: Pick<PageProps<'/courses/[slug]'>, 'par
             ))}
           </ul>
           <div className="mt-6">
-            <EnrollButton courseSlug={course.slug} />
+            <EnrollButton
+              courseId={course.id}
+              courseSlug={course.slug}
+              firstLessonId={course.modules[0]?.lessons[0]?.id}
+            />
           </div>
         </div>
         {course.thumbnailUrl && (
