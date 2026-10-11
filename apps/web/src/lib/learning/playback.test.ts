@@ -59,6 +59,7 @@ describe('createPositionSaver', () => {
     saver.flush(true);
     saver.update(40); // seeking back counts as a move
     saver.flush(true);
+    expect(saver.position()).toBe(40);
     expect(saves).toEqual([
       [103.3, false],
       [40, true],

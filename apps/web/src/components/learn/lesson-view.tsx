@@ -1,11 +1,17 @@
 'use client';
 
-import type { LessonDetail } from '@coursecraft/shared';
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  COMPLETION_THRESHOLD,
+  type LessonDetail,
+  type LessonProgress,
+  type ProgressStatus,
+} from '@coursecraft/shared';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronRightIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { NotesRenderer } from '@/components/notes/notes-renderer';
 import { NotesToc } from '@/components/notes/notes-toc';
 import { Button } from '@/components/ui/button';
@@ -14,16 +20,32 @@ import { ApiError } from '@/lib/api';
 import { formatDuration } from '@/lib/format';
 import {
   courseProgressKey,
+  lessonQuery,
   saveLessonPosition,
+  setLessonStatus,
   storeLessonProgress,
+  useCourseOutline,
   useCourseProgress,
   useLesson,
 } from '@/lib/learning/hooks';
+import { courseLessons } from '@/lib/learning/navigation';
 import { createPositionSaver, resumePosition } from '@/lib/learning/playback';
+import { LessonNav, UpNext } from './lesson-nav';
 import { type LessonPlayerHandle, LessonPlayer } from './lesson-player';
 import { type SplitPane, SplitView } from './split-view';
 
 const isNotFound = (error: unknown) => error instanceof ApiError && error.status === 404;
+
+/** A toast when a save turns the lesson completed (marked, or 90% watched). */
+function announceCompletion(result: LessonProgress, before: ProgressStatus | undefined) {
+  if (result.status !== 'COMPLETED' || before === 'COMPLETED') return;
+  const { completed, total } = result.course;
+  if (completed === total) {
+    toast.success('Course complete!', { description: `You finished all ${total} lessons.` });
+  } else {
+    toast.success('Lesson complete', { description: `${completed} of ${total} lessons done.` });
+  }
+}
 
 /** `/learn/[courseSlug]/[lessonId]`: loads the lesson and where the learner left off. */
 export function LessonView({ courseSlug, lessonId }: { courseSlug: string; lessonId: string }) {
@@ -84,11 +106,34 @@ function LessonStudy({
   const [saver] = useState(() =>
     createPositionSaver((seconds, keepalive) => {
       saveLessonPosition(lesson.id, seconds, keepalive).then(
-        (result) => storeLessonProgress(queryClient, result),
+        (result) => announceCompletion(result, storeLessonProgress(queryClient, result)),
         () => setSaveFailed(true),
       );
     }),
   );
+  const crossedThreshold = useRef(false);
+  const outline = useCourseOutline(lesson.course.slug);
+  const progress = useCourseProgress(lesson.course.id);
+  const status =
+    progress.data?.lessons.find((entry) => entry.lessonId === lesson.id)?.status ?? 'NOT_STARTED';
+  const places = outline.data ? courseLessons(outline.data.modules) : [];
+  const neighbour = (id: string | null) =>
+    id === null ? null : { id, title: places.find((place) => place.id === id)?.title };
+
+  const statusChange = useMutation({
+    mutationFn: (next: 'COMPLETED' | 'IN_PROGRESS') =>
+      setLessonStatus(lesson.id, next, saver.position() ?? startSec),
+    onSuccess: (result) => {
+      saver.markSaved(result.lastPositionSec);
+      announceCompletion(result, storeLessonProgress(queryClient, result));
+    },
+    onError: () => toast.error('The lesson could not be updated. Try again.'),
+  });
+
+  // The next lesson is the likeliest click: have its notes ready.
+  useEffect(() => {
+    if (lesson.nextLessonId) void queryClient.prefetchQuery(lessonQuery(lesson.nextLessonId));
+  }, [lesson.nextLessonId, queryClient]);
 
   // Opening the lesson records it as started (and enrolls); leaving saves the latest position.
   useEffect(() => {
@@ -135,7 +180,19 @@ function LessonStudy({
           youtubeId={lesson.video.youtubeId}
           title={lesson.video.title}
           startSec={startSec}
-          onPosition={(seconds) => saver.update(seconds)}
+          onPosition={(seconds) => {
+            saver.update(seconds);
+            // Crossing 90% (SPEC §7.3): save at once, so the API's auto-completion shows now.
+            const { durationSec } = lesson.video;
+            if (
+              !crossedThreshold.current &&
+              durationSec > 0 &&
+              seconds >= COMPLETION_THRESHOLD * durationSec
+            ) {
+              crossedThreshold.current = true;
+              saver.flush();
+            }
+          }}
           onStop={(seconds) => {
             saver.update(seconds);
             saver.flush();
@@ -174,6 +231,15 @@ function LessonStudy({
           </p>
         )}
       </div>
+      <LessonNav
+        courseSlug={lesson.course.slug}
+        prev={neighbour(lesson.prevLessonId)}
+        next={neighbour(lesson.nextLessonId)}
+        status={status}
+        canTrack={!preview}
+        busy={statusChange.isPending}
+        onSetStatus={(next) => statusChange.mutate(next)}
+      />
       {lesson.summary && <p className="leading-7">{lesson.summary}</p>}
       {lesson.keyConcepts.length > 0 && (
         <ul aria-label="Key concepts" className="flex flex-wrap gap-1.5">
@@ -191,6 +257,17 @@ function LessonStudy({
     <div className="mx-auto grid max-w-3xl gap-6 p-4 lg:p-6">
       <NotesToc markdown={lesson.notesMarkdown} className="rounded-xl border p-4" />
       <NotesRenderer markdown={lesson.notesMarkdown} onSeek={seek} />
+      <UpNext
+        courseSlug={lesson.course.slug}
+        courseTitle={lesson.course.title}
+        next={neighbour(lesson.nextLessonId)}
+        remaining={
+          progress.data && {
+            lesson: progress.data.next,
+            courseCompleted: progress.data.next === null,
+          }
+        }
+      />
     </div>
   );
 

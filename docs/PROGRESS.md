@@ -1480,6 +1480,62 @@ Also: the mobile switch first had lowercase labels styled with `capitalize`, so 
   - A wrong slug was corrected, an unknown lesson showed "Lesson not found", and there were no console errors. (In development each save appears twice: Strict Mode runs effects twice.)
 - **Full checks:** format, lint and typecheck are clean; the build passes. Tests: shared 85, API 40 unit + 88 e2e, web 95, AI 236.
 
+## Entry 36 — Lesson navigation, sidebar tree and completion (Issue #36, PR #87, 2026-10-11)
+
+**What:** moving through a course, the web side of SPEC §7.3.
+
+- **Course sidebar** beside every lesson:
+  - each module's lessons, with an icon and screen-reader label for completed, in progress or not started;
+  - the current lesson highlighted (`aria-current="page"`) and kept in view;
+  - a course progress bar.
+  - On desktop it collapses to a narrow rail; on phones it opens as a sheet from a "Course contents" button.
+- **Lesson page:** Previous / **Mark complete** (with "Mark as not complete") / Next under the title, toasts for a completed lesson or course, and an "Up next" card at the end of the notes.
+- **Course page:** the placeholder button became a real call to action. It reads **Enroll for free**, then **Start learning** or **Continue learning** at the next lesson (with progress so far), then **Course completed** with "Review from the start".
+
+**Design decisions:**
+
+- **The sidebar is a route layout (D107).** It lives in `app/learn/[courseSlug]/layout.tsx`, which stays mounted while the learner moves between lessons, so it doesn't flash or lose its scroll position.
+  - It reads the course outline (public endpoint) and the learner's progress through TanStack Query, using the same cache the lesson page writes when it saves. So a tick appears the moment a save returns, without another request.
+  - The collapsed state is per browser. It is read with `useSyncExternalStore` [R114]: the server always renders the sidebar expanded, and the browser then applies the stored state without a hydration mismatch. An in-memory fallback keeps the toggle working when storage is blocked.
+  - Unpublished courses have no public outline (admin previews), so there the sidebar is simply absent.
+- **Completion feedback (D108).**
+  - "Mark complete" and its undo send an explicit status, which the API honours (D95).
+  - Auto-completion at 90% (SPEC §7.3) is computed by the API. The page **saves at once when playback crosses 90%** instead of waiting up to 15 s for the next throttled save (D102), so the tick and toast appear right away.
+  - Toasts compare the cached status before and after each save, so both paths announce themselves: "Lesson complete · 2 of 4 done", or "Course complete!" for the last one.
+  - A status change refetches the course progress, because the API's "next lesson" may have moved.
+- **The course call to action is one pure function (D109).** `courseCta` maps the learner's progress to enroll → start (nothing studied yet) → continue → completed; it is unit-tested.
+  - Enrolling calls `POST /courses/:id/enroll` and then **`GET /courses/:id/next`** (as the issue asks), and opens that lesson.
+  - Later visits take `next` from `GET /courses/:id/progress`. That request is needed anyway to know whether the learner is enrolled, and the API computes the same rule there. One request instead of two.
+- **The next lesson's data is prefetched** when a lesson opens, so "Next" usually renders at once.
+- **Known limitation (D110).** The 90% rule is per _video_. The seeded course puts several lessons on two long videos (4 h 21 min and 8 h 8 min), so its lessons only auto-complete at 90% of the whole video, and "Mark complete" is the practical path there. Generated courses make one lesson per video (#28), where the rule works as intended. Per-lesson time ranges would need a schema change, so this is noted for the evaluation chapter rather than changed now.
+
+**Problem found and solved: "destroy is not a function".** The first browser run showed the error page instead of the lesson. The sidebar's effect was written as an arrow expression, `useEffect(() => el?.scrollIntoView(...))`, so it returned what `scrollIntoView` returns.
+
+- In current browsers that is a **promise**: Chrome 154 returns a `Promise` (checked directly), and the CSSOM View draft now declares `Promise<ScrollResult> scrollIntoView(...)` [R156].
+- React took the promise for a cleanup function and threw when unmounting.
+- jsdom has no `scrollIntoView` at all, so a test could not have caught it as written.
+- **Fix:** a block body. The tests now stub `scrollIntoView` to return a promise, like the browser. Re-introducing the arrow form fails 2 tests with the same "destroy is not a function". The rule is recorded in AGENTS.md.
+
+**Verification:**
+
+- **Unit tests** (6): course order and numbering, statuses, and every call-to-action state.
+- **Component tests** (11, jsdom, data hooks mocked):
+  - the sidebar's statuses, current lesson, progress bar, remembered collapse, and its absence for drafts;
+  - Previous disabled at the start, Next's link and label, mark and unmark, and nothing tracked in previews;
+  - the three "Up next" endings;
+  - the course button signed out, enrolling (calls enroll and next, then opens the lesson), continuing, and completed.
+- **The issue's done condition, in a real browser** (headless Chrome, **production build**): a **newly registered student finished the seeded course from start to end**.
+  - Enroll for free opened lesson 1.
+  - Jumping the real video past 90% (14,077 of 15,639 s) auto-completed lesson 1 with a toast. Undo and redo worked.
+  - Next and Mark complete through lessons 2–4; the last one gave "Course complete! You finished all 4 lessons".
+  - The sidebar showed 4/4 at 100%, the end of the notes said "You've finished Database Fundamentals", and the last lesson had no Next button.
+  - Previous, collapse kept after a reload, and the phone sheet (choosing lesson 3 closed it) all worked.
+  - The course page then showed "Course completed" with a review link.
+  - The seed student, partway through, saw "Continue learning" at the right lesson.
+  - No console errors.
+- **Full checks:** format, lint and typecheck are clean; the build passes. Tests: shared 85, API 40 unit + 88 e2e, web 112, AI 236.
+- **Test data:** three `finish-<timestamp>@example.com` accounts made by these runs remain in the local development database (not in the seed).
+
 ---
 
 ## Decision log
@@ -1594,3 +1650,7 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D104 | 2026-10-11 | react-youtube in privacy-enhanced mode, options fixed at mount; synchronous `YT.Player` from events; only connected players count; a queued seek is re-applied until playback starts | No tracking cookies before play; robust to the player being replaced before use (found in the browser) [R150][R151][R152]                                                                                 |
 | D105 | 2026-10-11 | Hand-written WAI-ARIA window splitter (30–70%, remembered per browser); on phones a Video/Notes switch with both panes mounted                                                       | No new dependency; keyboard-accessible; the player is never recreated [R155]                                                                                                                              |
 | D106 | 2026-10-11 | Draft previews (admins) render without saving; wrong course slugs are corrected; embed refusals link to YouTube                                                                      | The progress API has no data for drafts (D97); every failure mode leaves a way forward                                                                                                                    |
+| D107 | 2026-10-11 | The lesson sidebar is a route layout for the course, reading the outline and progress from the shared query cache; collapsed state via `useSyncExternalStore` over `localStorage`    | Stays mounted between lessons; ticks update from the page's own saves; no hydration mismatch [R114]                                                                                                       |
+| D108 | 2026-10-11 | Mark complete / not complete send explicit statuses; crossing 90% saves at once; toasts from the cached status before vs after a save; status changes refetch progress               | Immediate, consistent feedback for both completion paths; the "next lesson" stays right                                                                                                                   |
+| D109 | 2026-10-11 | Course call to action from one pure function (enroll → start → continue → completed); enrolling then `GET /next`; later visits use `next` from the progress request                  | Testable states; one request per visit, the same rule as the API                                                                                                                                          |
+| D110 | 2026-10-11 | Keep the 90% auto-completion per video; lessons sharing a long video rely on Mark complete                                                                                           | Generated courses are one lesson per video; per-lesson ranges would need a schema change (noted for evaluation)                                                                                           |

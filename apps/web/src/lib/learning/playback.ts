@@ -30,6 +30,8 @@ export interface PositionSaver {
   update(sec: number): void;
   /** Saves the latest position now if it moved (pause, end, hiding or leaving the page). */
   flush(keepalive?: boolean): void;
+  /** The latest known position (null before any). */
+  position(): number | null;
 }
 
 /**
@@ -65,5 +67,6 @@ export function createPositionSaver(
     flush(keepalive = false) {
       if (moved()) commit(keepalive);
     },
+    position: () => latest,
   };
 }

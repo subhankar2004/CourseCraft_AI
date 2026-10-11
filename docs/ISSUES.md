@@ -480,9 +480,9 @@ Meta: phase=P4 | area=web | type=feat | depends=35
 **Goal:** Moving through a course.
 **Tasks**
 
-- [ ] Collapsible sidebar: module/lesson tree with completion ticks and the current lesson highlighted
-- [ ] Prev/Next buttons, "Mark complete", auto-complete at 90% watched
-- [ ] Enroll / "Continue learning" CTA on the course page, using `/next`
+- [x] Collapsible sidebar: module/lesson tree with completion ticks and the current lesson highlighted
+- [x] Prev/Next buttons, "Mark complete", auto-complete at 90% watched
+- [x] Enroll / "Continue learning" CTA on the course page, using `/next`
 
 **Done when:** A student can finish the seeded course from start to end.
 
