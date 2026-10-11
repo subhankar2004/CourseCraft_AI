@@ -492,8 +492,8 @@ Meta: phase=P4 | area=web | type=feat | depends=33,36
 **Goal:** `/dashboard`.
 **Tasks**
 
-- [ ] Enrolled courses with progress bars, "Continue where you left off" card, recently completed lessons
-- [ ] Empty state linking to the domains page
+- [x] Enrolled courses with progress bars, "Continue where you left off" card, recently completed lessons
+- [x] Empty state linking to the domains page
 
 **Done when:** The dashboard reflects real progress.
 

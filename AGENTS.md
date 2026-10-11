@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #37 (web: student dashboard), the last P4 issue. `GET /me/courses` (#33) returns each enrolled course with progress, `lastLesson` and `next`; reuse `courseCta`-style logic from `lib/learning/navigation.ts` and the progress bar from `components/learn/course-sidebar.tsx`.
+**Next up:** Issue #38 (web: responsiveness and accessibility pass), the last P4 issue: it ticks P4 above. The learner pages to audit: landing, domains, course, `/learn/...` (split view, sidebar, sheet) and `/dashboard`.
 
 ## How we work: 50 issues → 50 PRs
 

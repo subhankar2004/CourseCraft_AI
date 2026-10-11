@@ -80,9 +80,26 @@ export const myCourseSchema = z.object({
   progress: courseProgressSummarySchema,
   /** The lesson studied most recently, to "continue where you left off". */
   lastLesson: lessonRefSchema
-    .extend({ lastPositionSec: z.number(), studiedAt: z.iso.datetime() })
+    .extend({
+      status: progressStatusSchema,
+      lastPositionSec: z.number(),
+      studiedAt: z.iso.datetime(),
+    })
     .nullable(),
   next: lessonRefSchema.nullable(),
+});
+
+/** `GET /me/completed-lessons?limit=`: the dashboard's "recently completed" list. */
+export const completedLessonsQuerySchema = z.strictObject({
+  limit: z.coerce.number().int().min(1).max(20).default(5),
+});
+
+export const completedLessonSchema = z.object({
+  lessonId: z.string(),
+  title: z.string(),
+  moduleTitle: z.string(),
+  course: z.object({ id: z.string(), slug: z.string(), title: z.string() }),
+  completedAt: z.iso.datetime(),
 });
 
 export type ProgressStatus = z.infer<typeof progressStatusSchema>;
@@ -93,3 +110,5 @@ export type LessonProgress = z.infer<typeof lessonProgressSchema>;
 export type NextLesson = z.infer<typeof nextLessonSchema>;
 export type MyCourseProgress = z.infer<typeof myCourseProgressSchema>;
 export type MyCourse = z.infer<typeof myCourseSchema>;
+export type CompletedLessonsQuery = z.infer<typeof completedLessonsQuerySchema>;
+export type CompletedLesson = z.infer<typeof completedLessonSchema>;

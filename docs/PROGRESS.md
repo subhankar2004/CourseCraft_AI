@@ -1536,6 +1536,49 @@ Also: the mobile switch first had lowercase labels styled with `capitalize`, so 
 - **Full checks:** format, lint and typecheck are clean; the build passes. Tests: shared 85, API 40 unit + 88 e2e, web 112, AI 236.
 - **Test data:** three `finish-<timestamp>@example.com` accounts made by these runs remain in the local development database (not in the seed).
 
+## Entry 37 — Student dashboard (Issue #37, PR #88, 2026-10-11)
+
+**What:** `/dashboard`, the learner's home (SPEC §10). It replaces the placeholder greeting.
+
+- **Greeting** with the number of courses and lessons completed.
+- **"Continue where you left off"**: the lesson to pick up, its course and module, the course's progress bar, and a button. The button reads "Resume at 23:12" when the lesson was left part-way; the lesson page (#35) then starts the video there.
+- **My courses:** a card per enrolled course with its thumbnail, domain, next lesson, progress bar, and Start / Continue / Review.
+- **Recently completed:** the last five completed lessons, newest first, with relative times ("2 hours ago"), each linking back to the lesson.
+- **Empty state** for learners with no course yet, linking to the domains page. When every course is finished, the dashboard says so instead.
+
+**API (a small vertical slice):**
+
+- **`GET /me/completed-lessons?limit=`** (1–20, default 5) is new. `/me/courses` (#33) has no list of completed lessons with their times, and building one from per-course progress would mean a request per course. It returns completed lessons from published courses, newest `completedAt` first. A lesson marked "not complete" again drops out, because its status is checked, not just the timestamp.
+- **`/me/courses` now gives `lastLesson.status`.** The dashboard has to tell "left part-way" (resume that lesson) from "just finished" (go to the next one). This is an additive change; the shared contract, API and e2e test changed together.
+
+**Design decisions:**
+
+- **One rule for "where to pick a course up" (D111).** `resumeLesson` returns the lesson last opened if it isn't completed, with its position (positions under 5 s don't count, as in D103); otherwise the course's next lesson (SPEC §7.3).
+  - The continue card and each course card's button both use it, so they never disagree.
+  - It is a pure function, unit-tested with the other dashboard choices.
+- **Studied beats enrolled (D112).** `/me/courses` sorts by latest activity, and enrolling counts as activity. So a course enrolled in a minute ago, but never opened, would otherwise displace the course the learner is in the middle of.
+  - The continue card therefore takes the most recently _studied_ unfinished course, and falls back to the newest unfinished course ("Ready to start") only when nothing has been studied.
+  - The browser run caught exactly this case: enrolling in a second course left the card on the first.
+- **Always fresh (D113).** The dashboard's queries refetch on every visit, because progress changes on other pages, tabs and devices. The page is client-rendered behind the sign-in proxy, like the lesson page. One progress-bar component now serves both the lesson sidebar and the dashboard.
+
+**Verification:**
+
+- **e2e** (1 new test):
+  - completed lessons newest first, with module and course;
+  - an undone completion and a now-unpublished course are both excluded;
+  - `limit=1` works; `limit=0`, `limit=21` and unknown parameters give 400; unauthenticated gives 401.
+  - `/me/courses` reports the last lesson's status.
+  - **Mutation check:** dropping the status and published filters fails the test.
+- **Unit tests** (6): resume part-way vs move on, the 5 s floor, studied beats enrolled, finished courses skipped, and Start / Continue / Review (the same lesson as the continue card).
+- **Component tests** (4, jsdom): the empty state with its link; continue + cards + progress + recent list ("2 hours ago"); every course finished; retry on error.
+- **The issue's done condition, in a real browser** (headless Chrome, both dev and a **production build**), a newly registered student:
+  1. **No courses:** the empty state, linking to `/domains`.
+  2. **After watching lesson 1 from 23:10 for a few seconds:** "Continue where you left off · Databases, Tables and Keys · Resume at 23:13", which opened the lesson with the player at `start=1393`.
+  3. **After completing two lessons and enrolling in a second course:** "2 courses · 2 lessons completed". The card stayed on Database Fundamentals at "Relationships and Keys", 50%. The new course showed 0 of 25 with Start. Recently completed listed lesson 2 then lesson 1, "just now".
+  - No console errors.
+- **Full checks:** format, lint and typecheck are clean; the build passes. Tests: shared 85, API 40 unit + 89 e2e, web 122, AI 236.
+- **References:** no new technology or method; the dashboard uses libraries and patterns already cited.
+
 ---
 
 ## Decision log
@@ -1654,3 +1697,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D108 | 2026-10-11 | Mark complete / not complete send explicit statuses; crossing 90% saves at once; toasts from the cached status before vs after a save; status changes refetch progress               | Immediate, consistent feedback for both completion paths; the "next lesson" stays right                                                                                                                   |
 | D109 | 2026-10-11 | Course call to action from one pure function (enroll → start → continue → completed); enrolling then `GET /next`; later visits use `next` from the progress request                  | Testable states; one request per visit, the same rule as the API                                                                                                                                          |
 | D110 | 2026-10-11 | Keep the 90% auto-completion per video; lessons sharing a long video rely on Mark complete                                                                                           | Generated courses are one lesson per video; per-lesson ranges would need a schema change (noted for evaluation)                                                                                           |
+| D111 | 2026-10-11 | One "where to pick a course up" rule (last lesson if unfinished, with its position; else the next lesson), shared by the continue card and course cards                              | The two never disagree; pure and unit-tested                                                                                                                                                              |
+| D112 | 2026-10-11 | The continue card prefers the most recently studied unfinished course over one only just enrolled in                                                                                 | Enrolling counts as activity in `/me/courses`; it must not displace the course in progress                                                                                                                |
+| D113 | 2026-10-11 | New `GET /me/completed-lessons` and `lastLesson.status` in `/me/courses`; dashboard queries always refetch                                                                           | One request for the recent list; resume vs move on needs the status; progress changes elsewhere                                                                                                           |

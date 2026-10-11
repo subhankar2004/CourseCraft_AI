@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type {
+  CompletedLesson,
   Enrollment,
   LessonProgress,
   MyCourse,
@@ -164,6 +165,7 @@ export class LearningService {
             last && lastRow
               ? {
                   ...last,
+                  status: lastRow.status,
                   lastPositionSec: lastRow.lastPositionSec,
                   studiedAt: lastRow.updatedAt.toISOString(),
                 }
@@ -173,6 +175,39 @@ export class LearningService {
       };
     });
     return courses.sort((a, b) => b.activity.getTime() - a.activity.getTime()).map((c) => c.course);
+  }
+
+  /** Lessons the user completed, most recent first, in published courses only. */
+  async completedLessons(userId: string, limit: number): Promise<CompletedLesson[]> {
+    const rows = await this.prisma.lessonProgress.findMany({
+      where: {
+        userId,
+        status: 'COMPLETED',
+        completedAt: { not: null },
+        lesson: { module: { course: { status: 'PUBLISHED' } } },
+      },
+      orderBy: [{ completedAt: 'desc' }, { lessonId: 'asc' }],
+      take: limit,
+      select: {
+        completedAt: true,
+        lesson: {
+          select: {
+            id: true,
+            title: true,
+            module: {
+              select: { title: true, course: { select: { id: true, slug: true, title: true } } },
+            },
+          },
+        },
+      },
+    });
+    return rows.map(({ completedAt, lesson }) => ({
+      lessonId: lesson.id,
+      title: lesson.title,
+      moduleTitle: lesson.module.title,
+      course: lesson.module.course,
+      completedAt: completedAt!.toISOString(),
+    }));
   }
 
   /** Lessons of each course in course order (module order, then lesson order). */

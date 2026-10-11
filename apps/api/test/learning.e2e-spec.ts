@@ -1,5 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import {
+  completedLessonSchema,
   lessonProgressSchema,
   myCourseProgressSchema,
   myCourseSchema,
@@ -189,7 +190,7 @@ describe('Enrollment, progress and next lesson (e2e)', () => {
     expect(mine.map((c) => c.course.id)).toEqual([newer.course.id, older.course.id]); // no unpublished course
     expect(mine[1]).toMatchObject({
       progress: { completed: 1, total: 3, percent: 33 },
-      lastLesson: { id: older.l2, title: 'L2', lastPositionSec: 30 },
+      lastLesson: { id: older.l2, title: 'L2', status: 'IN_PROGRESS', lastPositionSec: 30 },
       next: { id: older.l2 },
     });
     expect(mine[0]).toMatchObject({
@@ -197,6 +198,39 @@ describe('Enrollment, progress and next lesson (e2e)', () => {
       next: { id: newer.l1 },
       progress: { percent: 0 },
     });
+  });
+
+  it('lists recently completed lessons, newest first, from published courses only', async () => {
+    const shown = await makeCourse();
+    const hidden = await makeCourse();
+    const learner = as((await signInAs(app, scope, 'STUDENT')).cookie);
+    const complete = (lessonId: string) =>
+      learner.put(`/lessons/${lessonId}/progress`, { status: 'COMPLETED', lastPositionSec: 100 });
+    await learner.get('/me/completed-lessons').expect(200, []);
+
+    for (const lessonId of [shown.l1, shown.l3, hidden.l1, shown.l2]) {
+      await complete(lessonId).expect(200);
+      await new Promise((resolve) => setTimeout(resolve, 5)); // distinct completion times
+    }
+    // Undone completions and in-progress lessons are not listed.
+    await learner
+      .put(`/lessons/${shown.l3}/progress`, { status: 'IN_PROGRESS', lastPositionSec: 10 })
+      .expect(200);
+    await prisma.course.update({ where: { id: hidden.course.id }, data: { status: 'DRAFT' } });
+
+    const list = completedLessonSchema
+      .array()
+      .parse((await learner.get('/me/completed-lessons').expect(200)).body);
+    expect(list.map((l) => [l.title, l.moduleTitle, l.course.slug])).toEqual([
+      ['L2', 'M1', shown.course.slug],
+      ['L1', 'M1', shown.course.slug],
+    ]);
+    const limited = await learner.get('/me/completed-lessons?limit=1').expect(200);
+    expect(limited.body).toHaveLength(1);
+    await learner.get('/me/completed-lessons?limit=0').expect(400);
+    await learner.get('/me/completed-lessons?limit=21').expect(400);
+    await learner.get('/me/completed-lessons?other=1').expect(400);
+    await request(app.getHttpServer()).get('/api/v1/me/completed-lessons').expect(401);
   });
 
   it('only works on published courses, for signed-in users, with valid input', async () => {

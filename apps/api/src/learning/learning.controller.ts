@@ -1,5 +1,18 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put } from '@nestjs/common';
 import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
+import {
+  type CompletedLesson,
+  type CompletedLessonsQuery,
+  completedLessonsQuerySchema,
   type Enrollment,
   type LessonProgress,
   type MyCourse,
@@ -46,5 +59,13 @@ export class LearningController {
   @Get('me/courses')
   myCourses(@CurrentUser() user: AuthUser): Promise<MyCourse[]> {
     return this.learning.myCourses(user.id);
+  }
+
+  @Get('me/completed-lessons')
+  completedLessons(
+    @Query(new ZodValidationPipe(completedLessonsQuerySchema)) query: CompletedLessonsQuery,
+    @CurrentUser() user: AuthUser,
+  ): Promise<CompletedLesson[]> {
+    return this.learning.completedLessons(user.id, query.limit);
   }
 }
