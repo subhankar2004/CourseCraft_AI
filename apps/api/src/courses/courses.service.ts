@@ -1,10 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import type {
-  CourseDetail,
-  CourseList,
-  CourseListQuery,
-  LessonDetail,
-  Role,
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  type CourseDetail,
+  type CourseList,
+  type CourseListQuery,
+  formatTimestamp,
+  invalidAnchors,
+  type LessonDetail,
+  readingTimeMinutes,
+  type Role,
+  type UpdateLessonInput,
 } from '@coursecraft/shared';
 import type { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -162,5 +171,46 @@ export class CoursesService {
       prevLessonId: ordered[index - 1]?.id ?? null,
       nextLessonId: ordered[index + 1]?.id ?? null,
     };
+  }
+
+  /**
+   * Admin edit of a lesson (#32). Notes are not embedded (the chatbot searches transcript
+   * chunks), so no re-indexing is needed; the reading time follows the new notes.
+   */
+  async updateLesson(id: string, input: UpdateLessonInput): Promise<LessonDetail> {
+    const lesson = await this.prisma.lesson.findUnique({
+      where: { id },
+      select: {
+        video: { select: { durationSec: true } },
+        module: { select: { course: { select: { status: true } } } },
+      },
+    });
+    if (!lesson) throw new NotFoundException('Lesson not found');
+    if (lesson.module.course.status === 'GENERATING') {
+      throw new ConflictException(
+        'The course is still being generated; wait for its job to finish',
+      );
+    }
+    if (input.notesMarkdown !== undefined) {
+      const bad = invalidAnchors(input.notesMarkdown, lesson.video.durationSec);
+      if (bad.length > 0) {
+        const end = formatTimestamp(lesson.video.durationSec);
+        throw new BadRequestException(
+          bad.map(
+            (a) => `notesMarkdown: ${a.raw} is not a valid time in this video (it ends at ${end})`,
+          ),
+        );
+      }
+    }
+    await this.prisma.lesson.update({
+      where: { id },
+      data: {
+        ...input,
+        ...(input.notesMarkdown !== undefined && {
+          readingTimeMin: readingTimeMinutes(input.notesMarkdown),
+        }),
+      },
+    });
+    return this.getLesson(id, 'ADMIN');
   }
 }

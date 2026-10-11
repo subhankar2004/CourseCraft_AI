@@ -173,3 +173,21 @@ export const courseOutlineUpdateSchema = z.strictObject({
 export type AdminCourseDetail = z.infer<typeof adminCourseDetailSchema>;
 export type UpdateCourseInput = z.infer<typeof updateCourseSchema>;
 export type CourseOutlineUpdate = z.infer<typeof courseOutlineUpdateSchema>;
+
+// ─── Notes editing (#32) ────────────────────────────────────────────────────
+
+/** `PATCH /lessons/:id` (admin). Reading time is recomputed from the notes. */
+export const updateLessonSchema = z
+  .strictObject({
+    title: z.string().trim().min(1, 'Title is required').max(200),
+    summary: z.string().trim().max(2000).nullable(),
+    keyConcepts: z
+      .array(z.string().trim().min(1).max(80))
+      .max(20, 'At most 20 key concepts')
+      .transform((items) => [...new Set(items)]),
+    notesMarkdown: z.string().trim().min(1, 'Notes cannot be empty').max(100_000),
+  })
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, 'Provide at least one field to update');
+
+export type UpdateLessonInput = z.infer<typeof updateLessonSchema>;

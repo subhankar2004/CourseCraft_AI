@@ -62,6 +62,7 @@ import {
 } from '@/lib/admin/outline';
 import { ApiError } from '@/lib/api';
 import { formatDuration, plural } from '@/lib/format';
+import { NotesMarkdown } from '@/components/notes/notes-markdown';
 import { OutlineEditor } from './outline-editor';
 import { StatusBadge } from './status-badge';
 
@@ -479,7 +480,7 @@ function DeleteDialog({ course, onCancel }: { course: AdminCourseDetail; onCance
   );
 }
 
-/** The lesson as students will see it (the formatted notes renderer arrives in #34). */
+/** The lesson as students will see it (anchors become clickable on the lesson page, #34). */
 function LessonPreview({ lessonId, onClose }: { lessonId: string | null; onClose: () => void }) {
   const { data: lesson, isPending } = useLessonPreview(lessonId);
   return (
@@ -491,6 +492,16 @@ function LessonPreview({ lessonId, onClose }: { lessonId: string | null; onClose
             {lesson ? `${lesson.module.title} · lesson preview` : 'Loading…'}
           </SheetDescription>
         </SheetHeader>
+        {lesson && (
+          <div className="px-4">
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/admin/lessons/${lesson.id}`}>
+                <PencilIcon aria-hidden />
+                Edit notes
+              </Link>
+            </Button>
+          </div>
+        )}
         {isPending || !lesson ? (
           <div className="grid gap-3 px-4">
             <Skeleton className="aspect-video w-full" />
@@ -527,9 +538,7 @@ function LessonPreview({ lessonId, onClose }: { lessonId: string | null; onClose
                 ))}
               </ul>
             )}
-            <pre className="rounded-lg bg-muted/50 p-3 text-xs leading-relaxed break-words whitespace-pre-wrap">
-              {lesson.notesMarkdown}
-            </pre>
+            <NotesMarkdown markdown={lesson.notesMarkdown} className="rounded-lg border p-3" />
           </div>
         )}
       </SheetContent>

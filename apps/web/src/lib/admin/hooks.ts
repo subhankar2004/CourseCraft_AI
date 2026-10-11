@@ -5,8 +5,10 @@ import {
   adminCourseDetailSchema,
   adminCourseSchema,
   type CourseOutlineUpdate,
+  type LessonDetail,
   lessonDetailSchema,
   type UpdateCourseInput,
+  type UpdateLessonInput,
   type Domain,
   domainSchema,
   type GenerateCourseBody,
@@ -277,5 +279,25 @@ export function useDeleteCourse(course: AdminCourseDetail) {
   return useMutation({
     mutationFn: () => api(`courses/${course.id}`, { method: 'DELETE' }),
     onSuccess: () => after(null),
+  });
+}
+
+// ─── Notes editing (#32) ──────────────────────────────────────────────────
+
+export function useUpdateLesson(lesson: LessonDetail) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdateLessonInput) =>
+      api(`lessons/${lesson.id}`, { method: 'PATCH', json: body, schema: lessonDetailSchema }),
+    onSuccess: async (updated) => {
+      queryClient.setQueryData(['lesson', lesson.id], updated);
+      await queryClient.invalidateQueries({ queryKey: adminCourseKey(lesson.course.id) });
+      try {
+        // The public course page lists lesson titles and reading times.
+        await refreshCatalog(courseCatalogTags([lesson.course.slug], []));
+      } catch {
+        toast.warning('Saved, but public pages may take a while to show the change.');
+      }
+    },
   });
 }
