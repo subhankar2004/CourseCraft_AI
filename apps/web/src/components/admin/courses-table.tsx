@@ -157,6 +157,11 @@ function CourseRow({ course }: { course: AdminCourse }) {
             {job.error}
           </p>
         )}
+        {job && (course.status === 'GENERATING' || course.status === 'FAILED') && (
+          <Link href={`/admin/jobs/${job.id}`} className="mt-1 inline-block text-xs underline">
+            {course.status === 'FAILED' ? 'Details and retry' : 'View progress'}
+          </Link>
+        )}
       </td>
       <td
         className={cn(

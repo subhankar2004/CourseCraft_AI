@@ -103,14 +103,15 @@ export const jobDetailSchema = z.object({
 
 /**
  * `GET /jobs/:id/events` (SSE). Event names: `job` (snapshot, first), `progress` (each change),
- * then `done` (SUCCEEDED) or `error` (FAILED) with the final job, after which the stream closes.
+ * then `done` (SUCCEEDED) or `failed` (FAILED) with the final job, after which the stream closes.
+ * (`failed`, not `error`: a browser EventSource dispatches `error` for connection problems.)
  * `ping` events keep idle connections open.
  */
 export const jobStreamEvents = {
   job: jobDetailSchema,
   progress: ingestionEventSchema,
   done: jobDetailSchema,
-  error: jobDetailSchema,
+  failed: jobDetailSchema,
 } as const;
 
 export type GenerateCourseBody = z.input<typeof generateCourseSchema>;

@@ -80,6 +80,6 @@ describe('JobsController.events (SSE ordering)', () => {
     const out = await firstValueFrom(
       (await new JobsController(jobs, hub).events('j1')).pipe(toArray()),
     );
-    expect(out.map((m) => m.type)).toEqual(['job', 'error']);
+    expect(out.map((m) => m.type)).toEqual(['job', 'failed']);
   });
 });

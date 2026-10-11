@@ -81,7 +81,7 @@ export class JobsController {
   }
 
   /**
-   * Live progress (SSE): `job` (snapshot), `progress`*, then `done` or `error` and the stream
+   * Live progress (SSE): `job` (snapshot), `progress`*, then `done` or `failed` and the stream
    * ends. A finished job gets its snapshot and final event at once.
    */
   @Sse(':id/events')
@@ -96,7 +96,8 @@ export class JobsController {
         if (closed) return;
         closed = true;
         const final = await this.jobs.get(id);
-        subscriber.next({ type: final.status === 'SUCCEEDED' ? 'done' : 'error', data: final });
+        // `failed`, not `error`: a browser EventSource uses `error` for connection problems.
+        subscriber.next({ type: final.status === 'SUCCEEDED' ? 'done' : 'failed', data: final });
         subscriber.complete();
       };
       const onEvent = (event: IngestionEvent) => {

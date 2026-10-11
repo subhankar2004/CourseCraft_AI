@@ -1193,6 +1193,46 @@ Both were then reverted. The new tests also passed on the first run, which is wh
 
 ---
 
+## Entry 30 — Generate a course from the browser, with live progress (Issue #30, PR #81, 2026-10-11)
+
+**What:**
+
+- **`/admin/courses/new`:** a form with a domain select, "Video URLs" (one per line) or "Playlist URL", and an optional title hint.
+  - Every line is checked with the shared YouTube parser (#28) as you type ("3 videos ready, 1 duplicate ignored, 1 line to fix").
+  - Errors name their line ("Line 2: not a YouTube video URL"), so the API is only called with valid, canonical URLs.
+- **`/admin/jobs/[id]`:** live progress over Server-Sent Events [R60]. It is a page of its own, so it survives a refresh and the course list can link to it ("View progress", "Details and retry"). It shows:
+  - a 5-step stepper (`aria-current="step"`) and an overall progress bar;
+  - every video's status, with a spinner only on the one being worked on;
+  - the truncation note when a playlist exceeds `MAX_VIDEOS_PER_COURSE`;
+  - an automatic-retry notice during outages, and the failure reason with a **Retry** button (#28's resume);
+  - when the job finishes **while watched**, a toast and a redirect to the course list. The review page that #31 adds will become the target.
+
+  ARIA roles and states follow WAI-ARIA 1.2 [R141].
+
+- **The browser side of SSE:** an `EventSource` with credentials, closed on purpose at the end; otherwise browsers reconnect forever. A pure, unit-tested reducer applies events on top of the snapshot.
+
+**Design changes made while building it:**
+
+- **The final SSE event is now `failed`, not `error` (D84).** A browser `EventSource` dispatches `error` for connection problems, so a server event with that name is ambiguous. It was renamed in the contract, API, tests and docs while the only consumer was our own code.
+- **Refetch the snapshot when the picture changes (D85).** Events only update what the page already knows. A page that connects before the metadata stage would never learn the video list; the first real run showed exactly that, an empty list during transcripts. The page now re-reads the job when the stage changes or an event names an unknown video. The rule is unit-tested, and the current job is kept in a ref so the decision is made synchronously in the event handler.
+- **URL hooks inside `Suspense` (D86).** `/admin/jobs/[id]` is the first route with a dynamic parameter that isn't prerendered. Under Cache Components, every client component reading the URL suspends there, including the site header's nav (#13) and the admin sidebar (#29); the dev overlay reported it. Both are now wrapped in `<Suspense>` with the same links (no active item) as the fallback, as the Next.js docs prescribe [R50], and the page prerenders as a partial shell (◐). This is now an AGENTS.md rule.
+- **Redirect only after watching (D87).** Opening an already finished job used to bounce to the list within 2.5 s, so its summary could never be read. It now redirects only when the job finished while the page was open.
+- React Compiler compatibility: the form uses `useWatch` rather than react-hook-form's `watch()`, which the compiler can't optimise.
+
+**Verification (the issue's done-condition):**
+
+- **A real playlist through every stage, in the UI.** Headless Chrome drove the form against the real local stack (Ollama `llama3.1:8b`, `nomic-embed-text`, pgvector). Input: Fireship's "100 Seconds of Code", **164 videos, truncated to the first 25** (the note appeared).
+  - Client validation was checked first: no domain, and a bad line 2, both reported.
+  - The stages: METADATA → TRANSCRIPT (all 25 from captions, no Whisper; reached 25% at 103 s) → NOTES (25/25 lessons, **0 failed**) → STRUCTURING (at 2,767 s) → DONE, then the redirect to the course list (at 2,822 s).
+  - **Total 46 min 56 s:** about 90 s per 100-second lesson on a laptop while builds and browsers ran alongside. That's 52 LLM calls (44,931 input / 30,630 output tokens).
+  - **Result:** "Web Development Fundamentals" (Intermediate, DRAFT, **6 modules, 25 lessons**).
+- **The outline repair (#25) under real load.** With 25 lessons, `llama3.1:8b` misplaced 5 (20%: one lesson placed twice, four missing) and produced one empty module. The repair fixed all of it and reported each change; at 20% it stayed under the 30% retry threshold. This is the first real evidence that small models need this repair at larger course sizes.
+- **The video-list fix, checked on the same live run in a fresh tab:** all 25 videos listed, live updates (2 → 3 lessons ready, 30% → 33%), no console errors.
+- **A fresh load of the finished job:** the summary with all steps completed, no redirect, no console errors. The production build passes.
+- **Web: 11 new unit tests** (52 total) for line parsing, the form body, the event reducer, the stepper, the snapshot rule, the "working" video and the truncation note. API: the SSE tests updated for `failed`. All checks pass.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -1282,3 +1322,7 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D81 | 2026-10-11 | Admin changes refresh the cached public catalog through a **Server Action** (`updateTag` on exactly the affected tags) that re-checks the caller with the API                 | Read-your-own-writes for the admin without giving up hours-long caching for visitors; Server Actions are public endpoints, so authorisation is checked inside [R50]                                       |
 | D82 | 2026-10-11 | Cache freshness is verified against a **production build**; `next dev` may serve one stale response after `updateTag`                                                         | Measured: production showed changes on the next request (2/2 runs), dev lagged; judging caching on the dev server would chase a non-bug                                                                   |
 | D83 | 2026-10-11 | Admin screens are client components on TanStack Query; polling only while a course is generating                                                                              | Per-user, uncacheable data; no cookie reads in Server Components (AGENTS.md); no needless traffic when idle [R62]                                                                                         |
+| D84 | 2026-10-11 | The final SSE event of a failed job is `failed`, not `error`                                                                                                                  | `error` is a browser EventSource's own connection-error event; reusing the name makes clients guess                                                                                                       |
+| D85 | 2026-10-11 | The progress page re-reads the job snapshot when the stage changes or an event names an unknown video                                                                         | Events are deltas; a page that connected early would never learn the video list (seen on the first real run)                                                                                              |
+| D86 | 2026-10-11 | Client components that read the URL render inside `<Suspense>` with a URL-independent fallback                                                                                | Required under Cache Components on routes with non-prerendered params; keeps the shared layout prerendered [R50]                                                                                          |
+| D87 | 2026-10-11 | The job page redirects only when the job finished while the page was open                                                                                                     | A finished job's page is a useful summary; bouncing away made it unreadable                                                                                                                               |

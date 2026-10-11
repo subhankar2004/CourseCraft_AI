@@ -402,9 +402,9 @@ Meta: phase=P3 | area=web | type=feat | depends=28,29
 **Goal:** The SPEC §10 `/admin/courses/new` page.
 **Tasks**
 
-- [ ] Form: domain select, textarea for URLs or a playlist URL, optional title hint; client-side URL validation
-- [ ] After submitting: a stepper over the job stages via SSE, per-video status list, error display with a Retry button
-- [ ] When the job is done, redirect to the review page
+- [x] Form: domain select, textarea for URLs or a playlist URL, optional title hint; client-side URL validation
+- [x] After submitting: a stepper over the job stages via SSE, per-video status list, error display with a Retry button
+- [x] When the job is done, redirect to the review page (the course list until the review page exists, #31)
 
 **Done when:** A real playlist goes through all stages in the UI.
 
