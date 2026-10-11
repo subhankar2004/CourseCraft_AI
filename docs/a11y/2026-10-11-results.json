@@ -1,0 +1,647 @@
+{
+  "tools": {
+    "axe-core": "4.14.0",
+    "lighthouse": "13.5.0",
+    "chrome": "154.0.8037.93"
+  },
+  "audit": [
+    {
+      "page": "Landing",
+      "role": "visitor",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Landing",
+      "role": "visitor",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Landing",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Landing",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Domains",
+      "role": "visitor",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Domains",
+      "role": "visitor",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Domains",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Domains",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Domain",
+      "role": "visitor",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Domain",
+      "role": "visitor",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Domain",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Domain",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Course",
+      "role": "visitor",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Course",
+      "role": "visitor",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Course",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Course",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Sign in",
+      "role": "visitor",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Sign in",
+      "role": "visitor",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Sign in",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Sign in",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Register",
+      "role": "visitor",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Register",
+      "role": "visitor",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Register",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Register",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Not found",
+      "role": "visitor",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Not found",
+      "role": "visitor",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Not found",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Not found",
+      "role": "visitor",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Course (student)",
+      "role": "student",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Course (student)",
+      "role": "student",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Course (student)",
+      "role": "student",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Course (student)",
+      "role": "student",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Dashboard",
+      "role": "student",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Dashboard",
+      "role": "student",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Dashboard",
+      "role": "student",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Dashboard",
+      "role": "student",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Lesson",
+      "role": "student",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Lesson",
+      "role": "student",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Lesson",
+      "role": "student",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Lesson",
+      "role": "student",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Forbidden",
+      "role": "student",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Forbidden",
+      "role": "student",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Forbidden",
+      "role": "student",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Forbidden",
+      "role": "student",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin courses",
+      "role": "admin",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin courses",
+      "role": "admin",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Admin courses",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin courses",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin new course",
+      "role": "admin",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin new course",
+      "role": "admin",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Admin new course",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin new course",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin course review",
+      "role": "admin",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin course review",
+      "role": "admin",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Admin course review",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin course review",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin lesson editor",
+      "role": "admin",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin lesson editor",
+      "role": "admin",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Admin lesson editor",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin lesson editor",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin domains",
+      "role": "admin",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin domains",
+      "role": "admin",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Admin domains",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin domains",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin job",
+      "role": "admin",
+      "width": 360,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin job",
+      "role": "admin",
+      "width": 768,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": null
+    },
+    {
+      "page": "Admin job",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "light",
+      "overflowPx": 0,
+      "axeViolations": []
+    },
+    {
+      "page": "Admin job",
+      "role": "admin",
+      "width": 1280,
+      "scheme": "dark",
+      "overflowPx": 0,
+      "axeViolations": []
+    }
+  ],
+  "lighthouse": {
+    "landing-mobile": {
+      "url": "/",
+      "lighthouseVersion": "13.5.0",
+      "fetchTime": "2026-10-11T12:29:44.498Z",
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "failedAudits": []
+    },
+    "landing-desktop": {
+      "url": "/",
+      "lighthouseVersion": "13.5.0",
+      "fetchTime": "2026-10-11T12:29:54.491Z",
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "failedAudits": []
+    },
+    "course-mobile": {
+      "url": "/courses/database-fundamentals",
+      "lighthouseVersion": "13.5.0",
+      "fetchTime": "2026-10-11T12:30:04.247Z",
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "failedAudits": []
+    },
+    "course-desktop": {
+      "url": "/courses/database-fundamentals",
+      "lighthouseVersion": "13.5.0",
+      "fetchTime": "2026-10-11T12:30:14.532Z",
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "failedAudits": []
+    },
+    "lesson-mobile": {
+      "url": "/learn/database-fundamentals/cmv1x6br2000av13htm1icmv2",
+      "lighthouseVersion": "13.5.0",
+      "fetchTime": "2026-10-11T12:30:24.376Z",
+      "accessibility": 100,
+      "best-practices": 96,
+      "seo": 100,
+      "failedAudits": ["inspector-issues"]
+    },
+    "lesson-desktop": {
+      "url": "/learn/database-fundamentals/cmv1x6br2000av13htm1icmv2",
+      "lighthouseVersion": "13.5.0",
+      "fetchTime": "2026-10-11T12:30:37.328Z",
+      "accessibility": 100,
+      "best-practices": 96,
+      "seo": 100,
+      "failedAudits": ["inspector-issues"]
+    }
+  },
+  "keyboard": [
+    {
+      "role": "visitor",
+      "path": "/",
+      "stops": 15,
+      "missing": []
+    },
+    {
+      "role": "visitor",
+      "path": "/courses/database-fundamentals",
+      "stops": 16,
+      "missing": []
+    },
+    {
+      "role": "visitor",
+      "path": "/login",
+      "stops": 6,
+      "missing": []
+    },
+    {
+      "role": "student",
+      "path": "/dashboard",
+      "stops": 16,
+      "missing": []
+    },
+    {
+      "role": "student",
+      "path": "/learn/database-fundamentals/cmv1x6br2000av13htm1icmv2",
+      "stops": 13,
+      "missing": []
+    },
+    {
+      "role": "admin",
+      "path": "/admin/courses",
+      "stops": 23,
+      "missing": []
+    }
+  ]
+}

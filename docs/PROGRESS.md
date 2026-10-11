@@ -1579,6 +1579,53 @@ Also: the mobile switch first had lowercase labels styled with `capitalize`, so 
 - **Full checks:** format, lint and typecheck are clean; the build passes. Tests: shared 85, API 40 unit + 89 e2e, web 122, AI 236.
 - **References:** no new technology or method; the dashboard uses libraries and patterns already cited.
 
+## Entry 38 — Responsiveness and accessibility pass (Issue #38, PR #89, 2026-10-11) · P4 complete
+
+**What:** an audit of every page before the chat is added, the fixes it called for, and a repeatable procedure. The report is [docs/a11y/README.md](a11y/README.md); the scripts are in `scripts/a11y/`.
+
+**Method.** Everything ran against a production build with the seeded data, in headless Chrome 154 through playwright-core. The tools were installed outside the repository, so no dependency was added.
+
+- **Coverage:** 17 views (public, student and admin) at 360, 768 and 1280 px, plus dark mode at 1280: 68 combinations.
+- **Overflow:** horizontal page scroll, and the elements past the right edge that no ancestor clips.
+- **axe-core 4.14** [R157]: WCAG 2.0, 2.1 and 2.2 A/AA plus best practices, the WCAG 2.2 AA target [R105].
+- **Keyboard:** a Tab walk that flags any stop without a visible focus indicator.
+- **Lighthouse 13.5** [R158]: accessibility, best practices and SEO, mobile and desktop, on the three pages the issue names. The lesson page was audited signed in, by passing the session cookie as a header.
+
+**What the first run found, and the fixes:**
+
+1. **Contrast, 4.34:1** for small muted text on muted chips. shadcn's default `--muted-foreground` (oklch 0.556) is too light on `--muted` (#f5f5f5). Changed to oklch 0.52 for the light theme (≈ 5.0:1); dark already passed.
+2. **No `h1`** on sign in and register: the card title was a `div`.
+3. **Label vs visible text.** The account button's `aria-label` didn't contain its visible initials (WCAG 2.5.3). The button is now named by its content: the initials are hidden from assistive technology, and the user's name stays readable to screen readers on phones.
+4. **Unfocusable scroll areas.** Wide code blocks in notes scrolled sideways but couldn't take focus, so keyboard users couldn't scroll them. The `pre` is focusable now, with a ring. The copy button is always visible on touch screens, which have no hover.
+5. **Admin pages scrolled sideways on phones**, by up to 347 px. The cause is a general CSS Grid rule (D114):
+   - A vertical stack written `grid gap-*` has one implicit `auto` column. Its minimum is the largest _min-content_ contribution of its items [R160].
+   - A `truncate` title (`white-space: nowrap`) contributes its full text width, even inside a `min-w-0` flex item.
+   - So one long video title widened the whole page.
+   - **Fix:** `grid-cols-1` (`minmax(0, 1fr)`) on the stacks that hold such content, and a rule in AGENTS.md. A global default for every `.grid` was considered but rejected: cards and the lesson editor rely on explicit column placement.
+6. **The domains table escaped its scroll box.** The table did scroll inside `overflow-x-auto`, but its `sr-only` "Actions" header is absolutely positioned. Its containing block lay outside the scroll box, so nothing clipped it and the page grew by 139 px. Fixed with `relative` on the scroll box.
+7. **Outline rows on phones** cut lesson titles to three letters. The rows now wrap, with the title kept at least 8 rem wide.
+8. **The Tab order on the lesson page skipped the header.** The first Tab went to the lesson _after_ the current one.
+   - The sidebar scrolled the current lesson into view with `scrollIntoView`, and in Chrome 154 that also moved the _sequential focus navigation starting point_ [R159].
+   - This is observed behaviour, not specified. The HTML Standard lets a browser move the starting point when the user indicates it (its example is a click) and requires it on fragment navigation; it says nothing about scripted scrolling, so other browsers may differ.
+   - **Fix (D115):** the sidebar scrolls its own container (`scrollTop`). A test asserts `scrollIntoView` isn't called. This also removes the promise-returning call behind #36's bug.
+9. **No bypass block (D116).** A "Skip to main content" link is now the first Tab stop on every page, and `main` takes the focus (WCAG 2.4.1). This matters most on the lesson page, where the sidebar's lessons come before the player.
+
+**Results after the fixes:**
+
+- All 68 combinations: no horizontal scroll and no axe violation.
+- **Lighthouse accessibility is 100 on all six runs** (landing, course and lesson; mobile and desktop), against the issue's threshold of 90. Best practices and SEO are 100, except best practices 96 on the lesson page: a cookie warning raised inside YouTube's embedded player, which the app can't change.
+- The Tab walk found a focus indicator at every stop on six pages.
+- A spot check: opening lesson 23 of 25 scrolls the sidebar with the current lesson visible; the first Tab reaches the skip link, and Enter moves focus to `main`.
+- **Unit and component tests** all pass (web 122), with format, lint, typecheck and build clean.
+
+**Limits (stated in the report):**
+
+- Automated checks find only part of all accessibility problems, and no manual screen-reader session was run.
+- axe can't look inside the cross-origin YouTube iframe.
+- Performance wasn't measured.
+
+**Decision (D117):** the audit is a script, not a CI job. It needs a production build, a seeded database and Chrome. Adding it to CI would need new dev dependencies (`axe-core`, `lighthouse`) beyond SPEC §4, so for now it is re-run by hand before each phase ends; moving it into CI is an option to decide later.
+
 ---
 
 ## Decision log
@@ -1700,3 +1747,7 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D111 | 2026-10-11 | One "where to pick a course up" rule (last lesson if unfinished, with its position; else the next lesson), shared by the continue card and course cards                              | The two never disagree; pure and unit-tested                                                                                                                                                              |
 | D112 | 2026-10-11 | The continue card prefers the most recently studied unfinished course over one only just enrolled in                                                                                 | Enrolling counts as activity in `/me/courses`; it must not displace the course in progress                                                                                                                |
 | D113 | 2026-10-11 | New `GET /me/completed-lessons` and `lastLesson.status` in `/me/courses`; dashboard queries always refetch                                                                           | One request for the recent list; resume vs move on needs the status; progress changes elsewhere                                                                                                           |
+| D114 | 2026-10-11 | Vertical `grid gap-*` stacks that can hold non-wrapping content use `grid-cols-1`; scroll boxes with `sr-only` content are `relative`                                                | An implicit `auto` grid column can't shrink below min-content [R160], and absolutely positioned descendants escape a scroll box that isn't their containing block                                         |
+| D115 | 2026-10-11 | The lesson sidebar scrolls its own container, never `scrollIntoView`                                                                                                                 | `scrollIntoView` moved Chrome's sequential focus starting point, so Tab skipped the header [R159]                                                                                                         |
+| D116 | 2026-10-11 | A "Skip to main content" link first on every page; `main` focusable; light `--muted-foreground` 0.556 → 0.52                                                                         | WCAG 2.4.1 bypass blocks and 1.4.3 contrast for small muted text [R105]                                                                                                                                   |
+| D117 | 2026-10-11 | The accessibility audit is a script run by hand before each phase ends, not a CI job                                                                                                 | It needs a production build, a seeded database and Chrome; CI would need new dev dependencies beyond SPEC §4                                                                                              |

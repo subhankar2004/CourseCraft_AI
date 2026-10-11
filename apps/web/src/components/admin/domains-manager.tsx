@@ -53,7 +53,7 @@ export function DomainsManager() {
   const totals = courses.data ? coursesPerDomain(courses.data) : undefined;
 
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-4">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
           Subject areas that group courses. Students browse them at{' '}
@@ -91,7 +91,8 @@ export function DomainsManager() {
           No domains yet. Create the first one.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        // `relative`: absolutely positioned descendants (sr-only labels) are clipped here too.
+        <div className="relative overflow-x-auto rounded-lg border">
           <table className="w-full text-sm">
             <caption className="sr-only">Domains</caption>
             <thead className="bg-muted/50 text-left text-xs text-muted-foreground">

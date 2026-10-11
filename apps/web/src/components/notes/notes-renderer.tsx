@@ -170,15 +170,17 @@ function CodeBlock(props: ComponentProps<'pre'>) {
   };
   return (
     <div className="group relative my-4">
+      {/* Focusable, so a wide block can be scrolled with the arrow keys (WCAG 2.1.1). */}
       <pre
         ref={ref}
-        className="overflow-x-auto rounded-lg border bg-muted/40 p-4 text-[0.8rem] leading-relaxed [&>code]:bg-transparent [&>code]:p-0"
+        tabIndex={0}
+        className="overflow-x-auto rounded-lg border bg-muted/40 p-4 text-[0.8rem] leading-relaxed outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&>code]:bg-transparent [&>code]:p-0"
         {...props}
       />
       <button
         type="button"
         onClick={() => void copy()}
-        className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-md border bg-background/90 px-2 py-1 text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+        className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-md border bg-background/90 px-2 py-1 text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
         aria-label={copied ? 'Code copied' : 'Copy code'}
       >
         {copied ? (

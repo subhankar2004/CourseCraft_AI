@@ -105,7 +105,7 @@ export function OutlineEditor({ draft, onChange, lessons, disabled, onPreview }:
   };
 
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-1 gap-3">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -122,7 +122,7 @@ export function OutlineEditor({ draft, onChange, lessons, disabled, onPreview }:
           items={draft.map((m) => moduleDragId(m.key))}
           strategy={verticalListSortingStrategy}
         >
-          <ol className="grid gap-3" aria-label="Modules">
+          <ol className="grid grid-cols-1 gap-3" aria-label="Modules">
             {draft.map((module, index) => (
               <ModuleCard
                 key={module.key}
@@ -295,7 +295,7 @@ function LessonRow({
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className={cn(
-        'flex items-center gap-2 bg-card px-2 py-1.5 text-sm',
+        'flex flex-wrap items-center gap-2 bg-card px-2 py-1.5 text-sm',
         isDragging && 'relative z-10 shadow-md',
       )}
     >
@@ -313,7 +313,7 @@ function LessonRow({
       <span className="w-6 text-xs text-muted-foreground tabular-nums">{lessonIndex + 1}</span>
       <button
         type="button"
-        className="min-w-0 flex-1 truncate text-left hover:underline"
+        className="min-w-32 flex-1 truncate text-left hover:underline"
         onClick={() => onPreview(lessonId)}
         title="Preview the lesson"
       >
@@ -328,7 +328,7 @@ function LessonRow({
       {others.length > 0 && (
         <NativeSelect
           aria-label={`Move ${title} to another module`}
-          className="h-7 w-36 text-xs md:text-xs"
+          className="ml-auto h-7 w-36 text-xs md:text-xs"
           disabled={disabled}
           value=""
           onChange={(event) => onChange(moveLessonTo(draft, lessonId, event.target.value))}

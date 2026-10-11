@@ -503,10 +503,10 @@ Meta: phase=P4 | area=web | type=chore | depends=37
 **Goal:** Polish before adding chat.
 **Tasks**
 
-- [ ] Check every page at 360px, 768px and 1280px; fix overflow
-- [ ] Keyboard navigation, focus rings, aria labels, colour contrast (axe checks)
-- [ ] Lighthouse ≥ 90 for accessibility on the landing, course and lesson pages
-- [ ] Mark P4 done in AGENTS.md
+- [x] Check every page at 360px, 768px and 1280px; fix overflow
+- [x] Keyboard navigation, focus rings, aria labels, colour contrast (axe checks)
+- [x] Lighthouse ≥ 90 for accessibility on the landing, course and lesson pages
+- [x] Mark P4 done in AGENTS.md
 
 **Done when:** The Lighthouse/axe reports are attached to the PR.
 

@@ -14,7 +14,9 @@ export function AuthCard({
     <section className="mx-auto flex w-full max-w-md flex-col px-4 py-16">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{title}</CardTitle>
+          <CardTitle className="text-2xl">
+            <h1>{title}</h1>
+          </CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>{children}</CardContent>

@@ -102,7 +102,9 @@ export function CourseSidebar({ courseSlug }: { courseSlug: string }) {
               <SheetTitle>{course.title}</SheetTitle>
               {summary && <ProgressSummary {...summary} />}
             </SheetHeader>
-            <div className="overflow-y-auto">{tree(() => setSheetOpen(false))}</div>
+            <div data-lesson-scroller className="overflow-y-auto">
+              {tree(() => setSheetOpen(false))}
+            </div>
           </SheetContent>
         </Sheet>
         {summary && (
@@ -142,7 +144,12 @@ export function CourseSidebar({ courseSlug }: { courseSlug: string }) {
             {collapsed ? <PanelLeftOpenIcon /> : <PanelLeftCloseIcon />}
           </Button>
         </div>
-        <div id="course-lesson-tree" hidden={collapsed} className="flex-1 overflow-y-auto">
+        <div
+          id="course-lesson-tree"
+          data-lesson-scroller
+          hidden={collapsed}
+          className="flex-1 overflow-y-auto"
+        >
           {tree()}
         </div>
       </aside>
@@ -177,11 +184,13 @@ function LessonTree({
   onNavigate?: () => void;
 }) {
   const current = useRef<HTMLAnchorElement>(null);
-  // Keep the open lesson in view when moving through a long course.
-  // (A block body: scrollIntoView returns a promise in current browsers, and an effect may only
-  // return a cleanup function.)
+  // Keep the open lesson in view when moving through a long course. The list's own scroll
+  // container is scrolled: `scrollIntoView` would also move the browser's sequential focus
+  // starting point, so the next Tab would skip the header and land after this lesson.
   useEffect(() => {
-    current.current?.scrollIntoView({ block: 'nearest' });
+    const link = current.current;
+    const scroller = link?.closest<HTMLElement>('[data-lesson-scroller]');
+    if (link && scroller) scrollWithin(scroller, link);
   }, [currentLessonId]);
 
   const numbers = new Map(
@@ -230,6 +239,14 @@ function LessonTree({
       ))}
     </nav>
   );
+}
+
+/** Scrolls `scroller` (only) so that `target` is visible, a third of the way down if it moves. */
+function scrollWithin(scroller: HTMLElement, target: HTMLElement) {
+  const box = scroller.getBoundingClientRect();
+  const item = target.getBoundingClientRect();
+  if (item.top >= box.top && item.bottom <= box.bottom) return;
+  scroller.scrollTop += item.top - box.top - box.height / 3;
 }
 
 function SidebarPlaceholder() {

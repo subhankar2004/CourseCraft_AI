@@ -79,9 +79,9 @@ beforeEach(() => {
   state.outline = { isPending: false, isError: false, data: course };
   state.progress = { isPending: false, isError: false, data: progress() };
   state.user = { isPending: false, data: { id: 'u1' } };
-  // jsdom has no scrollIntoView; current browsers return a promise from it (which once broke
-  // an effect that returned it: React called it as a cleanup function).
-  Element.prototype.scrollIntoView = vi.fn(() => Promise.resolve()) as never;
+  // The sidebar must not call scrollIntoView: it moves the browser's sequential focus starting
+  // point (the next Tab would skip the header). jsdom has none, so a spy stands in.
+  Element.prototype.scrollIntoView = vi.fn() as never;
   const items = new Map<string, string>();
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => items.get(key) ?? null,
@@ -108,6 +108,7 @@ describe('CourseSidebar', () => {
     expect(links[0]!.getAttribute('href')).toBe('/learn/sql/a');
     expect(within(aside).getByRole('progressbar').getAttribute('aria-valuenow')).toBe('33');
     expect(within(aside).getByText('1 of 3 lessons complete · 33%')).toBeTruthy();
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
   });
 
   it('collapses, and remembers it', () => {
