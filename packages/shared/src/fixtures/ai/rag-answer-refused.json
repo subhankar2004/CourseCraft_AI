@@ -17,10 +17,12 @@
         "grounded": false,
         "answer": "This isn't covered in this course's lessons, so I can't answer it from the course. Try rephrasing your question, or ask about a topic from one of the lessons.",
         "citations": [],
+        "sources": [],
+        "standaloneQuestion": null,
         "bestScore": 0.449646,
         "refusal": "low_score",
         "minScore": 0.6,
-        "promptIds": ["rag-answer@2", "rag-question@2"],
+        "promptIds": ["rag-answer@3", "rag-question@2"],
         "chatModel": "llama3.1:8b",
         "embeddingModel": "nomic-embed-text",
         "usage": {

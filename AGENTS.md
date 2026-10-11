@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #40 (AI: follow-up condensation and citation quality). `POST /rag/answer` (#39, `app/rag/answer.py`) answers from one course with a two-stage gate (score ≥ `RAG_MIN_SCORE` = 0.60, then the model's `NOT_IN_COURSE`); retrieval still uses the raw question, and llama3.1:8b cites in 12–15 of 15 in-scope answers per run (docs/PROGRESS.md entry 39 has the calibration set).
+**Next up:** Issue #41 (API: chat sessions, SSE proxy and rate limiting). The AI side is done: `POST /rag/answer` (#39–#40) condenses follow-ups, gates at `RAG_MIN_SCORE` 0.60, and streams `token`… then `done {answer, citations, sources, standaloneQuestion, …}` or `failed` (contracts: `ragStreamEvents` in `packages/shared`; fixtures in `fixtures/ai/rag-answer-*.json`). Show the API's current lesson titles, not `lessonTitle` from citations.
 
 ## How we work: 50 issues → 50 PRs
 

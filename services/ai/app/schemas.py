@@ -317,10 +317,13 @@ class RagTokenEvent(CamelModel):
 
 
 class RagCitation(CamelModel):
-    """A chunk the answer cites as [n]: enough to deep-link into the lesson at that time."""
+    """A passage the answer cites as [n] (or was given, in `sources`): enough to deep-link into
+    the lesson at that time. A passage can span neighbouring chunks (#40)."""
 
     n: int
+    #: The passage's first chunk.
     chunk_id: str
+    chunk_ids: list[str]
     lesson_id: str
     lesson_title: str
     youtube_id: str
@@ -333,8 +336,15 @@ class RagDoneEvent(CamelModel):
     """SSE `done`: the whole answer with its citations, last event of a stream."""
 
     grounded: bool
+    #: The final answer: [n] markers that point to no passage are removed.
     answer: str
+    #: The passages the answer cites, in order of first citation.
     citations: list[RagCitation]
+    #: Every passage the model was given (empty when refused).
+    sources: list[RagCitation]
+    #: The follow-up rewritten as a standalone question (what retrieval used); null when the
+    #: question was used as asked (no history, or condensing failed).
+    standalone_question: str | None
     #: Best retrieval similarity (null when the course has no chunks).
     best_score: float | None
     #: Why the answer is the fixed refusal: no chunks, below RAG_MIN_SCORE, or the model found

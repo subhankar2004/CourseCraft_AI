@@ -534,9 +534,9 @@ Meta: phase=P5 | area=ai | type=feat | depends=39
 **Goal:** Multi-turn chat that stays grounded.
 **Tasks**
 
-- [ ] Rewrite follow-up questions as standalone questions using the last N turns before retrieval
-- [ ] Deduplicate overlapping chunks; map [n] markers to citation objects; drop unused citations
-- [ ] Tune `RAG_MIN_SCORE` on the demo course; record the chosen value in SPEC
+- [x] Rewrite follow-up questions as standalone questions using the last N turns before retrieval
+- [x] Deduplicate overlapping chunks; map [n] markers to citation objects; drop unused citations
+- [x] Tune `RAG_MIN_SCORE` on the demo course; record the chosen value in SPEC
 
 **Done when:** Follow-ups like "explain that again with an example" retrieve the right context.
 

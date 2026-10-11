@@ -20,8 +20,12 @@ from app.rag.answer import (
     NOT_IN_COURSE,
     REFUSAL_MESSAGE,
     AnswerStream,
+    Passage,
     Source,
     cited_sources,
+    clean_citations,
+    clean_standalone,
+    merge_passages,
 )
 from tests.conftest import INTERNAL_KEY, make_settings
 from tests.fakes import (
@@ -85,6 +89,8 @@ def events(text: str) -> list[tuple[str, dict[str, Any]]]:
 
 
 def answered_from_context(prompt: str) -> str:
+    if "Newest message:" in prompt:  # the condensing call (#40)
+        return "Explain how a join works, with an example"
     assert "<context>" in prompt
     return "A join combines rows from two tables [1]. Hash joins exist too [2]."
 
@@ -111,7 +117,9 @@ class TestGroundedAnswer:
         assert first["chunkId"] == "l-joins-0"
         assert first["lessonTitle"] == "Joins" and first["youtubeId"] == "yt-l-joins"
         assert done["bestScore"] == first["score"] >= 0.5
-        assert done["promptIds"] == ["rag-answer@2", "rag-question@2"]
+        assert done["promptIds"] == ["rag-answer@3", "rag-question@2"]  # no history: no condensing
+        assert done["standaloneQuestion"] is None
+        assert [s["n"] for s in done["sources"]] == [1, 2]
         assert done["minScore"] == 0.5
         assert done["usage"]["llmCalls"] == 0  # fakes report no usage; real models do
 
@@ -134,9 +142,128 @@ class TestGroundedAnswer:
             for i in range(8)
         ]
         harness.ask("And a hash join?", history=history)
-        (prompt,) = harness.model.prompts
+        _condense, prompt = harness.model.prompts
         assert "turn 0" not in prompt and "turn 1" not in prompt  # only the last 6
         assert prompt.index("human: turn 2") < prompt.index("ai: turn 3") < prompt.index("turn 7")
+
+
+JOIN_HISTORY = [
+    {"role": "user", "content": "What is a join?"},
+    {"role": "assistant", "content": "A join combines rows from two tables [1]."},
+]
+
+
+class TestFollowUps:
+    def test_a_follow_up_is_condensed_before_retrieval(self) -> None:
+        harness = Harness(answered_from_context)
+        done = events(harness.ask("Explain that again with an example", history=JOIN_HISTORY).text)[
+            -1
+        ][1]
+        condense, answer = harness.model.prompts
+        assert "Student: What is a join?" in condense
+        assert "Assistant: A join combines rows" in condense
+        assert condense.rstrip().endswith("Newest message: Explain that again with an example")
+        # Retrieval and the answer use the standalone question; the history is still sent.
+        assert done["standaloneQuestion"] == "Explain how a join works, with an example"
+        assert done["grounded"] is True and done["citations"][0]["lessonId"] == "l-joins"
+        assert "Question: Explain how a join works, with an example" in answer
+        assert "human: What is a join?" in answer
+        assert done["promptIds"] == ["rag-condense@2", "rag-answer@3", "rag-question@2"]
+
+    def test_without_condensing_the_follow_up_finds_nothing(self) -> None:
+        # The same follow-up without its history names no topic: the gate refuses it (the
+        # condensed form above scores ~0.95 against the join chunk, well over this bar).
+        harness = Harness(answered_from_context, rag_min_score=0.6)
+        done = events(harness.ask("Explain that again with an example").text)[-1][1]
+        assert done["refusal"] == "low_score" and done["standaloneQuestion"] is None
+
+    def test_a_failed_condensation_falls_back_to_the_question(self) -> None:
+        def reply(prompt: str) -> str:
+            if "Newest message:" in prompt:
+                raise ConnectionError("Failed to connect to Ollama")
+            return answered_from_context(prompt)
+
+        harness = Harness(reply)
+        done = events(harness.ask("And a hash join?", history=JOIN_HISTORY).text)[-1][1]
+        assert done["standaloneQuestion"] is None and done["grounded"] is True
+
+    def test_an_off_scope_follow_up_is_still_refused_without_an_answer(self) -> None:
+        def reply(prompt: str) -> str:
+            if "Newest message:" in prompt:
+                return "How do I traverse a graph"
+            raise AssertionError("no answer may be generated")
+
+        harness = Harness(reply)
+        done = events(harness.ask("and graphs?", history=JOIN_HISTORY).text)[-1][1]
+        assert done["refusal"] == "low_score" and len(harness.model.prompts) == 1
+
+    @pytest.mark.parametrize(
+        ("reply", "expected"),
+        [
+            ("Explain joins with an example", "Explain joins with an example"),
+            ('Standalone question: "What is a hash join?"', "What is a hash join?"),
+            ("\n\n  How do indexes speed up reads?\nExtra line", "How do indexes speed up reads?"),
+            ("   \n ... \n", None),
+            ("", None),
+        ],
+    )
+    def test_cleaning_the_rewrite(self, reply: str, expected: str | None) -> None:
+        assert clean_standalone(reply) == expected
+
+
+def chunk_hit(
+    lesson: str, index: int, start: float, end: float, text: str, score: float
+) -> SearchHit:
+    return SearchHit(
+        id=f"{lesson}-{index}",
+        course_id=COURSE,
+        lesson_id=lesson,
+        youtube_id=f"yt-{lesson}",
+        chunk_index=index,
+        start_sec=start,
+        end_sec=end,
+        lesson_title=lesson.title(),
+        text=text,
+        score=score,
+    )
+
+
+class TestPassages:
+    def test_overlapping_neighbours_of_a_lesson_merge_without_repeating_text(self) -> None:
+        shared = "the shared overlap sentence repeated by the chunker"
+        a = chunk_hit("joins", 0, 0, 120, f"first part, {shared}", 0.7)
+        b = chunk_hit("joins", 1, 100, 230, f"{shared}, second part", 0.9)
+        (passage,) = merge_passages([b, a])
+        assert passage.text == f"first part, {shared}, second part"
+        assert (passage.start_sec, passage.end_sec) == (0, 230)
+        assert passage.chunk_ids == ("joins-0", "joins-1")
+        assert passage.score == 0.9
+
+    def test_distant_chunks_and_other_lessons_stay_separate_best_first(self) -> None:
+        hits = [
+            chunk_hit("joins", 0, 0, 100, "early", 0.6),
+            chunk_hit("joins", 5, 600, 700, "much later", 0.8),
+            chunk_hit("index", 0, 0, 100, "another lesson", 0.7),
+        ]
+        assert [p.text for p in merge_passages(hits)] == ["much later", "another lesson", "early"]
+
+    def test_merged_passages_are_cited_with_all_their_chunks(self) -> None:
+        harness = Harness(answered_from_context)
+        harness.index = build_index()
+        shared = "join rows by key, a join join join"
+        texts = [f"intro {shared}", f"{shared} then a hash join"]
+        chunks = [
+            Chunk(index=i, text=t, start_sec=100.0 * i, end_sec=100.0 * i + 110, token_count=9)
+            for i, t in enumerate(texts)
+        ]
+        harness.index.index_lesson(LessonRef(COURSE, "l-joins", "yt-l-joins", "Joins"), chunks)
+        done = events(harness.ask("How does a join work?").text)[-1][1]
+        first = done["citations"][0]
+        assert first["chunkIds"] == ["l-joins-0", "l-joins-1"] and first["chunkId"] == "l-joins-0"
+        assert (first["startSec"], first["endSec"]) == (0.0, 210.0)
+        assert len(done["sources"]) == 1  # one passage, not two copies of the shared text
+        prompt = harness.model.prompts[0]
+        assert prompt.count(shared) == 1
 
 
 class TestGroundingGate:
@@ -222,21 +349,7 @@ class TestFailures:
 
 
 def hit(n: int) -> Source:
-    return Source(
-        n,
-        SearchHit(
-            id=f"c-{n}",
-            course_id=COURSE,
-            lesson_id="l",
-            youtube_id="y",
-            chunk_index=n,
-            start_sec=0,
-            end_sec=1,
-            lesson_title="L",
-            text="t",
-            score=0.9,
-        ),
-    )
+    return Source(n, Passage("l", "L", "y", 0, 1, "t", (f"c-{n}",), 0.9))
 
 
 class TestTrailingSentinel:
@@ -268,6 +381,22 @@ class TestCitations:
 
     def test_an_uncited_answer_has_no_citations(self) -> None:
         assert cited_sources("No markers here.", [hit(1)]) == []
+
+    def test_ranges_and_code_literals(self) -> None:
+        sources = [hit(1), hit(2), hit(3)]
+        assert [s.n for s in cited_sources("All of it [1-3].", sources)] == [1, 2, 3]
+        assert [s.n for s in cited_sources("`xs = [3, 1]` then [2]", sources)] == [2]
+
+    def test_markers_pointing_nowhere_are_removed_from_the_answer(self) -> None:
+        sources = [hit(1), hit(2)]
+        answer = "Real [1]. Invented [7]. Mixed [2, 9]. Code `a = [7]`."
+        assert clean_citations(answer, sources) == "Real [1]. Invented. Mixed [2]. Code `a = [7]`."
+
+    def test_the_final_answer_is_cleaned(self) -> None:
+        harness = Harness(lambda p: "A join combines rows [1]. Made up [9].")
+        done = events(harness.ask("How does a join work?").text)[-1][1]
+        assert done["answer"] == "A join combines rows [1]. Made up."
+        assert [c["n"] for c in done["citations"]] == [1]
 
 
 class TestSentinel:
