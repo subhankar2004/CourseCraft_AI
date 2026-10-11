@@ -7,42 +7,36 @@
     {
       "id": "cm24lesson001-0",
       "index": 0,
-      "text": "SQL Tutorial - Full Database Course for Beginners In this course I’m going to teach you everything you need to know to g",
+      "text": "get a system for keeping track of changes that happen across a set of files open a directory on your local system with an editor like vs code then run get an it from the command line you just created a git repository or repo it lives in this hidden get directory and keeps track of all the changes that happen to these files as you work on a codebase you take snapshots or commits of the current state of these files every commit has a unique ID and is linked to its parent and this means we can travel back in time to a previous version of our files notice how our source control icon is lit up currently all of our files are untracked because we need to add them to the repo run get add to include or stage these files in the repo then create a snapshot of their current state by running git commit along with a message about what you did to these files congratulations you just created the first commit on the head of the master branch in this repo the changed files disappeared and you're now on a clean working directory the head represents the most recent commit if we make some changes commit them to the repo the head moves forward but we still have a reference to our previous commits so we can always go back to it but the thing about software is that it's developed in a nonlinear fashion you might have multiple teams working on different features for the same codebase simultaneously it makes that possible by branching create one by running git branch and then rank it check out to move into that branch you can now safely work on your feature in this branch without affecting the code or files in the master branch the commits you make here live in an alternate universe with its own unique history at some point though you'll likely want to merge this history with the history and the master branch when you're ready go back to the master branch by running git checkout then run git merge on your alternate-universe the tip of your feature branch now becomes the head of the master branch where in other words our fragmented universe has become one unless he ran into a merge conflict in which case you'll just have to wait for the sequel this has been get explained in 100 seconds if you want to see more short videos like this make sure to hit the like button subscribe and let me know what you think in the comments thanks for watching and I will see you in the next one you",
       "startSec": 0.0,
-      "endSec": 204.4,
-      "tokenCount": 796,
+      "endSec": 117.079,
+      "tokenCount": 464,
       "overlapChars": 0
-    },
-    {
-      "id": "cm24lesson001-1",
-      "index": 1,
-      "text": "So, this should basically just give you an introduction to databases in general. If you don’t know anything about databa",
-      "startSec": 179.6,
-      "endSec": 381.9,
-      "tokenCount": 798,
-      "overlapChars": 492
     }
   ],
   "notes": {
-    "title": "SQL Tutorial - Full Database Course for Beginners",
-    "summary": "This lesson introduces the concept of a database, its characteristics, and the benefits of using computers to store and manage databases. Understanding databases is essential for working with SQL, a programming language used to manage and manipulate data in databases.",
-    "keyConcepts": [
-      "Database",
-      "Database Management System",
-      "Data Security",
-      "Data Backup",
-      "Data Duplication",
-      "Database Storage"
-    ],
-    "notesMarkdown": "## Summary\nThis lesson introduces the concept of a database, its characteristics, and the benefits of using computers to store and manage databases. Understanding databases is essential for working with SQL, a programming language used to manage and manipulate data in databases.\n\n## Key concepts\n- **Database**: A collection of related information.\n- **Database Management System**: Special software",
-    "readingTimeMin": 2,
-    "anchors": [195.0, 280.5, 350.3, 521.1, 574.1],
-    "promptIds": ["lesson-notes-map@2", "lesson-notes-reduce@2"]
+    "title": "Git Explained in 100 Seconds",
+    "summary": "This lesson introduces the basics of Git, a version control system that helps keep track of changes to a set of files. Git is essential for collaborative work and managing different versions of a project. By the end of this lesson, you'll understand the core concepts of Git and how to create a repository, make commits, and track files.",
+    "keyConcepts": ["Git Repository", "Commit", "Head", "Branch", "Untracked Files", "Staging"],
+    "notesMarkdown": "## Summary\nThis lesson introduces the basics of Git, a version control system that helps keep track of changes to a set of files. Git is essential for collaborative work and managing different versions of a project. By the end of this lesson, you'll understand the core concepts of Git and how to create a repository, make commits, and track files.\n\n## Key concepts\n- **Git Repository**: A system for keeping track of changes to a set of files.\n- **Commit**: A snapshot of the current state of the files.\n- **Head**: The most recent commit in a repository.\n- **Branch**: A way to manage multiple teams working on different features simultaneously.\n- **Untracked Files**: Files that are not being monitored by the Git repository.\n- **Staging**: The process of adding files to the repository.\n\n## Creating a Git Repository [▶ 0:00]\nTo create a Git repository, open a directory in an editor like VS Code and run `git add .` from the command line. This creates a hidden `.git` directory that keeps track of all changes to the files.\n\n## Commits and Snapshots [▶ 0:15]\nA commit is a snapshot of the current state of the files. Every commit has a unique ID and is linked to its parent, allowing you to travel back in time to a previous version of the files. Commits are created by running `git commit` with a message about the changes made.\n\n## Tracking Files [▶ 0:31]\nInitially, all files are untracked. To add files to the repository, run `git add` to stage them, then create a snapshot of their current state by running `git commit`.\n\n## The Head and Branches [▶ 0:48]\nThe head represents the most recent commit. When you make changes and commit them, the head moves forward. However, you still have a reference to previous commits, allowing you to go back to them. Branches are used to manage multiple teams working on different features simultaneously.\n\n## Recap\n- A Git repository is a system for keeping track of changes to a set of files.\n- A commit is a snapshot of the current state of the files.\n- The head represents the most recent commit.\n- Branches are used to manage multiple teams working on different features simultaneously.\n- To create a Git repository, run `git add .` from the command line.\n- To make a commit, run `git commit` with a message about the changes made.\n",
+    "readingTimeMin": 3,
+    "anchors": [0.0, 15.42, 31.619, 48.149],
+    "promptIds": ["lesson-notes-map@2", "lesson-notes-reduce@2"],
+    "cognitiveLoad": {
+      "fleschKincaid": 7.44,
+      "avgSentenceLen": 12.45,
+      "conceptDensity": 2.77,
+      "index": 11.2,
+      "words": 361,
+      "simplified": false,
+      "simplifyAttempted": false,
+      "originalIndex": null
+    }
   },
   "usage": {
     "llmCalls": 2,
-    "inputTokens": 3392,
-    "outputTokens": 799
+    "inputTokens": 1406,
+    "outputTokens": 776
   },
-  "elapsedSec": 51.5
+  "elapsedSec": 40.6
 }

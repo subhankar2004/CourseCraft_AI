@@ -19,6 +19,7 @@ from app.processing.indexing import VectorIndex
 from app.processing.lesson import EmptyTranscriptError, LessonProcessor
 from app.schemas import (
     ChunkOut,
+    CognitiveLoadOut,
     ModuleOut,
     NotesOut,
     ProcessLessonRequest,
@@ -45,6 +46,7 @@ def get_notes_generator(settings: Annotated[Settings, Depends(get_settings)]) ->
         reduce_tokens=settings.notes_reduce_tokens,
         concurrency=settings.llm_concurrency,
         usage=totals,
+        cli_max=settings.cli_max,
     )
 
 
@@ -109,6 +111,11 @@ def process_lesson(
             reading_time_min=n.reading_time_min,
             anchors=n.anchors,
             prompt_ids=n.prompt_ids,
+            cognitive_load=(
+                CognitiveLoadOut.model_validate(n.cognitive_load.model_dump())
+                if n.cognitive_load
+                else None
+            ),
         ),
         usage=UsageOut(
             llm_calls=result.llm_calls,

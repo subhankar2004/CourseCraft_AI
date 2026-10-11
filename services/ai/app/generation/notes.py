@@ -32,6 +32,7 @@ from langchain_core.runnables import Runnable, RunnableLambda
 from langchain_core.runnables.retry import ExponentialJitterParams
 from pydantic import BaseModel, Field
 
+from app.evaluation.cognitive_load import CognitiveLoad, cognitive_load
 from app.generation.prompts import Prompt, load_prompt
 from app.generation.providers import PROVIDER_ERRORS
 from app.generation.usage import UsageTotals
@@ -60,6 +61,38 @@ class LlmUnavailableError(RuntimeError):
     """The chat model could not be reached after all attempts (retry the job later)."""
 
 
+#: A simplified rewrite shorter than this share of the original lost content: it is rejected.
+MIN_SIMPLIFIED_WORD_SHARE = 0.6
+
+
+class CognitiveLoadReport(BaseModel):
+    """The notes' Cognitive Load Index and its parts (app.evaluation.cognitive_load), plus what
+    the simplify loop did (#43)."""
+
+    flesch_kincaid: float
+    avg_sentence_len: float
+    concept_density: float
+    index: float
+    words: int
+    #: The kept notes are the simplified rewrite.
+    simplified: bool = False
+    #: The index was above CLI_MAX, so a rewrite was tried (kept or not).
+    simplify_attempted: bool = False
+    #: The index before simplifying, when the rewrite was kept.
+    original_index: float | None = None
+
+    @classmethod
+    def of(cls, load: CognitiveLoad, **extra: Any) -> "CognitiveLoadReport":
+        return cls(
+            flesch_kincaid=load.flesch_kincaid,
+            avg_sentence_len=load.avg_sentence_len,
+            concept_density=load.concept_density,
+            index=load.index,
+            words=load.words,
+            **extra,
+        )
+
+
 class LessonNotes(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     summary: str = Field(min_length=1)
@@ -72,6 +105,7 @@ class LessonNotes(BaseModel):
     #: Provenance: `name@version` of every prompt used (AGENTS.md).
     prompt_ids: list[str]
     model: str
+    cognitive_load: CognitiveLoadReport | None = None
 
 
 # ─── Timestamps ─────────────────────────────────────────────────────────────
@@ -302,6 +336,7 @@ class NotesGenerator:
         concurrency: int = 2,
         retry_wait: ExponentialJitterParams | None = None,
         usage: UsageTotals | None = None,
+        cli_max: float | None = None,
     ):
         self.model = model
         self.model_name = model_name
@@ -314,6 +349,9 @@ class NotesGenerator:
         self.map_prompt = load_prompt("lesson-notes-map")
         self.collapse_prompt = load_prompt("lesson-notes-collapse")
         self.reduce_prompt = load_prompt("lesson-notes-reduce")
+        self.simplify_prompt = load_prompt("lesson-notes-simplify")
+        #: Notes whose Cognitive Load Index is above this are simplified once (None: never).
+        self.cli_max = cli_max
 
     def _retrying(self, step: Runnable[Any, Any]) -> Runnable[Any, Any]:
         return step.with_retry(
@@ -367,6 +405,7 @@ class NotesGenerator:
         except PROVIDER_ERRORS as error:
             raise LlmUnavailableError(f"chat model unavailable: {error}") from error
 
+        notes = self._within_load(notes, markers)
         logger.info(
             "lesson notes generated",
             extra={
@@ -375,10 +414,78 @@ class NotesGenerator:
                     "collapsed": collapsed,
                     "anchors": len(notes.anchors),
                     "words": len(notes.notes_markdown.split()),
+                    "cognitiveLoad": notes.cognitive_load.index if notes.cognitive_load else None,
+                    "simplified": bool(notes.cognitive_load and notes.cognitive_load.simplified),
                 }
             },
         )
         return notes
+
+    @staticmethod
+    def _kept_after_failure(kept: LessonNotes, error: BaseException) -> LessonNotes:
+        logger.warning(
+            "simplifying the notes failed; kept as generated",
+            extra={"fields": {"error": str(error)}},
+        )
+        return kept
+
+    def _within_load(self, notes: LessonNotes, markers: Sequence[float]) -> LessonNotes:
+        """Measures the notes; above `cli_max`, rewrites them once with the simplify prompt and
+        keeps the rewrite only if it reads lighter and lost nothing (every anchor kept, most of
+        the words). A failed rewrite never fails the lesson (SPEC §9)."""
+        load = cognitive_load(notes.notes_markdown, notes.key_concepts)
+        if self.cli_max is None or load.index <= self.cli_max:
+            return notes.model_copy(update={"cognitive_load": CognitiveLoadReport.of(load)})
+
+        prompt_ids = [*notes.prompt_ids, self.simplify_prompt.id]
+        kept = notes.model_copy(
+            update={"cognitive_load": CognitiveLoadReport.of(load, simplify_attempted=True)}
+        )
+        simplify = self._retrying(
+            self.model
+            | StrOutputParser()
+            | RunnableLambda(
+                lambda text: parse_lesson_document(
+                    text, markers, prompt_ids=prompt_ids, model=self.model_name
+                )
+            )
+        )
+        try:
+            simpler: LessonNotes = simplify.invoke(
+                self.simplify_prompt.render(
+                    lesson_document=f"# {notes.title}\n\n{notes.notes_markdown}"
+                )
+            )
+        except NotesFormatError as error:
+            return self._kept_after_failure(kept, error)
+        except PROVIDER_ERRORS as error:
+            return self._kept_after_failure(kept, error)
+
+        new_load = cognitive_load(simpler.notes_markdown, simpler.key_concepts)
+        lost_anchors = set(notes.anchors) - set(simpler.anchors)
+        word_share = len(simpler.notes_markdown.split()) / max(len(notes.notes_markdown.split()), 1)
+        reason = (
+            f"dropped anchors {sorted(lost_anchors)}"
+            if lost_anchors
+            else f"kept only {word_share:.0%} of the words"
+            if word_share < MIN_SIMPLIFIED_WORD_SHARE
+            else None
+            if new_load.index < load.index
+            else f"not lighter ({new_load.index} vs {load.index})"
+        )
+        logger.info(
+            "notes simplified" if reason is None else "simplified notes rejected",
+            extra={"fields": {"before": load.index, "after": new_load.index, "reason": reason}},
+        )
+        if reason is not None:
+            return kept
+        return simpler.model_copy(
+            update={
+                "cognitive_load": CognitiveLoadReport.of(
+                    new_load, simplified=True, simplify_attempted=True, original_index=load.index
+                )
+            }
+        )
 
     def _map(self, lesson_title: str, parts: list[Part]) -> list[str]:
         inputs = [

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -15,7 +16,9 @@ import {
   type Role,
   type UpdateLessonInput,
 } from '@coursecraft/shared';
-import type { Prisma } from '../generated/prisma/client.js';
+import { AiServiceError } from '../ai/ai-client.errors.js';
+import { AiClient } from '../ai/ai-client.service.js';
+import { Prisma } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { courseSummarySelect, PUBLISHED, toCourseSummary } from './course-summary.js';
 
@@ -23,7 +26,12 @@ const domainRef = { select: { slug: true, name: true } } as const;
 
 @Injectable()
 export class CoursesService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(CoursesService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly ai: AiClient,
+  ) {}
 
   /** Published courses, filtered and paginated. Search is a case-insensitive match on title/description. */
   async list(query: CourseListQuery): Promise<CourseList> {
@@ -181,6 +189,8 @@ export class CoursesService {
     const lesson = await this.prisma.lesson.findUnique({
       where: { id },
       select: {
+        notesMarkdown: true,
+        keyConcepts: true,
         video: { select: { durationSec: true } },
         module: { select: { course: { select: { status: true } } } },
       },
@@ -202,6 +212,10 @@ export class CoursesService {
         );
       }
     }
+    const notesChanged =
+      (input.notesMarkdown !== undefined && input.notesMarkdown !== lesson.notesMarkdown) ||
+      (input.keyConcepts !== undefined &&
+        input.keyConcepts.join('\n') !== lesson.keyConcepts.join('\n'));
     await this.prisma.lesson.update({
       where: { id },
       data: {
@@ -209,8 +223,34 @@ export class CoursesService {
         ...(input.notesMarkdown !== undefined && {
           readingTimeMin: readingTimeMinutes(input.notesMarkdown),
         }),
+        ...(notesChanged && {
+          cognitiveLoad: await this.measure(
+            id,
+            input.notesMarkdown ?? lesson.notesMarkdown,
+            input.keyConcepts ?? lesson.keyConcepts,
+          ),
+        }),
       },
     });
     return this.getLesson(id, 'ADMIN');
+  }
+
+  /**
+   * The Cognitive Load Index of edited notes (#43), so the stored value describes the notes as
+   * they now are. Best effort: if the AI service is down the edit is still saved, and the old
+   * value (which describes other text) is cleared rather than kept.
+   */
+  private async measure(lessonId: string, notesMarkdown: string, keyConcepts: string[]) {
+    try {
+      return await this.ai.cognitiveLoad(
+        { notesMarkdown, keyConcepts },
+        { requestId: `lesson-edit-${lessonId}` },
+      );
+    } catch (error) {
+      const reason =
+        error instanceof AiServiceError ? `${error.kind}: ${error.message}` : String(error);
+      this.logger.warn(`Cognitive load of lesson ${lessonId} not measured (${reason})`);
+      return Prisma.DbNull;
+    }
   }
 }

@@ -17,6 +17,7 @@ dependencies = [
     "psycopg-pool>=3.2",
     "psycopg[binary]>=3.2",
     "pydantic-settings>=2.15.0",
+    "textstat>=0.7.13",
     "tiktoken>=0.12",
     "uvicorn[standard]>=0.54.0",
     "youtube-transcript-api>=1",
@@ -63,7 +64,7 @@ plugins = ["pydantic.mypy"]
 # faster-whisper ships no type information (and there is no stubs package); its results are
 # wrapped in typed dataclasses in app/ingestion/whisper.py.
 [[tool.mypy.overrides]]
-module = ["faster_whisper", "faster_whisper.*"]
+module = ["faster_whisper", "faster_whisper.*", "textstat", "textstat.*"]  # no type hints shipped
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

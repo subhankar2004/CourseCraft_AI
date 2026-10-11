@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #43 (AI: cognitive load index and the simplify loop), the start of P6. The full chat path now works end to end (web drawer #42 → API #41 → AI `/rag/answer` #39–#40); evaluation (#43–#45) measures notes and answers.
+**Next up:** Issue #44 (AI: RAG evaluation endpoint with RAGAS). Measuring lives in `services/ai/app/evaluation/` (cognitive load: `cognitive_load.py`, #43; `POST /eval/cognitive-load` exists, so put `/eval/rag` on the same router). The calibration questions from #39–#40 are a starting point for the datasets of #45.
 
 ## How we work: 50 issues → 50 PRs
 

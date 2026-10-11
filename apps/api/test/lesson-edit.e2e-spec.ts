@@ -1,9 +1,14 @@
 import type { INestApplication } from '@nestjs/common';
-import { lessonDetailSchema } from '@coursecraft/shared';
+import { Test } from '@nestjs/testing';
+import { lessonDetailSchema, type CognitiveLoadRequest } from '@coursecraft/shared';
 import request from 'supertest';
+import { AiClient } from '../src/ai/ai-client.service.js';
+import { AppModule } from '../src/app.module.js';
+import { configureApp } from '../src/app.setup.js';
 import type { CourseStatus } from '../src/generated/prisma/client.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
-import { cleanupE2eData, createE2eScope, createTestApp, signInAs } from './helpers.js';
+import { FAKE_LOAD, fail } from './fake-ai.js';
+import { cleanupE2eData, createE2eScope, signInAs } from './helpers.js';
 
 const scope = createE2eScope();
 const SID = scope.prefix.slice(4, 12);
@@ -16,9 +21,25 @@ describe('PATCH /lessons/:id (e2e)', () => {
   let adminId: string;
   let domainId: string;
   let n = 0;
+  // The AI service's measuring endpoint (#43), scripted: an index from the notes' length.
+  const measured: CognitiveLoadRequest[] = [];
+  let aiDown = false;
+  const ai = {
+    cognitiveLoad: async (body: CognitiveLoadRequest) => {
+      if (aiDown) throw fail('unavailable', 'connection refused');
+      measured.push(body);
+      return { ...FAKE_LOAD, index: Math.min(body.notesMarkdown.length, 100) };
+    },
+  };
 
   beforeAll(async () => {
-    app = await createTestApp();
+    const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(AiClient)
+      .useValue(ai)
+      .compile();
+    app = moduleRef.createNestApplication({ logger: false });
+    configureApp(app);
+    await app.init();
     prisma = app.get(PrismaService);
     const signedIn = await signInAs(app, scope, 'ADMIN');
     admin = signedIn.cookie;
@@ -99,6 +120,35 @@ describe('PATCH /lessons/:id (e2e)', () => {
       .set('Cookie', admin)
       .expect(200);
     expect(read.body.notesMarkdown).toContain('## What is a database [▶ 0:05]');
+  });
+
+  it('re-measures the cognitive load when the notes change (#43)', async () => {
+    const lesson = await makeLesson();
+    await prisma.lesson.update({
+      where: { id: lesson.id },
+      data: { cognitiveLoad: { ...FAKE_LOAD, index: 77 } },
+    });
+    const notes = '## Joins [▶ 0:30]\nShort.';
+    await patch(lesson.id, { notesMarkdown: notes, keyConcepts: ['Join'] }).expect(200);
+    expect(measured.at(-1)).toEqual({ notesMarkdown: notes, keyConcepts: ['Join'] });
+    const stored = await prisma.lesson.findUniqueOrThrow({ where: { id: lesson.id } });
+    expect(stored.cognitiveLoad).toMatchObject({ index: notes.length, simplified: false });
+
+    // A title change leaves the notes, and their measure, alone.
+    const calls = measured.length;
+    await patch(lesson.id, { title: 'Renamed' }).expect(200);
+    expect(measured.length).toBe(calls);
+
+    // The AI service is down: the edit is saved, the outdated measure is cleared.
+    aiDown = true;
+    try {
+      await patch(lesson.id, { notesMarkdown: '## Other [▶ 0:40]\nText.' }).expect(200);
+    } finally {
+      aiDown = false;
+    }
+    const after = await prisma.lesson.findUniqueOrThrow({ where: { id: lesson.id } });
+    expect(after.notesMarkdown).toContain('Other');
+    expect(after.cognitiveLoad).toBeNull();
   });
 
   it('rejects anchors outside the video and keeps the old notes', async () => {

@@ -308,6 +308,8 @@ export class IngestionPipeline {
                 notesMarkdown: result.notes.notesMarkdown,
                 keyConcepts: result.notes.keyConcepts,
                 readingTimeMin: result.notes.readingTimeMin,
+                // Cognitive Load Index (#43); null when the AI service didn't measure it.
+                cognitiveLoad: result.notes.cognitiveLoad ?? Prisma.DbNull,
               },
             });
             await tx.chunk.createMany({

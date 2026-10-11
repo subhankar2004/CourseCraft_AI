@@ -207,6 +207,24 @@ class ProcessLessonRequest(CamelModel):
     segments: list[SegmentIn] = Field(min_length=1, max_length=50_000)
 
 
+class CognitiveLoadOut(CamelModel):
+    """Cognitive Load Index of the notes (SPEC §9): 0 light .. 100 heavy, with its parts."""
+
+    flesch_kincaid: float
+    avg_sentence_len: float
+    concept_density: float
+    index: float
+    words: int
+    simplified: bool
+    simplify_attempted: bool
+    original_index: float | None
+
+
+class CognitiveLoadRequest(CamelModel):
+    notes_markdown: str = Field(min_length=1, max_length=200_000)
+    key_concepts: list[str] = Field(default_factory=list, max_length=50)
+
+
 class NotesOut(CamelModel):
     title: str
     summary: str
@@ -217,6 +235,7 @@ class NotesOut(CamelModel):
     anchors: list[float]
     #: `name@version` of each prompt used (store with the lesson for provenance).
     prompt_ids: list[str]
+    cognitive_load: CognitiveLoadOut | None
 
 
 class UsageOut(CamelModel):
