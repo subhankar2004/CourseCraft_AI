@@ -116,7 +116,7 @@ curl -N -b cookies.txt localhost:4000/api/v1/jobs/<jobId>/events # live progress
 curl -b cookies.txt -X POST localhost:4000/api/v1/jobs/<jobId>/retry   # only for a failed job
 ```
 
-The stream sends `job` (a snapshot), `progress` events, then `done` or `error`, and closes. A 4-minute video takes about a minute on a laptop with `llama3.1:8b`; the course is created as a `DRAFT`. Generation is limited to 10 requests per hour per client.
+The stream sends `job` (a snapshot), `progress` events, then `done` or `failed`, and closes. A 4-minute video takes about a minute on a laptop with `llama3.1:8b`; the course is created as a `DRAFT`. Generation is limited to 10 requests per hour per client.
 
 ### Demo data
 

@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #30 (web: generate course page with a live progress stepper, at `/admin/courses/new`).
+**Next up:** Issue #31 (admin course review: reorder, edit metadata, publish). Point the job page's done-redirect (`AFTER_DONE` in `job-progress-view.tsx`) at the new review page.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -110,6 +110,7 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - `generateStaticParams` uses uncached build-time fetches and must return at least one param (placeholder when the API is down).
 - `useMe()` reads `GET /auth/session` (always 200), never `/auth/me`. It is **hydration-safe**: it reports `isPending` until the component has hydrated, so session-aware components can live inside late-streamed `<Suspense>` boundaries. Always handle `isPending` (render a skeleton).
 - Throttler decorators must name the throttler: `@SkipThrottle({ auth: true })`. A bare `@SkipThrottle()` only skips one called `default`.
+- Client components that read the URL (`usePathname`, `useSearchParams`, `useParams`) and render in a layout must sit inside `<Suspense>` (fallback: the same UI without the URL-dependent part). Routes with a dynamic param that isn't prerendered (e.g. `/admin/jobs/[id]`) suspend on them under Cache Components; see the site header and the admin sidebar.
 - Avoid experimental Next.js APIs (e.g. `forbidden()` / `authInterrupts`) unless there's a strong reason.
 
 **API contracts**

@@ -18,13 +18,22 @@ function useNavItems() {
   ];
 }
 
-function isActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
+function isActive(pathname: string | null, href: string) {
+  return pathname !== null && (pathname === href || pathname.startsWith(`${href}/`));
 }
+
+/*
+ * Reading the URL suspends on routes with a dynamic param that isn't prerendered (e.g.
+ * /admin/jobs/[id]) under Cache Components. The header therefore renders these navs inside
+ * <Suspense>, with the same links and `pathname={null}` (no active item) as the fallback.
+ */
 
 /** Inline links on wider screens. */
 export function DesktopNav() {
-  const pathname = usePathname();
+  return <DesktopNavLinks pathname={usePathname()} />;
+}
+
+export function DesktopNavLinks({ pathname }: { pathname: string | null }) {
   const items = useNavItems();
   return (
     <nav aria-label="Main" className="hidden items-center gap-5 text-sm sm:flex">
@@ -47,7 +56,10 @@ export function DesktopNav() {
 
 /** Slide-in menu on phones. */
 export function MobileNav() {
-  const pathname = usePathname();
+  return <MobileNavMenu pathname={usePathname()} />;
+}
+
+export function MobileNavMenu({ pathname }: { pathname: string | null }) {
   const items = useNavItems();
   const [open, setOpen] = useState(false);
   return (
