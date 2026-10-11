@@ -454,10 +454,10 @@ Meta: phase=P4 | area=web | type=feat | depends=4
 **Goal:** Readable, attractive study notes.
 **Tasks**
 
-- [ ] `<NotesRenderer>`: react-markdown + remark-gfm + rehype-highlight (code copy button), table and callout styles, typography plugin
-- [ ] Turns `[▶ mm:ss]` into clickable chips that emit `onSeek(seconds)`
-- [ ] Auto-generated table of contents from the headings
-- [ ] Component tests (Vitest + Testing Library)
+- [x] `<NotesRenderer>`: react-markdown + remark-gfm + rehype-highlight (code copy button), table and callout styles, ~~typography plugin~~ explicit element styles instead (D101)
+- [x] Turns `[▶ mm:ss]` into clickable chips that emit `onSeek(seconds)`
+- [x] Auto-generated table of contents from the headings
+- [x] Component tests (Vitest + Testing Library)
 
 **Done when:** The seeded notes render correctly and clicking an anchor fires `onSeek`.
 

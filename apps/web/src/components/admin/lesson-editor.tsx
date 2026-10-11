@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { NotesMarkdown } from '@/components/notes/notes-markdown';
+import { NotesRenderer } from '@/components/notes/notes-renderer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -221,7 +221,7 @@ function Editor({ lesson }: { lesson: LessonDetail }) {
               tab === 'write' && 'hidden md:block',
             )}
           >
-            <NotesMarkdown markdown={form.notes} />
+            <NotesRenderer markdown={form.notes} youtubeId={lesson.video.youtubeId} />
           </div>
         </div>
       </section>
