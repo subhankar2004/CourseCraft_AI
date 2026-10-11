@@ -9,4 +9,5 @@ export * from './error.js';
 export * from './generation.js';
 export * from './health.js';
 export * from './ingestion.js';
+export * from './learning.js';
 export * from './youtube.js';
