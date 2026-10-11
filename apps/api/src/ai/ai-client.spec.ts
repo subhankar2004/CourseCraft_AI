@@ -3,7 +3,7 @@ import type { AddressInfo } from 'node:net';
 import { Logger } from '@nestjs/common';
 import { AiServiceError } from './ai-client.errors.js';
 import type { SseEvent } from '@coursecraft/shared';
-import { AiClient, type AiClientOptions } from './ai-client.service.js';
+import { aiDispatcher, AiClient, type AiClientOptions, fetchWith } from './ai-client.service.js';
 
 const KEY = 'test-internal-key-that-is-at-least-32-characters';
 
@@ -119,6 +119,53 @@ describe('AiClient', () => {
     expect(error).toBeInstanceOf(AiServiceError);
     return error as AiServiceError;
   }
+
+  describe('slow replies (#95)', () => {
+    // undici, behind Node's fetch, gives up after 300 s without response headers, or between
+    // body chunks, by default. Reproduced here with a 300 ms limit (undici's timers are coarse:
+    // it fires after ~1 s, hence replies 2 s late); the client's own dispatcher has no such
+    // limit, so only the endpoint timeouts apply (30 min for a lesson).
+    const slowHeaders: Handler = (_, res) => {
+      setTimeout(() => json(res, 200, DELETED), 2000);
+    };
+    const slowBody: Handler = (_, res) => {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.write('{"courseId":"c1",');
+      setTimeout(() => res.end('"deleted":3}'), 2000);
+    };
+
+    it.each([
+      ['headers', slowHeaders, /Headers Timeout/],
+      ['body', slowBody, /Body Timeout|terminated/],
+    ] as const)(
+      'a reply whose %s arrive late fails under a short undici limit',
+      async (_, handler, message) => {
+        const limited = aiDispatcher({ headersTimeout: 300, bodyTimeout: 300 });
+        server.script(handler); // one attempt: the scripted queue stays in step
+        const error = await failure(
+          client({
+            fetch: fetchWith(limited),
+            limits: { vectors: { retries: 0 } },
+          }).deleteCourseVectors('c1', { requestId: 'r' }),
+        );
+        expect(error.message).toMatch(message);
+        await limited.close();
+      },
+    );
+
+    it.each([
+      ['headers', slowHeaders],
+      ['body', slowBody],
+    ] as const)(
+      'the default client waits for late %s (its endpoint timeout decides)',
+      async (_, handler) => {
+        server.script(handler);
+        const defaultClient = client({ fetch: undefined });
+        expect(await defaultClient.deleteCourseVectors('c1')).toEqual(DELETED);
+        await defaultClient.onApplicationShutdown();
+      },
+    );
+  });
 
   it('sends the internal key, the request id and a JSON body; validates the reply', async () => {
     server.script((_, res) => json(res, 200, STRUCTURE));

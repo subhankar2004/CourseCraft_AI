@@ -26,6 +26,7 @@ import {
   type VectorSearchRequest,
   type VectorSearchResponse,
 } from '@coursecraft/shared';
+import { Agent, fetch as undiciFetch } from 'undici';
 import type { z } from 'zod';
 import { AiServiceError, type AiErrorKind } from './ai-client.errors.js';
 import { parseSse, type SseEvent } from '@coursecraft/shared';
@@ -59,6 +60,31 @@ export interface CallOptions {
   requestId?: string;
   /** Cancels the call (e.g. the browser disconnected). */
   signal?: AbortSignal;
+}
+
+/**
+ * Node's fetch (undici) stops waiting for response headers, or between body chunks, after 300 s
+ * by default: below the limits above (30 min for a lesson), so long lectures failed with
+ * "Headers Timeout Error" although the AI service finished (#95). This dispatcher turns those
+ * two limits off; each endpoint's own timeout (an AbortSignal) decides instead.
+ */
+export function aiDispatcher(limits: { headersTimeout?: number; bodyTimeout?: number } = {}) {
+  return new Agent({
+    headersTimeout: 0,
+    bodyTimeout: 0,
+    connect: { timeout: 10_000 }, // an unreachable service still fails fast
+    ...limits,
+  });
+}
+
+/** `fetch` through the given undici dispatcher (the npm undici, matching its own Agent). */
+export function fetchWith(dispatcher: Agent): typeof fetch {
+  const viaDispatcher = (input: string | URL, init?: RequestInit) =>
+    undiciFetch(
+      input as string,
+      { ...(init as object), dispatcher } as Parameters<typeof undiciFetch>[1],
+    );
+  return viaDispatcher as unknown as typeof fetch;
 }
 
 export interface AiClientOptions {
@@ -100,15 +126,27 @@ export class AiClient {
   private readonly fetch: typeof fetch;
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly baseDelayMs: number;
+  /** Owned connection pool when no `fetch` was given (closed on shutdown). */
+  private readonly dispatcher: Agent | undefined;
 
   constructor(private readonly options: AiClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
-    this.fetch = options.fetch ?? globalThis.fetch;
+    if (options.fetch) {
+      this.fetch = options.fetch;
+    } else {
+      this.dispatcher = aiDispatcher();
+      this.fetch = fetchWith(this.dispatcher);
+    }
     this.sleep = options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
     this.baseDelayMs = options.baseDelayMs ?? 1_000;
   }
 
   // ─── Endpoints ──────────────────────────────────────────────────────────────
+
+  /** Nest lifecycle: closes the connection pool, so the process can exit. */
+  async onApplicationShutdown(): Promise<void> {
+    await this.dispatcher?.close();
+  }
 
   health(options?: CallOptions): Promise<AiHealth> {
     return this.call(
