@@ -77,6 +77,7 @@ def citation(source: Source) -> RagCitation:
         youtube_id=passage.youtube_id,
         start_sec=passage.start_sec,
         end_sec=passage.end_sec,
+        seek_sec=passage.seek_sec,
         score=round(passage.score, 6),
     )
 

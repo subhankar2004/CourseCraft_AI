@@ -12,11 +12,12 @@ import {
   jobDetailSchema,
   jobStreamEvents,
   type JobDetail,
+  parseSse,
+  type SseEvent,
 } from '@coursecraft/shared';
 import type { Queue } from 'bullmq';
 import request from 'supertest';
 import { AiClient } from '../src/ai/ai-client.service.js';
-import { parseSse, type SseEvent } from '../src/ai/sse.js';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { INGESTION_QUEUE } from '../src/ingestion/ingestion.constants.js';

@@ -27,11 +27,11 @@ Track progress here. Update this section at the end of every working session.
 - [x] P2 Ingestion — metadata, transcripts (+ Whisper fallback), chunking, embeddings + pgvector, fixtures (#16–#22)
 - [x] P3 Generation — notes map-reduce, structuring, job + SSE progress, admin UI (#23–#32)
 - [x] P4 Learning UX — split view, timestamp seek, progress, next lesson, dashboard, accessibility pass (#33–#38)
-- [ ] P5 RAG chat — grounding gate, citations, chat drawer
+- [x] P5 RAG chat — grounding gate, citations, chat drawer (#39–#42)
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #42 (web: course chat drawer with streaming and citations), the last P5 issue. The API is `POST /courses/:id/chat` (SSE over POST: read it with `fetch` + a stream reader, not `EventSource`) and `GET /courses/:id/chat/sessions[/:sid]`; contracts `chatRequestSchema`, `chatStreamEvents`, `chatSessionSchema` in `packages/shared/src/chat.ts`. Handle 403 (not enrolled), 429 (`Retry-After`) and `failed`.
+**Next up:** Issue #43 (AI: cognitive load index and the simplify loop), the start of P6. The full chat path now works end to end (web drawer #42 → API #41 → AI `/rag/answer` #39–#40); evaluation (#43–#45) measures notes and answers.
 
 ## How we work: 50 issues → 50 PRs
 

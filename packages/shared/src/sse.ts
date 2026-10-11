@@ -1,6 +1,7 @@
 /**
- * Server-Sent Events parser (WHATWG HTML "event stream interpretation"), used to pass the AI
- * service's streamed answers through to the browser (#41).
+ * Server-Sent Events parser (WHATWG HTML "event stream interpretation"). Used by the API to
+ * read the AI service's streams (#26, #41) and by the web app to read `POST` streams such as
+ * the course chat (#42), which `EventSource` can't open.
  */
 export interface SseEvent {
   /** The `event:` field; `message` when absent. */

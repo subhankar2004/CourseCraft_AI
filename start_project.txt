@@ -142,7 +142,11 @@ Student:
   /domains -> a course -> "Enroll for free" -> split-view lesson (video + notes)
   /dashboard            continue where you left off, progress, recently completed
 
-The course chatbot (the web chat window comes in issue #42) can be tried with curl.
+Course chatbot in the browser: on any lesson page (or the course page once enrolled),
+click "Ask this course" (bottom right). Answers cite "Lesson · m:ss"; click one to jump
+to that moment. "Conversations" reopens earlier chats, "New chat" starts over.
+
+The same chatbot can also be tried with curl.
 Sign in as the student first (saves the session cookie), enroll, then ask.
 <courseId> = a published course's id (it is in the URL of /admin/courses/<id>):
      curl -c cookies.txt -H 'Content-Type: application/json' \

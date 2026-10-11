@@ -25,7 +25,7 @@ import {
 } from '@coursecraft/shared';
 import type { z } from 'zod';
 import { AiServiceError, type AiErrorKind } from './ai-client.errors.js';
-import { parseSse, type SseEvent } from './sse.js';
+import { parseSse, type SseEvent } from '@coursecraft/shared';
 
 /** Per-endpoint limits. Long timeouts are deliberate: notes from a local LLM take minutes. */
 export const ENDPOINTS = {

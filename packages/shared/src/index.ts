@@ -11,4 +11,5 @@ export * from './generation.js';
 export * from './health.js';
 export * from './ingestion.js';
 export * from './learning.js';
+export * from './sse.js';
 export * from './youtube.js';

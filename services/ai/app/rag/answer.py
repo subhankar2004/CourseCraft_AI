@@ -77,6 +77,9 @@ class Passage:
     chunk_ids: tuple[str, ...]
     #: The best similarity among its chunks.
     score: float
+    #: Where its best-matching chunk starts: the moment a citation link jumps to (#42). Merged
+    #: neighbours overlap in time, so the span's start can be minutes before the relevant part.
+    seek_sec: float
 
 
 @dataclass(frozen=True)
@@ -106,20 +109,21 @@ def merge_passages(hits: Sequence[SearchHit]) -> list[Passage]:
     for lesson_hits in by_lesson.values():
         ordered = sorted(lesson_hits, key=lambda h: (h.start_sec, h.chunk_index))
         current = ordered[0]
-        text, ids, score, end = current.text, [current.id], current.score, current.end_sec
+        text, ids, end, best = current.text, [current.id], current.end_sec, current
         for hit in ordered[1:]:
             if hit.start_sec <= end + MERGE_GAP_SEC:
                 text += hit.text[overlap_length(text, hit.text) :]
                 ids.append(hit.id)
-                score, end = max(score, hit.score), max(end, hit.end_sec)
+                end = max(end, hit.end_sec)
+                best = hit if hit.score > best.score else best
                 continue
-            passages.append(_passage(current, text, ids, score, end))
-            current, text, ids, score, end = hit, hit.text, [hit.id], hit.score, hit.end_sec
-        passages.append(_passage(current, text, ids, score, end))
+            passages.append(_passage(current, text, ids, best, end))
+            current, text, ids, end, best = hit, hit.text, [hit.id], hit.end_sec, hit
+        passages.append(_passage(current, text, ids, best, end))
     return sorted(passages, key=lambda p: -p.score)
 
 
-def _passage(first: SearchHit, text: str, ids: list[str], score: float, end: float) -> Passage:
+def _passage(first: SearchHit, text: str, ids: list[str], best: SearchHit, end: float) -> Passage:
     return Passage(
         lesson_id=first.lesson_id,
         lesson_title=first.lesson_title,
@@ -128,7 +132,8 @@ def _passage(first: SearchHit, text: str, ids: list[str], score: float, end: flo
         end_sec=end,
         text=text,
         chunk_ids=tuple(ids),
-        score=score,
+        score=best.score,
+        seek_sec=best.start_sec,
     )
 
 

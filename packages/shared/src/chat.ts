@@ -21,8 +21,11 @@ export const chatCitationSchema = z.object({
   lessonId: z.string(),
   /** The lesson's current title. */
   lessonTitle: z.string(),
+  /** The cited span of the video. */
   startSec: z.number(),
   endSec: z.number(),
+  /** The moment to open the lesson at: where the best-matching part of the span starts. */
+  seekSec: z.number(),
 });
 
 export const chatRoleSchema = z.enum(['USER', 'ASSISTANT']);

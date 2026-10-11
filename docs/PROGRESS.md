@@ -1835,6 +1835,66 @@ Also: the mobile switch first had lowercase labels styled with `capitalize`, so 
 - **Also:** `start_project.txt` (the from-scratch run guide, at the repo root) is committed with this PR; its chat example now uses this endpoint.
 - **CI found a race in an existing endpoint.** `POST /jobs/:id/retry` (#30) read the job _after_ queueing it, so with the in-process worker on a fast runner the response could already show the video `PROCESSED` instead of the restarted `TRANSCRIBED`, and the #30 e2e test failed once on CI. The response is now read before the job is queued: the job as restarted. All 97 e2e tests then passed three runs in a row.
 
+## Entry 42 — The course chat drawer (Issue #42, PR #93, 2026-10-11) · P5 complete
+
+**What:** students can ask the course while they study (SPEC F11). The full path now works: web drawer → API (#41) → AI service (#39–#40) → back as a stream with citations.
+
+- **"Ask this course"** is a floating button that opens a side sheet: on every lesson page, and on the course page for enrolled students (visitors don't see it; the Enroll call to action covers them).
+- **While answering:** a typing indicator ("Thinking…"), then the answer streams with a live cursor. A Stop button aborts it.
+- **Answers** render as Markdown (no raw HTML) with inline [n] markers linked to their sources, plus source chips "Lesson title · m:ss".
+- **Refusals** are styled distinctly ("Not covered in this course"), so a student never mistakes one for an answer.
+- **Errors** are worded for students: not enrolled, offline, rate-limited (with the wait time, and no retry button), or a failed answer ("Try again" resends the question).
+- **Conversations:** a list of earlier conversations, reopening one, and **New chat**. The open conversation is remembered per course for the tab, so following a citation to another lesson, or reloading, continues it.
+
+**Jumping to the right moment.**
+
+- A citation links to `/learn/<course>/<lesson>?t=<seconds>`. The lesson page reads `?t=` (validated and clamped by a pure, tested `linkedTime()`), starts the player there instead of the saved position, and seeks if `t` changes on a lesson that's already open.
+- A citation of the lesson already open doesn't navigate at all. The page seeks its own player, so repeated clicks always work.
+- **Caught in the real browser run: imprecise targets (D133).**
+  - The demo course's "Graph Search" lesson has chunks overlapping in time (0:00–3:10, 3:01–6:19, 5:49–9:01, 8:30–10:31).
+  - #40's passage merging joined them into one passage starting at 0:00, so every citation of that lesson would have opened at the beginning, whichever part answered the question.
+  - Each passage now also carries **`seekSec`**, the start of its _best-matching_ chunk, and links open there; the span stays for context.
+  - This touched all four layers: the AI passage and citation (`seek_sec`), the shared contracts, the API's stored citations (older rows fall back to `startSec`), and the web links.
+  - The same question then cited "Graph Search … · 8:30", and the player opened at 510 s.
+
+**Design decisions:**
+
+- **D134:** the SSE parser moved from the API to `packages/shared`, so the API and the browser read streams with one implementation (its tests moved with it).
+  - The web client uses `fetch` with a stream reader, not `EventSource` (which can only GET).
+  - Async iteration of `ReadableStream` isn't in Safari, so chunks are read through `getReader()`.
+  - 429 becomes a typed `ChatLimitError` carrying `Retry-After`.
+- **D135:** the conversation is remembered per course in `sessionStorage` (per tab, guarded when storage is blocked) and restored when the drawer opens. If the conversation is gone, it quietly starts a new one. Lesson pages remount on navigation, which first lost the conversation in the browser test.
+- **D136:** each drawer instance generates its own ids (`useId`). The browser test found two textareas with the same id: Next 16 keeps the previous lesson's page hidden in the DOM (Activity), so the label pointed at the hidden one.
+- **D137:** the drawer is a Radix sheet: a modal dialog, with the focus trapped inside and returned to the trigger on Escape [R166].
+  - The conversation log is `role="log"` with `aria-busy` while streaming, so screen readers hear the finished answer instead of every token.
+  - The drawer's own scroll follows the answer (never `scrollIntoView`, per #38).
+  - Enter sends, Shift+Enter starts a new line (not while composing with an IME).
+  - Chips keep the time visible when a long title is cut, and are named "Source n: Lesson · m:ss".
+  - The drawer is full width on phones.
+
+**Verification:**
+
+- **Web tests:** 19 new.
+  - **The `askCourse` stream client:** events split across chunks, `ping`s and comments, `failed`, an interrupted stream, 429 with `Retry-After`, 403.
+  - **`linkedTime`:** 9 cases.
+  - **`ChatAnswer`:** markers with and without a citation, code left alone.
+  - **`CourseChat`:**
+    - thinking → streaming → done, with chip and inline links at `seekSec`;
+    - a follow-up keeps the session;
+    - a citation of the open lesson is handled in place (default prevented) and the sheet closes;
+    - refusal style, failure + Try again, the rate-limit message;
+    - history reopen, restore on a new page, New chat clearing it.
+  - **Mutation checks:** linking to the span start failed 2 tests, ignoring `onCite` 1, no persistence 2.
+- **API e2e:** expectations updated for `seekSec`; 97 pass. **AI:** the passage test checks `seek_sec` is the best chunk's start; 43 RAG tests. **Shared:** streams recaptured from the real service; 91 tests.
+- **The done condition, in a real browser** (headless Chrome, the seed student, the demo course, the real model):
+  1. On the "CSS Grid" lesson, "How can you traverse a graph more efficiently…" showed "Thinking…", streamed, and ended with a cited answer: chip "Graph Search Algorithms in 100 Seconds … · 8:30", `?t=510`.
+  2. **Clicking it opened that lesson with the player at `start=510`**, and the conversation was still there.
+  3. A question about the open lesson cited it, and **clicking seeked the video to exactly 349 s, the cited moment, without reloading**.
+  4. An off-topic question showed the refusal style. The Conversations list and reopening worked.
+  5. The launcher appeared on the course page for the enrolled student and not for a visitor. No console errors.
+- **Accessibility (axe, light/dark at 1280 px and 390 px):** no violations with the drawer closed or open, no horizontal overflow, full width on a phone, Tab stays inside the drawer, and Escape returns focus to "Ask this course".
+- **Full checks:** format, lint and typecheck are clean; the build passes. Tests: web 141, shared 91, API 37 unit + 97 e2e, AI 279.
+
 ---
 
 ## Decision log
@@ -1975,3 +2035,8 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D130 | 2026-10-11 | A client disconnect aborts the AI request                                                                                                                                                          | The model stops working for a student who left                                                                                                                                                            |
 | D131 | 2026-10-11 | Per-user chat limits in Redis: 5/min, 60/h (fixed windows) and one streaming answer at a time (SET NX lock, compare-and-delete release); 429 + Retry-After                                         | Bounds the most expensive endpoint; correct across instances and restarts [R164][R165]                                                                                                                    |
 | D132 | 2026-10-11 | `AiClient` stream: 120 s connect timeout, no retry                                                                                                                                                 | Condensing and retrieval happen before the AI replies; a retry would run the LLM twice                                                                                                                    |
+| D133 | 2026-10-11 | Citations carry `seekSec` (start of the passage's best-matching chunk); links open there, the span stays for context                                                                               | Merged overlapping chunks started at 0:00, so links missed the relevant moment (found in the browser run)                                                                                                 |
+| D134 | 2026-10-11 | One SSE parser in `packages/shared` for API and web; the web reads `POST` streams with `fetch` + `getReader()`; 429 → `ChatLimitError` with `Retry-After`                                          | No duplicate parser; `EventSource` can't POST; Safari lacks async-iterable streams                                                                                                                        |
+| D135 | 2026-10-11 | The open conversation per course in `sessionStorage`, restored when the drawer opens                                                                                                               | Following a citation (a new page) or reloading continues the conversation                                                                                                                                 |
+| D136 | 2026-10-11 | `useId()` for the drawer's form ids                                                                                                                                                                | Next keeps the previous page hidden in the DOM, which duplicated fixed ids (found in the browser run)                                                                                                     |
+| D137 | 2026-10-11 | Drawer = modal sheet (focus trap, Escape returns focus); `role="log"` with `aria-busy` while streaming; own-scroll following; full width on phones                                                 | Accessible chat without a token-by-token screen-reader flood [R166]                                                                                                                                       |
