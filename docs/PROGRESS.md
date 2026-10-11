@@ -1971,6 +1971,33 @@ Also: the mobile switch first had lowercase labels styled with `capitalize`, so 
 - **Shared:** the `process-lesson` fixture was recaptured from the real service with `cognitiveLoad` (index 11.2 for "Git Explained"), and the demo vectors it created were deleted.
 - **Full checks:** format, lint and typecheck are clean; the build passes. Tests: AI 292, web 144, shared 91, API 37 + 98 e2e.
 
+## Entry 95 — Fix: long lectures failed with "Headers Timeout Error" (Issue #95, PR #96, 2026-10-11)
+
+**The bug** (found while testing #43, D140):
+
+- A course with a 30-minute lecture failed with "AI service unreachable: Headers Timeout Error", although the AI service finished the notes (it logged 200 after 847 s and 1,194 s).
+- **Cause:** the API called the AI service with Node's built-in `fetch`, whose HTTP client (undici) stops waiting for response headers, or between body chunks, after **300 s by default** [R167]. That is far below `AiClient`'s own limit for `/process/lesson` (30 minutes, enforced with an AbortSignal).
+- **Effect:** any lesson whose notes took more than 5 minutes failed, was retried, and failed again. The demo playlist's 100-second videos never came close, so #30 didn't show it.
+
+**The fix (D142, the `undici` dependency approved by Subhankar):**
+
+- `AiClient` sends through its own undici `Agent` with `headersTimeout` and `bodyTimeout` turned off; connecting still fails fast (10 s). Each endpoint's own timeout decides, as SPEC §8.2 always said.
+- The client uses the npm undici's `fetch` with that `Agent`, the same library version on both sides, instead of mixing it with the copy bundled inside Node.
+- The pool is closed on application shutdown, so the process and the tests can exit.
+- Tests can still pass their own `fetch`.
+
+**Verification:**
+
+- **Unit tests** (4 new):
+  - A reply whose headers, or whose body, arrive late **fails under a short undici limit**: the bug reproduced in miniature, giving "Headers Timeout Error" and a body timeout.
+  - The **default client waits** for both.
+  - undici's timers are coarse (a 300 ms limit fires after about 1 s, checked directly), so the test replies 2 s late.
+  - **Mutation check:** a 300 ms default limit failed the 2 default-client tests. They can't prove the absence of a _300 s_ limit without waiting 5 minutes; the real run below does.
+- **The real failed job, retried** through the running API with the fix: the 30-minute lecture's `/process/lesson` took **374 s**, past the old 300 s limit. **The job succeeded** and both lessons were processed.
+- **Full checks:** format, lint and typecheck are clean; the build passes; all tests pass.
+
+**Still open (not this fix):** when the API abandons a request (its own timeout, or a restart mid-job, after which BullMQ re-runs the stalled job), the AI service keeps generating for it, competing for the local model. Cancelling AI-side work needs the request to stream or poll, so it's noted for P7.
+
 ---
 
 ## Decision log
@@ -2120,3 +2147,4 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D139 | 2026-10-11 | Simplify once above CLI_MAX; keep the rewrite only if lighter, every anchor kept and ≥ 60% of the words; failures keep the original                                                                | On the real model a rewrite was kept (22.9 → 15.1), one was heavier (rejected) and one lost every anchor (failed safely)                                                                                  |
 | D140 | 2026-10-11 | Report, don't silently fix, the 300 s undici headers timeout on `/process/lesson` (needs the `undici` dependency)                                                                                  | Long lectures fail although the AI finishes; a dependency outside SPEC §4 needs the owner's decision                                                                                                      |
 | D141 | 2026-10-11 | `POST /eval/cognitive-load`; an admin edit re-measures (best effort, clearing the value on failure)                                                                                                | The stored index always describes the notes as they are; reusable by #46                                                                                                                                  |
+| D142 | 2026-10-11 | `AiClient` uses the `undici` package's `fetch` with an `Agent` whose header/body timeouts are off (connect 10 s); per-endpoint AbortSignal timeouts decide                                         | Node's default 300 s limits cut off lessons that take longer than 5 minutes (a 374 s lesson now succeeds) [R167]                                                                                          |
