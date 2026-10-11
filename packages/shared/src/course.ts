@@ -111,3 +111,65 @@ export const adminCourseSchema = z.object({
 
 export type CourseStatus = z.infer<typeof courseStatusSchema>;
 export type AdminCourse = z.infer<typeof adminCourseSchema>;
+
+// ─── Admin review (#31) ─────────────────────────────────────────────────────
+
+/** `GET /admin/courses/:id`: everything the review page needs, in any status. */
+export const adminCourseDetailSchema = adminCourseSchema.extend({
+  description: z.string().nullable(),
+  llmModel: z.string(),
+  embeddingModel: z.string(),
+  /** Corrections the pipeline made to the AI's outline (#25), for the reviewer. */
+  outlineRepairs: z.array(z.string()),
+  modules: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      summary: z.string().nullable(),
+      order: z.number().int(),
+      lessons: z.array(
+        z.object({
+          id: z.string(),
+          title: z.string(),
+          order: z.number().int(),
+          summary: z.string().nullable(),
+          readingTimeMin: z.number().int().nullable(),
+          youtubeId: z.string(),
+          videoDurationSec: z.number().int(),
+        }),
+      ),
+    }),
+  ),
+});
+
+/** `PATCH /courses/:id`. The slug only changes when given (public URLs stay stable). */
+export const updateCourseSchema = z
+  .strictObject({
+    title: z.string().trim().min(3, 'Title must be at least 3 characters').max(200).optional(),
+    description: z.string().trim().max(2000).nullable().optional(),
+    level: courseLevelSchema.nullable().optional(),
+    domainId: z.string().min(1).max(64).optional(),
+    slug: slugSchema.optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, 'Provide at least one field to update');
+
+/**
+ * `PUT /courses/:id/outline`: the whole outline in its new order. Every existing LESSON must
+ * appear exactly once (content is never lost); lessons may move between modules. A module
+ * without `id` is created; an existing module left out is deleted (it is empty by then).
+ */
+export const courseOutlineUpdateSchema = z.strictObject({
+  modules: z
+    .array(
+      z.strictObject({
+        id: z.string().min(1).optional(),
+        title: z.string().trim().min(1, 'Module title is required').max(200),
+        lessonIds: z.array(z.string().min(1)).min(1, 'A module needs at least one lesson'),
+      }),
+    )
+    .min(1),
+});
+
+export type AdminCourseDetail = z.infer<typeof adminCourseDetailSchema>;
+export type UpdateCourseInput = z.infer<typeof updateCourseSchema>;
+export type CourseOutlineUpdate = z.infer<typeof courseOutlineUpdateSchema>;

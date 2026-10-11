@@ -1233,6 +1233,57 @@ Both were then reverted. The new tests also passed on the first run, which is wh
 
 ---
 
+## Entry 31 — Admin course review: reorder, edit, publish, delete (Issue #31, PR #82, 2026-10-11)
+
+**What:** the human-in-the-loop step between generation and the public catalog.
+
+- **API:**
+  - `GET /admin/courses/:id`: a course in any status, with its full outline and the **AI's outline repairs** from the job report (#25), so the reviewer sees what was auto-corrected.
+  - `PATCH /courses/:id`: title, description, level, domain, and a slug (409 when it's taken).
+  - `PUT /courses/:id/outline`: the whole outline in its new order.
+  - `POST /courses/:id/publish|unpublish`.
+  - `DELETE /courses/:id`.
+- **Web, `/admin/courses/[id]`:**
+  - a header with status and stats, a details dialog, and Publish/Unpublish, which is disabled while the outline has unsaved changes;
+  - delete, which requires typing the title;
+  - the AI's repairs in a disclosure;
+  - an **outline editor**: drag-and-drop with dnd-kit [R142] (pointer and keyboard), move up/down buttons, "Move to module…", inline module titles, add module, explicit Save/Discard;
+  - a **lesson preview** sheet with the thumbnail, summary, key concepts and notes (formatted rendering arrives in #34).
+- Course titles in the admin list open the review page, and a finished generation job now redirects to it (#30).
+
+**Design (D88–D91):**
+
+- **One outline endpoint, defined by its payload (D88).** The client sends the whole outline: reorder modules, move lessons across modules, rename, add (a module without an id) and remove modules (an existing module left out). Every **lesson** must appear exactly once, so content can never be lost; duplicates, missing lessons and foreign ids are all reported at once. Chunk ids don't depend on module or order (#24), so vectors and citations stay valid whatever the reorganisation.
+- **Two-phase reindex (D89).** `(courseId, order)` and `(moduleId, order)` are unique, so reassigning orders in place collides midway. In one transaction, all orders are first negated (still unique), then the final values are written. Mutation check: without phase 1, both outline tests fail with unique-constraint violations. (Deferrable constraints [R40] would also work, but Prisma can't declare them.)
+- **Delete vectors first (D90).** If the AI service is down the API answers 503 and **nothing** is deleted, so a course can't disappear while its chatbot vectors stay behind. Then the course goes, and everything under it cascades. A course being generated can't be edited, published or deleted (409): its job's final transaction would overwrite the changes.
+- **Accessible reordering (D91).** Drag handles are buttons that work by keyboard (Space, arrows, Space), alongside explicit move buttons. dnd-kit's default screen-reader announcements read **internal ids** ("Draggable item lesson:10ebe2d7-… was moved over droppable area lesson:7a92598e-…"); the browser run surfaced this. They are replaced by title-based announcements ("lesson 3, COBOL in 100 seconds was dropped at lesson 4, Flutter in 100 seconds") and plain instructions [R141].
+
+**Verification:**
+
+- **API:** 12 e2e tests, covering:
+  - the review read;
+  - details edits (slug conflict, unknown domain);
+  - reorder and cross-module moves, with chunks following their lessons;
+  - adding and removing modules;
+  - lost, duplicate and foreign lessons rejected with nothing changed;
+  - publish into, and unpublish out of, the public API;
+  - not-ready courses refused, and the generation lock;
+  - delete, including "AI down → nothing deleted".
+- **Web:** 5 new unit tests (57 total) for the outline operations, payload, dirty and blocking rules, and the catalog tags.
+- **A real review in the browser, done-condition included** (headless Chrome, dev server). The course was the 25-lesson "Web Development Fundamentals" generated in #30; its repairs disclosure showed "6 corrections". The reviewer fixed the **AI's actual misplacements**:
+  - "DevOps CI/CD" moved out of _Front-end Development_, and "CSS Variables" and "CSS Animation" moved into it;
+  - _JavaScript Essentials_ moved first; _Version Control_ renamed "Git, GitHub and DevOps";
+  - one lesson reordered by **mouse drag**, one by **keyboard drag**.
+
+  Saving persisted all of it across a reload; Publish was disabled while unsaved. The lesson preview showed the real notes (2,450 characters, 7 key concepts). After the description edit and **Publish**, the public course page showed the new title order, the renamed module and the description at once.
+
+- **"It then appears in the public catalog", checked on a production build.**
+  - The domain page lists the course while it's published, drops it **immediately** after Unpublish, and lists it again immediately after Publish.
+  - An earlier check had wrongly reported "not listed". It read the page before the client-side course list (#14's search and filter) had rendered, since that list renders after hydration. Waiting for the card itself fixed the check; the app was right. The dev server again showed its one-request lag (D82).
+- All checks pass; the published course stays in the catalog as demo content.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -1326,3 +1377,7 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D85 | 2026-10-11 | The progress page re-reads the job snapshot when the stage changes or an event names an unknown video                                                                         | Events are deltas; a page that connected early would never learn the video list (seen on the first real run)                                                                                              |
 | D86 | 2026-10-11 | Client components that read the URL render inside `<Suspense>` with a URL-independent fallback                                                                                | Required under Cache Components on routes with non-prerendered params; keeps the shared layout prerendered [R50]                                                                                          |
 | D87 | 2026-10-11 | The job page redirects only when the job finished while the page was open                                                                                                     | A finished job's page is a useful summary; bouncing away made it unreadable                                                                                                                               |
+| D88 | 2026-10-11 | One `PUT /courses/:id/outline` defines the whole outline (reorder, move across modules, rename, add/remove modules); every lesson exactly once                                | One atomic, validated operation instead of many partial calls; content can never be lost; chunk ids are independent of placement                                                                          |
+| D89 | 2026-10-11 | Two-phase reindex in one transaction (negate all orders, then assign final values)                                                                                            | Unique `(parent, order)` constraints collide during in-place reordering; Prisma can't declare deferrable constraints [R40]                                                                                |
+| D90 | 2026-10-11 | Delete a course's vectors **before** the course (503, nothing deleted, if the AI service is down); no edits while generating                                                  | No orphaned vectors and no half-deleted courses; the generation job would overwrite concurrent edits                                                                                                      |
+| D91 | 2026-10-11 | Reordering by drag (pointer and keyboard), move buttons and a "Move to module" select; screen-reader announcements use titles                                                 | Drag-only UIs exclude keyboard and screen-reader users; dnd-kit's default announcements expose internal ids [R141][R142]                                                                                  |

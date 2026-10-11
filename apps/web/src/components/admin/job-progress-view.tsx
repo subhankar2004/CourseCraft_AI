@@ -28,8 +28,8 @@ import {
 import { ApiError } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
-/** Where a finished job takes the admin (#31 adds the course review page). */
-const AFTER_DONE = '/admin/courses';
+/** A finished job leads to its course's review page (#31). */
+const reviewPage = (courseId: string) => `/admin/courses/${courseId}`;
 const REDIRECT_DELAY_MS = 2_500;
 
 export function JobProgressView({ jobId }: { jobId: string }) {
@@ -46,9 +46,9 @@ export function JobProgressView({ jobId }: { jobId: string }) {
   useEffect(() => {
     if (job?.status !== 'SUCCEEDED' || !watchedRunning) return;
     toast.success(`“${job.course.title}” is ready as a draft`);
-    const timer = setTimeout(() => router.push(AFTER_DONE), REDIRECT_DELAY_MS);
+    const timer = setTimeout(() => router.push(reviewPage(job.course.id)), REDIRECT_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [job?.status, job?.course.title, router, watchedRunning]);
+  }, [job?.status, job?.course.title, job?.course.id, router, watchedRunning]);
 
   if (!job) {
     if (state === 'unavailable') {
@@ -172,10 +172,12 @@ export function JobProgressView({ jobId }: { jobId: string }) {
           <span>
             The course is ready as a <strong>draft</strong>
             {failedVideos > 0 && ` (${failedVideos} video${failedVideos === 1 ? '' : 's'} skipped)`}
-            .{watchedRunning ? ' Taking you to the course list…' : ''}
+            .{watchedRunning ? ' Taking you to the review page…' : ''}
           </span>
           <Button asChild size="sm" variant="outline">
-            <Link href={AFTER_DONE}>{watchedRunning ? 'Go now' : 'Open the course list'}</Link>
+            <Link href={reviewPage(job.course.id)}>
+              {watchedRunning ? 'Go now' : 'Review the course'}
+            </Link>
           </Button>
         </div>
       )}

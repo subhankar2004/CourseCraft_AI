@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #31 (admin course review: reorder, edit metadata, publish). Point the job page's done-redirect (`AFTER_DONE` in `job-progress-view.tsx`) at the new review page.
+**Next up:** Issue #32 (admin lesson notes editor), reached from the review page's lesson preview.
 
 ## How we work: 50 issues → 50 PRs
 

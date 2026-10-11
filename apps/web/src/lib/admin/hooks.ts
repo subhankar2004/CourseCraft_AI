@@ -1,7 +1,12 @@
 'use client';
 
 import {
+  type AdminCourseDetail,
+  adminCourseDetailSchema,
   adminCourseSchema,
+  type CourseOutlineUpdate,
+  lessonDetailSchema,
+  type UpdateCourseInput,
   type Domain,
   domainSchema,
   type GenerateCourseBody,
@@ -19,6 +24,7 @@ import { api, apiUrl } from '@/lib/api';
 import { hasActiveGeneration } from './courses';
 import { catalogTagsFor } from './domains';
 import { applyEvent, needsSnapshot } from './job-progress';
+import { courseCatalogTags } from './outline';
 
 export const ADMIN_COURSES_KEY = ['admin', 'courses'] as const;
 export const DOMAINS_KEY = ['domains'] as const;
@@ -190,4 +196,86 @@ export function useJobStream(jobId: string) {
   );
 
   return { job, state, restart };
+}
+
+// ─── Course review (#31) ──────────────────────────────────────────────────
+
+export const adminCourseKey = (id: string) => ['admin', 'course', id] as const;
+
+export function useAdminCourse(id: string) {
+  return useQuery({
+    queryKey: adminCourseKey(id),
+    queryFn: () => api(`admin/courses/${id}`, { schema: adminCourseDetailSchema }),
+  });
+}
+
+/** A lesson with its notes, for the preview (admins can read unpublished lessons). */
+export function useLessonPreview(id: string | null) {
+  return useQuery({
+    queryKey: ['lesson', id],
+    queryFn: () => api(`lessons/${id}`, { schema: lessonDetailSchema }),
+    enabled: id !== null,
+  });
+}
+
+/**
+ * After a course change: store the new detail, refetch the admin list, and expire the public
+ * catalog pages it can affect (old and new slug and domain).
+ */
+function useAfterCourseChange(before: AdminCourseDetail) {
+  const queryClient = useQueryClient();
+  return async (after: AdminCourseDetail | null) => {
+    if (after) queryClient.setQueryData(adminCourseKey(before.id), after);
+    else queryClient.removeQueries({ queryKey: adminCourseKey(before.id) });
+    await queryClient.invalidateQueries({ queryKey: ADMIN_COURSES_KEY });
+    try {
+      await refreshCatalog(
+        courseCatalogTags([before.slug, after?.slug], [before.domain.slug, after?.domain.slug]),
+      );
+    } catch {
+      toast.warning('Saved, but public pages may take a while to show the change.');
+    }
+  };
+}
+
+export function useUpdateCourse(course: AdminCourseDetail) {
+  const after = useAfterCourseChange(course);
+  return useMutation({
+    mutationFn: (body: UpdateCourseInput) =>
+      api(`courses/${course.id}`, { method: 'PATCH', json: body, schema: adminCourseDetailSchema }),
+    onSuccess: (detail) => after(detail),
+  });
+}
+
+export function useSaveOutline(course: AdminCourseDetail) {
+  const after = useAfterCourseChange(course);
+  return useMutation({
+    mutationFn: (body: CourseOutlineUpdate) =>
+      api(`courses/${course.id}/outline`, {
+        method: 'PUT',
+        json: body,
+        schema: adminCourseDetailSchema,
+      }),
+    onSuccess: (detail) => after(detail),
+  });
+}
+
+export function useSetPublished(course: AdminCourseDetail) {
+  const after = useAfterCourseChange(course);
+  return useMutation({
+    mutationFn: (publish: boolean) =>
+      api(`courses/${course.id}/${publish ? 'publish' : 'unpublish'}`, {
+        method: 'POST',
+        schema: adminCourseDetailSchema,
+      }),
+    onSuccess: (detail) => after(detail),
+  });
+}
+
+export function useDeleteCourse(course: AdminCourseDetail) {
+  const after = useAfterCourseChange(course);
+  return useMutation({
+    mutationFn: () => api(`courses/${course.id}`, { method: 'DELETE' }),
+    onSuccess: () => after(null),
+  });
 }
