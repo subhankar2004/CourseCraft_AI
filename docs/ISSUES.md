@@ -441,10 +441,10 @@ Meta: phase=P4 | area=api | type=feat | depends=11
 **Goal:** SPEC §7.3, rule-based pathing.
 **Tasks**
 
-- [ ] `POST /courses/:id/enroll`, `GET /me/courses` (with progress %, last lesson)
-- [ ] `PUT /lessons/:id/progress {status?, lastPositionSec}` (opening a lesson marks it IN_PROGRESS)
-- [ ] `GET /courses/:id/next`: first non-completed lesson in order
-- [ ] E2E tests covering the progress rules
+- [x] `POST /courses/:id/enroll`, `GET /me/courses` (with progress %, last lesson)
+- [x] `PUT /lessons/:id/progress {status?, lastPositionSec}` (opening a lesson marks it IN_PROGRESS)
+- [x] `GET /courses/:id/next`: first non-completed lesson in order
+- [x] E2E tests covering the progress rules
 
 **Done when:** Enroll → progress → next behaves as specified.
 

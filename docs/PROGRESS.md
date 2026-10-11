@@ -1328,6 +1328,51 @@ Both were then reverted. The new tests also passed on the first run, which is wh
 
 ---
 
+## Entry 33 — Enrollment, progress and the next lesson (Issue #33, PR #84, 2026-10-11) · P4 begins
+
+**What:** the learner side of the API (`apps/api/src/learning/`), implementing SPEC §7.3 (rule-based adaptive pathing):
+
+- `POST /courses/:id/enroll`: idempotent.
+- `PUT /lessons/:id/progress {status?, lastPositionSec}`.
+- `GET /courses/:id/next`.
+- `GET /me/courses`: each course with `progress`, `lastLesson` to continue, and `next`, most recently studied first.
+- `GET /courses/:id/progress`: a new endpoint, not in the issue. The lesson page's sidebar ticks and resume position (#35/#36) and the enroll button need every lesson's status in one call.
+
+**The rules (D95)** live in one pure function, `nextProgress`, which is unit-tested on its own:
+
+- Any update marks the lesson IN_PROGRESS (opening sends position 0).
+- It becomes COMPLETED when the user marks it, or once **90%** of the video is reached (`COMPLETION_THRESHOLD`, shared with the web app).
+- **Re-watching never undoes a completion:** position updates keep COMPLETED. Only an explicit `status: IN_PROGRESS` ("mark as not complete") does.
+- Positions are clamped to the video length, and `completedAt` keeps the first completion.
+- **Next lesson:** the first non-completed lesson in course order (module order, then lesson order), so it crosses module boundaries. Course progress % = completed ÷ total, rounded.
+
+This is the simplest form of _adaptive navigation support_, direct guidance [R145]. The report's related work uses reinforcement learning for this [R18]; the MVP deliberately starts rule-based and explainable.
+
+**Other decisions:**
+
+- **Studying a lesson enrolls automatically (D96).** Opening a lesson means taking the course, and it avoids an "enroll first" error on the lesson page. The enrollment and the progress row are written in one transaction.
+- **Only published courses (D97).** Drafts are 404 for enrollment and progress, as for lessons and course pages. A course unpublished later disappears from "my courses" but keeps the learner's progress for when it returns.
+
+**Verification:**
+
+- **Unit:** 7 tests of the rules (open, the 90% boundary at 89.9 vs 90, mark complete keeping the first time, re-watch vs explicit undo, clamping, unknown duration, the summary).
+- **e2e:** 4 tests.
+  - The full SPEC flow over HTTP: enroll (idempotent) → open L2 (in progress, next still L1) → mark L1 complete (33%) → watch 95% of L2 (auto-complete, next crosses into module 2) → re-watch keeps it complete → undo → finish (`next: null`, `courseCompleted`, 100%).
+  - Auto-enrollment with a clamped position; learners kept apart.
+  - "My courses" ordered by activity, with the last and next lessons, and unpublished courses hidden.
+  - Drafts 404, invalid bodies 400, unauthenticated 401.
+
+  **Mutation checks:** ignoring the module order failed 2 tests, and letting a re-watch downgrade a completion failed 1.
+
+- **Real data** (the seed student, through the real API, on the published 25-lesson course):
+  - Next was the first lesson of the **reviewed** order from #31.
+  - Opening it gave IN_PROGRESS; watching 96 s of its 104 s video (92%) auto-completed it (1 of 25, 4%).
+  - `/me/courses` showed the course with its last and next lesson.
+  - The student keeps this progress as demo data for the dashboard (#37).
+- R18 (from the report) was verified on Crossref: exact title, authors, volume, pages and DOI. Its "⚠ verify" mark is removed.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -1428,3 +1473,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D92 | 2026-10-11 | Timestamp anchors are parsed by one shared helper and validated against the video length (API refuses, editor warns)                                                          | An anchor past the video end can't seek; the same parser drives the lesson page's clickable anchors (#34)                                                                                                 |
 | D93 | 2026-10-11 | Editing notes does not re-index vectors                                                                                                                                       | Retrieval uses transcript chunks, not notes, so notes edits can't make the chatbot's data stale                                                                                                           |
 | D94 | 2026-10-11 | One Markdown renderer for notes (react-markdown + GFM, no raw HTML) used by the editor, the review preview and later the lesson page                                          | Consistent rendering everywhere; AI- or admin-written text can't inject markup [R143][R144]                                                                                                               |
+| D95 | 2026-10-11 | Progress rules in one pure function: open → IN_PROGRESS; mark or ≥ 90% watched → COMPLETED; re-watching never downgrades, explicit status does; positions clamped             | One testable place for SPEC §7.3; learners never lose a completion by scrubbing back through a video                                                                                                      |
+| D96 | 2026-10-11 | Studying a lesson enrolls the user automatically (one transaction with the progress write)                                                                                    | Opening a lesson means taking the course; avoids an "enroll first" dead end on the lesson page                                                                                                            |
+| D97 | 2026-10-11 | Enrollment and progress only for published courses; unpublished courses are hidden from "my courses" but keep progress                                                        | Drafts must not leak to learners; republishing restores the learner's history                                                                                                                             |

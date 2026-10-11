@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #33 (API: enrollment, progress and next-lesson recommendation), starting P4 (learning UX). Lesson notes render with `components/notes/notes-markdown.tsx`; #34 extends it (code highlighting, clickable `[▶ m:ss]` anchors via `findAnchors` in `packages/shared`).
+**Next up:** Issue #34 (web: Markdown notes renderer with timestamp anchors), P4. Lesson notes render with `components/notes/notes-markdown.tsx`; #34 extends it (code highlighting, clickable `[▶ m:ss]` anchors via `findAnchors` in `packages/shared`).
 
 ## How we work: 50 issues → 50 PRs
 

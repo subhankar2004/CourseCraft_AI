@@ -12,6 +12,7 @@ import { DomainsModule } from './domains/domains.module.js';
 import { type Env, validateEnv } from './config/env.js';
 import { HealthModule } from './health/health.module.js';
 import { IngestionModule, IngestionWorkerModule } from './ingestion/ingestion.module.js';
+import { LearningModule } from './learning/learning.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { REDIS, RedisModule } from './redis/redis.module.js';
 
@@ -55,6 +56,7 @@ import { REDIS, RedisModule } from './redis/redis.module.js';
     HealthModule,
     DomainsModule,
     CoursesModule,
+    LearningModule,
   ],
 })
 export class AppModule {}
