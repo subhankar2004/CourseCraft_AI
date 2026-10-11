@@ -8,8 +8,8 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { useLogin } from '@/lib/auth/hooks';
 import { safeNextPath } from '@/lib/auth/redirect';
-import { applyApiError } from './form-errors';
-import { FormField } from './form-field';
+import { applyApiError } from '@/components/forms/form-errors';
+import { FormField } from '@/components/forms/form-field';
 
 export function LoginForm() {
   const router = useRouter();

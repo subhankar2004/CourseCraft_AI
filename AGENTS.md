@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #29 (web: admin area layout and domain management).
+**Next up:** Issue #30 (web: generate course page with a live progress stepper, at `/admin/courses/new`).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -105,6 +105,7 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - Route protection lives in `src/proxy.ts` + `src/lib/auth/access.ts` and is optimistic only. Every real permission check happens in the API.
 - Redirect targets from the URL go through `safeNextPath()`.
 - Forms: react-hook-form + `zodResolver(<shared schema>)`, `FormField` for accessible inputs, `applyApiError()` for server errors.
+- Admin pages are client components fetching through `lib/admin/hooks.ts` (TanStack Query). A mutation that changes what the public catalog shows must also call the `refreshCatalog(tags)` Server Action (`app/admin/actions.ts`), which re-checks the admin with the API and runs `updateTag`. In `next dev` the refresh can lag by a request; production applies it at once.
 - Server-side catalog reads: `'use cache'` functions in `src/lib/catalog.ts`. They **never throw**: on API failure they return `UNAVAILABLE` cached with `cacheLife('minutes')` (an error thrown inside `use cache` fails the build even if caught, and `'seconds'` entries are excluded from prerenders). Success uses `cacheLife('hours')`. Wrap readers in `<Suspense>`, and await `params` inside the boundary (ISR with Cache Components).
 - `generateStaticParams` uses uncached build-time fetches and must return at least one param (placeholder when the API is down).
 - `useMe()` reads `GET /auth/session` (always 200), never `/auth/me`. It is **hydration-safe**: it reports `isPending` until the component has hydrated, so session-aware components can live inside late-streamed `<Suspense>` boundaries. Always handle `isPending` (render a skeleton).

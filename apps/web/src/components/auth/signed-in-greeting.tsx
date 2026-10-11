@@ -3,7 +3,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMe } from '@/lib/auth/hooks';
 
-/** Placeholder content for protected pages until #37 (dashboard) and #29 (admin) build them. */
+/** Placeholder content for the dashboard until #37 builds it. */
 export function SignedInGreeting({ area }: { area: string }) {
   const { data: user, isPending } = useMe();
   if (isPending) return <Skeleton className="h-10 w-72" />;

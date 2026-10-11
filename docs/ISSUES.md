@@ -390,9 +390,9 @@ Meta: phase=P3 | area=web | type=feat | depends=10,12
 **Goal:** The admin shell.
 **Tasks**
 
-- [ ] `/admin` layout with sidebar (Courses, Domains, Generate), admin-only access
-- [ ] `/admin/domains`: table with create/edit/delete dialogs
-- [ ] `/admin/courses`: table of all courses with status badges (DRAFT/GENERATING/PUBLISHED/FAILED)
+- [x] `/admin` layout with sidebar (Courses, Domains, Generate), admin-only access
+- [x] `/admin/domains`: table with create/edit/delete dialogs
+- [x] `/admin/courses`: table of all courses with status badges (DRAFT/GENERATING/PUBLISHED/FAILED)
 
 **Done when:** An admin can manage domains and see all courses.
 

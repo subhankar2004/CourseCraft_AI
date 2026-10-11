@@ -1,12 +1,6 @@
-import type { Metadata } from 'next';
-import { SignedInGreeting } from '@/components/auth/signed-in-greeting';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'Admin' };
-
+/** The admin area opens on the course list. */
 export default function AdminPage() {
-  return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
-      <SignedInGreeting area="admin area" />
-    </section>
-  );
+  redirect('/admin/courses');
 }
