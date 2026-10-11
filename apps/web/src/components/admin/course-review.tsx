@@ -62,7 +62,7 @@ import {
 } from '@/lib/admin/outline';
 import { ApiError } from '@/lib/api';
 import { formatDuration, plural } from '@/lib/format';
-import { NotesMarkdown } from '@/components/notes/notes-markdown';
+import { NotesRenderer } from '@/components/notes/notes-renderer';
 import { OutlineEditor } from './outline-editor';
 import { StatusBadge } from './status-badge';
 
@@ -538,7 +538,11 @@ function LessonPreview({ lessonId, onClose }: { lessonId: string | null; onClose
                 ))}
               </ul>
             )}
-            <NotesMarkdown markdown={lesson.notesMarkdown} className="rounded-lg border p-3" />
+            <NotesRenderer
+              markdown={lesson.notesMarkdown}
+              youtubeId={lesson.video.youtubeId}
+              className="rounded-lg border p-3"
+            />
           </div>
         )}
       </SheetContent>

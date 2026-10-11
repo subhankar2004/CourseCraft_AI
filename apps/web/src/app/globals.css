@@ -132,3 +132,76 @@
     @apply font-sans;
   }
 }
+
+/*
+ * Code highlighting in lesson notes (rehype-highlight emits highlight.js classes). A small
+ * palette that follows the light/dark theme instead of a fixed third-party stylesheet. Kept
+ * unlayered: inside `@layer components` the rules were left out of the built CSS.
+ */
+.hljs-comment,
+.hljs-quote {
+  color: oklch(0.55 0.02 260);
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-meta .hljs-keyword {
+  color: oklch(0.5 0.2 300);
+}
+.hljs-string,
+.hljs-attr,
+.hljs-selector-attr,
+.hljs-template-variable {
+  color: oklch(0.5 0.14 150);
+}
+.hljs-number,
+.hljs-literal,
+.hljs-symbol,
+.hljs-variable {
+  color: oklch(0.55 0.16 50);
+}
+.hljs-title,
+.hljs-title.function_,
+.hljs-section,
+.hljs-name {
+  color: oklch(0.5 0.16 250);
+}
+.hljs-type,
+.hljs-class .hljs-title,
+.hljs-params {
+  color: oklch(0.55 0.12 200);
+}
+.dark .hljs-comment,
+.dark .hljs-quote {
+  color: oklch(0.65 0.02 260);
+}
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-built_in,
+.dark .hljs-meta .hljs-keyword {
+  color: oklch(0.78 0.14 300);
+}
+.dark .hljs-string,
+.dark .hljs-attr,
+.dark .hljs-selector-attr,
+.dark .hljs-template-variable {
+  color: oklch(0.8 0.13 150);
+}
+.dark .hljs-number,
+.dark .hljs-literal,
+.dark .hljs-symbol,
+.dark .hljs-variable {
+  color: oklch(0.8 0.13 60);
+}
+.dark .hljs-title,
+.dark .hljs-title.function_,
+.dark .hljs-section,
+.dark .hljs-name {
+  color: oklch(0.78 0.12 250);
+}
+.dark .hljs-type,
+.dark .hljs-class .hljs-title,
+.dark .hljs-params {
+  color: oklch(0.8 0.1 200);
+}
