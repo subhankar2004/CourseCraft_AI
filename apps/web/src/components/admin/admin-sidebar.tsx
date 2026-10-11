@@ -11,7 +11,9 @@ const ITEMS = [
     href: '/admin/courses',
     label: 'Courses',
     icon: BookOpenIcon,
-    active: (p: string) => p.startsWith('/admin/courses') && p !== '/admin/courses/new',
+    active: (p: string) =>
+      (p.startsWith('/admin/courses') && p !== '/admin/courses/new') ||
+      p.startsWith('/admin/lessons/'),
   },
   {
     href: '/admin/courses/new',

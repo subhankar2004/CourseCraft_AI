@@ -1284,6 +1284,50 @@ Both were then reverted. The new tests also passed on the first run, which is wh
 
 ---
 
+## Entry 32 — Admin lesson notes editor (Issue #32, PR #83, 2026-10-11) · P3 complete
+
+**What:** a way to fix the AI's mistakes by hand.
+
+- **`PATCH /lessons/:id`** (admin): title, summary, key concepts (de-duplicated), Markdown notes.
+- **`/admin/lessons/[id]`:** the editor, opened from the review page's lesson preview ("Edit notes"):
+  - the fields, plus the Markdown notes **beside a live preview** (Write/Preview tabs on phones);
+  - a live **anchor check** against the video length, and the expected reading time;
+  - Save/Discard;
+  - an **unsaved-changes guard**: the browser's prompt on reload or close, and a confirmation for the in-app back link.
+
+**Design (D92–D94):**
+
+- **Anchors are validated against the video (D92).** Shared helpers (`findAnchors`, `invalidAnchors`, `parseTimestamp`, `formatTimestamp`, `readingTimeMinutes`) parse the canonical `[▶ m:ss]` / `[▶ h:mm:ss]` anchors, ignoring code blocks and inline code.
+  - The API refuses an anchor past the end of the video (400, one message per anchor), and the editor shows the same check before saving, with Save disabled.
+  - The same parser will make anchors seek the player in #34.
+  - Reading time is recomputed exactly as the pipeline does it (200 wpm, #23).
+- **No re-indexing on notes edits (D93).** The chatbot retrieves **transcript** chunks, not notes (#21/#24), so editing notes can't make the vectors stale. Only the course page's cache (lesson titles and reading times) is refreshed.
+- **One notes renderer (D94).** `NotesMarkdown` uses react-markdown with GitHub Flavored Markdown [R143][R144]. It renders no raw HTML and strips dangerous link protocols, so neither AI nor admin text can inject markup. The editor preview and the review page's lesson preview already use it; the lesson page (#34) will extend it with code highlighting and clickable anchors. The library was already listed in SPEC §4.
+
+**A real correction, found while testing.** The 25-lesson course from #30 contained a factual error in "Git Explained in 100 Seconds": _"To create a Git repository … run `git add .`"_. The transcript showed the cause: YouTube's auto-captions heard "git **init**" as **"get an it"**, and `llama3.1:8b` turned the garbled phrase into a plausible but wrong command. The fix was made through the new editor (`git add .` → `git init`). This is a concrete case for the report: speech-recognition errors propagate into AI-written notes, and a human review step catches what the faithfulness metric (#44) is meant to measure.
+
+**Verification:**
+
+- **API:** 4 e2e tests, covering:
+  - edits saved, duplicates removed, reading time recomputed (~460 words → 3 min);
+  - anchors in code ignored; anchors after the end of the video rejected with the old notes kept;
+  - body validation (empty notes, empty title, > 20 concepts, unknown fields);
+  - admin only; 404; the generation lock.
+- **Shared:** anchor tests (85 total). **Web:** 3 new unit tests (60 total) for concept parsing, the minimal PATCH body and the anchor report.
+- **Browser (headless Chrome, real data):**
+  - The review preview renders the formatted notes, and "Edit notes" opens the editor (4 anchors, all within 1:57).
+  - An added `[▶ 2:30]` was flagged "after the end of the video (1:57)", with Save disabled.
+  - The `git init` correction appeared in the live preview, was saved, and is returned by `GET /lessons/:id`. That's the data the lesson page (#35) will render, since that page doesn't exist yet.
+  - The guard asked "Discard your unsaved changes?" and kept the page.
+  - Back on the review page, the preview showed the corrected notes. No console errors.
+- **Notes on the test runs:** two failures were in my script, not the app.
+  - Next.js 16 keeps recently visited pages mounted but hidden for instant back navigation, so a loose locator matched the hidden review page's inputs.
+  - The review page also returns with its preview sheet still open, which is good for the reviewer and was unexpected by the script.
+
+**Phase P3 (generation) is complete:** issues #23–#32. Courses go from YouTube to a reviewed, published course in the browser.
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -1381,3 +1425,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D89 | 2026-10-11 | Two-phase reindex in one transaction (negate all orders, then assign final values)                                                                                            | Unique `(parent, order)` constraints collide during in-place reordering; Prisma can't declare deferrable constraints [R40]                                                                                |
 | D90 | 2026-10-11 | Delete a course's vectors **before** the course (503, nothing deleted, if the AI service is down); no edits while generating                                                  | No orphaned vectors and no half-deleted courses; the generation job would overwrite concurrent edits                                                                                                      |
 | D91 | 2026-10-11 | Reordering by drag (pointer and keyboard), move buttons and a "Move to module" select; screen-reader announcements use titles                                                 | Drag-only UIs exclude keyboard and screen-reader users; dnd-kit's default announcements expose internal ids [R141][R142]                                                                                  |
+| D92 | 2026-10-11 | Timestamp anchors are parsed by one shared helper and validated against the video length (API refuses, editor warns)                                                          | An anchor past the video end can't seek; the same parser drives the lesson page's clickable anchors (#34)                                                                                                 |
+| D93 | 2026-10-11 | Editing notes does not re-index vectors                                                                                                                                       | Retrieval uses transcript chunks, not notes, so notes edits can't make the chatbot's data stale                                                                                                           |
+| D94 | 2026-10-11 | One Markdown renderer for notes (react-markdown + GFM, no raw HTML) used by the editor, the review preview and later the lesson page                                          | Consistent rendering everywhere; AI- or admin-written text can't inject markup [R143][R144]                                                                                                               |

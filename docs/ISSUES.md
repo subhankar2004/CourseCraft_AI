@@ -425,9 +425,9 @@ Meta: phase=P3 | area=api,web | type=feat | depends=31
 **Goal:** Fix AI mistakes by hand.
 **Tasks**
 
-- [ ] API `PATCH /lessons/:id` (title, summary, keyConcepts, notesMarkdown)
-- [ ] Web: split Markdown editor and live preview (reuse the renderer from #34 once it exists; use a basic preview until then), unsaved-changes guard
-- [ ] Mark P3 done in AGENTS.md
+- [x] API `PATCH /lessons/:id` (title, summary, keyConcepts, notesMarkdown)
+- [x] Web: split Markdown editor and live preview (reuse the renderer from #34 once it exists; use a basic preview until then), unsaved-changes guard
+- [x] Mark P3 done in AGENTS.md
 
 **Done when:** The edited notes show up on the lesson page. _(This can be cut per the SPEC §13 scope guard.)_
 

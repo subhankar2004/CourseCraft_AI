@@ -25,13 +25,13 @@ Track progress here. Update this section at the end of every working session.
 - [x] P0 Setup — monorepo, docker-compose, lint, env, health checks, shared contracts, CI (#1–#6)
 - [x] P1 Core — Prisma schema, auth, domains/courses read API, seed, web auth, landing, catalog and course pages (#7–#15)
 - [x] P2 Ingestion — metadata, transcripts (+ Whisper fallback), chunking, embeddings + pgvector, fixtures (#16–#22)
-- [ ] P3 Generation — notes map-reduce, structuring, job + SSE progress, admin UI
+- [x] P3 Generation — notes map-reduce, structuring, job + SSE progress, admin UI (#23–#32)
 - [ ] P4 Learning UX — split view, timestamp seek, progress, next lesson, dashboard
 - [ ] P5 RAG chat — grounding gate, citations, chat drawer
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #32 (admin lesson notes editor), reached from the review page's lesson preview.
+**Next up:** Issue #33 (API: enrollment, progress and next-lesson recommendation), starting P4 (learning UX). Lesson notes render with `components/notes/notes-markdown.tsx`; #34 extends it (code highlighting, clickable `[▶ m:ss]` anchors via `findAnchors` in `packages/shared`).
 
 ## How we work: 50 issues → 50 PRs
 
