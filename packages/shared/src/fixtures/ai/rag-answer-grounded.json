@@ -188,13 +188,7 @@
     {
       "event": "token",
       "data": {
-        "text": " which"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " allows"
+        "text": " allowing"
       }
     },
     {
@@ -314,7 +308,7 @@
     {
       "event": "token",
       "data": {
-        "text": " make"
+        "text": " create"
       }
     },
     {
@@ -350,7 +344,7 @@
     {
       "event": "token",
       "data": {
-        "text": " creating"
+        "text": " taking"
       }
     },
     {
@@ -362,13 +356,31 @@
     {
       "event": "token",
       "data": {
-        "text": " new"
+        "text": " snapshot"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " snapshot"
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " current"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " state"
       }
     },
     {
@@ -410,79 +422,169 @@
     {
       "event": "token",
       "data": {
-        "text": " head"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " of"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " the"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " repository"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " moves"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " forward"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " to"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " point"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " to"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " the"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " most"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " recent"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
         "text": " commit"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " has"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " unique"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ID"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ["
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "1"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "]"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " You"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " can"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " make"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " multiple"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " commits"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " and"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " each"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " one"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " has"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " its"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " own"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " unique"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ID"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " linked"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " its"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " parent"
       }
     },
     {
@@ -524,6 +626,54 @@
     {
       "event": "token",
       "data": {
+        "text": " covers"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " basics"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " commits"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " but"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " it"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
         "text": " doesn"
       }
     },
@@ -536,19 +686,49 @@
     {
       "event": "token",
       "data": {
-        "text": " cover"
+        "text": " go"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " what"
+        "text": " into"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " triggers"
+        "text": " advanced"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " topics"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " like"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " how"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " create"
       }
     },
     {
@@ -561,6 +741,30 @@
       "event": "token",
       "data": {
         "text": " commit"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " with"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " specific"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " message"
       }
     },
     {
@@ -584,7 +788,7 @@
     {
       "event": "token",
       "data": {
-        "text": " undo"
+        "text": " revert"
       }
     },
     {
@@ -609,11 +813,12 @@
       "event": "done",
       "data": {
         "grounded": true,
-        "answer": "A commit in Git is a snapshot of the current state of the files in the repository. It has a unique ID and is linked to its parent, which allows you to travel back in time to a previous version of the files. [1] When you make a commit, you're creating a new snapshot of the files, and the head of the repository moves forward to point to the most recent commit. [1]\n\nThe course doesn't cover what triggers a commit or how to undo a commit.",
+        "answer": "A commit in Git is a snapshot of the current state of the files in the repository. It has a unique ID and is linked to its parent, allowing you to travel back in time to a previous version of the files. [1] When you create a commit, you're taking a snapshot of the current state of the files, and the commit has a unique ID. [1] You can make multiple commits, and each one has its own unique ID, linked to its parent. [1]\n\nThe course covers the basics of commits, but it doesn't go into advanced topics like how to create a commit with a specific message or how to revert a commit.",
         "citations": [
           {
             "n": 1,
             "chunkId": "7fbe83ca-4be0-4b14-9554-2c0a1462e428-0",
+            "chunkIds": ["7fbe83ca-4be0-4b14-9554-2c0a1462e428-0"],
             "lessonId": "7fbe83ca-4be0-4b14-9554-2c0a1462e428",
             "lessonTitle": "Git Explained in 100 Seconds",
             "youtubeId": "hwP7WQkmECE",
@@ -622,16 +827,52 @@
             "score": 0.716944
           }
         ],
+        "sources": [
+          {
+            "n": 1,
+            "chunkId": "7fbe83ca-4be0-4b14-9554-2c0a1462e428-0",
+            "chunkIds": ["7fbe83ca-4be0-4b14-9554-2c0a1462e428-0"],
+            "lessonId": "7fbe83ca-4be0-4b14-9554-2c0a1462e428",
+            "lessonTitle": "Git Explained in 100 Seconds",
+            "youtubeId": "hwP7WQkmECE",
+            "startSec": 0.0,
+            "endSec": 117.079,
+            "score": 0.716944
+          },
+          {
+            "n": 2,
+            "chunkId": "27fff095-7c8f-4021-b788-a223f7074495-0",
+            "chunkIds": ["27fff095-7c8f-4021-b788-a223f7074495-0"],
+            "lessonId": "27fff095-7c8f-4021-b788-a223f7074495",
+            "lessonTitle": "DevOps CI/CD Explained in 100 Seconds",
+            "youtubeId": "scEDHsr3APg",
+            "startSec": 0.0,
+            "endSec": 115.25,
+            "score": 0.654649
+          },
+          {
+            "n": 3,
+            "chunkId": "cbe28acc-5de9-4bf7-9f02-39cb41c35b1f-0",
+            "chunkIds": ["cbe28acc-5de9-4bf7-9f02-39cb41c35b1f-0"],
+            "lessonId": "cbe28acc-5de9-4bf7-9f02-39cb41c35b1f",
+            "lessonTitle": "GitHub Pull Request in 100 Seconds - Git a FREE sticker 🔥",
+            "youtubeId": "8lGpZkjnkt4",
+            "startSec": 0.0,
+            "endSec": 111.44,
+            "score": 0.630236
+          }
+        ],
+        "standaloneQuestion": null,
         "bestScore": 0.716944,
         "refusal": null,
         "minScore": 0.6,
-        "promptIds": ["rag-answer@2", "rag-question@2"],
+        "promptIds": ["rag-answer@3", "rag-question@2"],
         "chatModel": "llama3.1:8b",
         "embeddingModel": "nomic-embed-text",
         "usage": {
           "llmCalls": 1,
-          "inputTokens": 1839,
-          "outputTokens": 101
+          "inputTokens": 1868,
+          "outputTokens": 135
         }
       }
     }

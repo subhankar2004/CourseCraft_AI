@@ -1,0 +1,658 @@
+{
+  "request": {
+    "courseId": "cmv3cvhv80000fj3hulmpy4ev",
+    "question": "Explain that again with an example",
+    "history": [
+      {
+        "role": "user",
+        "content": "What does Array.map return?"
+      },
+      {
+        "role": "assistant",
+        "content": "Array.map returns a new array, made by calling a function on every element of the original array [1]."
+      }
+    ]
+  },
+  "events": [
+    {
+      "event": "token",
+      "data": {
+        "text": "The"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " excerpt"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " doesn"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'t"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " provide"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " an"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " example"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " Array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ".map"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " returning"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " new"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " It"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " only"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " describes"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " what"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " Array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ".map"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " does"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " but"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " doesn"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'t"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " show"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " concrete"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " example"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " \n\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "However"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " it"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " does"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " mention"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " that"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " Array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ".map"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " \""
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "create"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " new"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " by"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " calling"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " function"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " on"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " every"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " element"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " in"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " different"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "\""
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ["
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "1"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "]."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " \n\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "It"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " also"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " gives"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " an"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " example"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " using"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " Array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ".map"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " convert"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " an"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " objects"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " an"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " strings"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " but"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " it"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " doesn"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'t"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " explicitly"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " show"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " new"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " being"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " returned"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " \n\n"
+      }
+    },
+    {
+      "event": "done",
+      "data": {
+        "grounded": true,
+        "answer": "The excerpt doesn't provide an example of Array.map returning a new array. It only describes what Array.map does, but doesn't show a concrete example. \n\nHowever, it does mention that Array.map \"create a new array by calling a function on every element in a different array\" [1]. \n\nIt also gives an example of using Array.map to convert an array of objects to an array of strings, but it doesn't explicitly show the new array being returned.",
+        "citations": [
+          {
+            "n": 1,
+            "chunkId": "b0933c05-680b-4bae-a325-2af546a7698d-0",
+            "chunkIds": ["b0933c05-680b-4bae-a325-2af546a7698d-0"],
+            "lessonId": "b0933c05-680b-4bae-a325-2af546a7698d",
+            "lessonTitle": "Array Map in 100 Seconds",
+            "youtubeId": "DC471a9qrU4",
+            "startSec": 0.05,
+            "endSec": 98.65,
+            "score": 0.881399
+          }
+        ],
+        "sources": [
+          {
+            "n": 1,
+            "chunkId": "b0933c05-680b-4bae-a325-2af546a7698d-0",
+            "chunkIds": ["b0933c05-680b-4bae-a325-2af546a7698d-0"],
+            "lessonId": "b0933c05-680b-4bae-a325-2af546a7698d",
+            "lessonTitle": "Array Map in 100 Seconds",
+            "youtubeId": "DC471a9qrU4",
+            "startSec": 0.05,
+            "endSec": 98.65,
+            "score": 0.881399
+          },
+          {
+            "n": 2,
+            "chunkId": "b960a28d-f7c9-4ca8-a86d-e32df4d896c6-0",
+            "chunkIds": ["b960a28d-f7c9-4ca8-a86d-e32df4d896c6-0"],
+            "lessonId": "b960a28d-f7c9-4ca8-a86d-e32df4d896c6",
+            "lessonTitle": "Array Reduce in 100 seconds",
+            "youtubeId": "tVCYa_bnITg",
+            "startSec": 0.03,
+            "endSec": 101.239,
+            "score": 0.663338
+          },
+          {
+            "n": 3,
+            "chunkId": "188529cb-f27b-45f0-a594-758ac1c37296-1",
+            "chunkIds": [
+              "188529cb-f27b-45f0-a594-758ac1c37296-1",
+              "188529cb-f27b-45f0-a594-758ac1c37296-2"
+            ],
+            "lessonId": "188529cb-f27b-45f0-a594-758ac1c37296",
+            "lessonTitle": "What is `this` in JavaScript?",
+            "youtubeId": "YOlr79NaAtQ",
+            "startSec": 179.61,
+            "endSec": 399.129,
+            "score": 0.627676
+          }
+        ],
+        "standaloneQuestion": "Can you show an example of how Array.map returns a new array, made by calling a function on every element of the original array?",
+        "bestScore": 0.881399,
+        "refusal": null,
+        "minScore": 0.6,
+        "promptIds": ["rag-condense@2", "rag-answer@3", "rag-question@2"],
+        "chatModel": "llama3.1:8b",
+        "embeddingModel": "nomic-embed-text",
+        "usage": {
+          "llmCalls": 2,
+          "inputTokens": 2387,
+          "outputTokens": 128
+        }
+      }
+    }
+  ]
+}

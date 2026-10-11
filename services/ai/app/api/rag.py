@@ -19,7 +19,17 @@ from app.generation.prompts import load_prompt
 from app.generation.providers import ProviderNotConfiguredError, get_chat_model
 from app.generation.usage import UsageTotals
 from app.processing.indexing import VectorIndex
-from app.rag.answer import AnswerStream, DoneEvent, Event, FailedEvent, TokenEvent, Turn, retrieve
+from app.rag.answer import (
+    AnswerStream,
+    DoneEvent,
+    Event,
+    FailedEvent,
+    Source,
+    TokenEvent,
+    Turn,
+    condense_question,
+    retrieve,
+)
 from app.schemas import (
     RagAnswerRequest,
     RagCitation,
@@ -56,6 +66,24 @@ def sse(event: str, payload: RagTokenEvent | RagDoneEvent | RagFailedEvent) -> s
     return f"event: {event}\ndata: {data}\n\n"
 
 
+def citation(source: Source) -> RagCitation:
+    passage = source.passage
+    return RagCitation(
+        n=source.n,
+        chunk_id=passage.chunk_ids[0],
+        chunk_ids=list(passage.chunk_ids),
+        lesson_id=passage.lesson_id,
+        lesson_title=passage.lesson_title,
+        youtube_id=passage.youtube_id,
+        start_sec=passage.start_sec,
+        end_sec=passage.end_sec,
+        score=round(passage.score, 6),
+    )
+
+
+PROMPTS = ("rag-condense", "rag-answer", "rag-question")
+
+
 def encode(event: Event, settings: Settings) -> str:
     if isinstance(event, TokenEvent):
         return sse("token", RagTokenEvent(text=event.text))
@@ -67,23 +95,17 @@ def encode(event: Event, settings: Settings) -> str:
         RagDoneEvent(
             grounded=done.grounded,
             answer=done.answer,
-            citations=[
-                RagCitation(
-                    n=s.n,
-                    chunk_id=s.hit.id,
-                    lesson_id=s.hit.lesson_id,
-                    lesson_title=s.hit.lesson_title,
-                    youtube_id=s.hit.youtube_id,
-                    start_sec=s.hit.start_sec,
-                    end_sec=s.hit.end_sec,
-                    score=round(s.hit.score, 6),
-                )
-                for s in done.citations
-            ],
+            citations=[citation(c) for c in done.citations],
+            sources=[citation(c) for c in done.sources],
+            standalone_question=done.standalone_question,
             best_score=None if done.best_score is None else round(done.best_score, 6),
             refusal=done.refusal,
             min_score=settings.rag_min_score,
-            prompt_ids=[load_prompt("rag-answer").id, load_prompt("rag-question").id],
+            prompt_ids=[
+                load_prompt(name).id
+                for name in PROMPTS
+                if name != "rag-condense" or done.standalone_question is not None
+            ],
             chat_model=settings.chat_model,
             embedding_model=settings.embed_model,
             usage=UsageOut(
@@ -108,15 +130,20 @@ def answer(
 ) -> StreamingResponse:
     """Answers a question from ONE course's transcripts, streamed as SSE.
 
-    Refused (fixed message, `grounded=false`, no LLM call) when the course has no chunks or the
-    best match scores below RAG_MIN_SCORE. 503 when embeddings or the vector store are down.
+    A follow-up (with history) is first condensed into a standalone question by the model.
+    Refused (fixed message, `grounded=false`, no answer generated) when the course has no chunks
+    or the best match scores below RAG_MIN_SCORE. 503 when embeddings or the vector store are
+    down.
     """
     question = body.question.strip()
+    history = [Turn(role=t.role, content=t.content) for t in body.history]
+    # A follow-up is condensed first, so retrieval searches for its actual topic (#40).
+    standalone = condense_question(rag.model, question, history)
     retrieval = run_infra(
         lambda: retrieve(
             index,
             body.course_id,
-            question,
+            standalone or question,
             top_k=settings.rag_top_k,
             min_score=settings.rag_min_score,
         )
@@ -127,7 +154,8 @@ def answer(
         course_id=body.course_id,
         question=question,
         retrieval=retrieval,
-        history=[Turn(role=t.role, content=t.content) for t in body.history],
+        history=history,
+        standalone_question=standalone,
     )
 
     def events() -> Iterator[str]:

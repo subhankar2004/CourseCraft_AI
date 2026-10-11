@@ -184,10 +184,15 @@ export const ragAnswerRequestSchema = z.strictObject({
 
 export const ragTokenEventSchema = z.object({ text: z.string() });
 
-/** A chunk the answer cites as [n]: lesson + time range for a deep link into the split view. */
+/**
+ * A passage the answer cites as [n] (or was given, in `sources`): lesson + time range for a deep
+ * link into the split view. A passage can span neighbouring chunks of one lesson (#40).
+ */
 export const ragCitationSchema = z.object({
   n: z.number().int().positive(),
+  /** The passage's first chunk. */
   chunkId: z.string(),
+  chunkIds: z.array(z.string()).min(1),
   lessonId: z.string(),
   /** The title when the lesson was indexed; show the API's current title instead. */
   lessonTitle: z.string(),
@@ -201,8 +206,14 @@ export const ragRefusalSchema = z.enum(['not_indexed', 'low_score', 'not_in_cont
 
 export const ragDoneEventSchema = z.object({
   grounded: z.boolean(),
+  /** The final answer: [n] markers that point to no passage are removed. */
   answer: z.string(),
+  /** The passages the answer cites, in order of first citation. */
   citations: z.array(ragCitationSchema),
+  /** Every passage the model was given (empty when refused). */
+  sources: z.array(ragCitationSchema),
+  /** The follow-up rewritten as a standalone question (what retrieval used); null if not. */
+  standaloneQuestion: z.string().nullable(),
   /** Best retrieval similarity; null when the course has no chunks. */
   bestScore: z.number().nullable(),
   /** Why the answer is the fixed refusal; null when grounded. */
