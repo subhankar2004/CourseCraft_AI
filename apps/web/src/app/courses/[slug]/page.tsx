@@ -148,7 +148,7 @@ async function CourseContent({ params }: Pick<PageProps<'/courses/[slug]'>, 'par
           {plural(course.modules.length, 'module')} · {plural(course.lessonCount, 'lesson')}
         </p>
         <div className="mt-6">
-          <CourseOutline modules={course.modules} />
+          <CourseOutline courseSlug={course.slug} modules={course.modules} />
         </div>
       </section>
     </>

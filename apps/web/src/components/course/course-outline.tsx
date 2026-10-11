@@ -1,5 +1,6 @@
 import type { ModuleOutline } from '@coursecraft/shared';
 import { ClockIcon, PlayCircleIcon } from 'lucide-react';
+import Link from 'next/link';
 import {
   Accordion,
   AccordionContent,
@@ -8,8 +9,14 @@ import {
 } from '@/components/ui/accordion';
 import { plural } from '@/lib/format';
 
-/** Modules as an accordion (first one open), each listing its lessons in order. */
-export function CourseOutline({ modules }: { modules: ModuleOutline[] }) {
+/** Modules as an accordion (first one open), each listing its lessons in order, linked to study. */
+export function CourseOutline({
+  courseSlug,
+  modules,
+}: {
+  courseSlug: string;
+  modules: ModuleOutline[];
+}) {
   if (modules.length === 0) {
     return <p className="text-muted-foreground">This course has no lessons yet.</p>;
   }
@@ -32,15 +39,21 @@ export function CourseOutline({ modules }: { modules: ModuleOutline[] }) {
             {module.summary && <p className="mb-3 text-muted-foreground">{module.summary}</p>}
             <ol className="grid gap-1">
               {module.lessons.map((lesson) => (
-                <li key={lesson.id} className="flex items-start gap-3 rounded-md px-2 py-2">
+                <li
+                  key={lesson.id}
+                  className="relative flex items-start gap-3 rounded-md px-2 py-2 hover:bg-muted"
+                >
                   <PlayCircleIcon
                     className="mt-0.5 size-4 shrink-0 text-muted-foreground"
                     aria-hidden
                   />
-                  <span className="flex-1">
+                  <Link
+                    href={`/learn/${courseSlug}/${lesson.id}`}
+                    className="flex-1 after:absolute after:inset-0 hover:underline"
+                  >
                     <span className="text-muted-foreground">{lesson.order}. </span>
                     {lesson.title}
-                  </span>
+                  </Link>
                   {lesson.readingTimeMin !== null && (
                     <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
                       <ClockIcon className="size-3" aria-hidden />
