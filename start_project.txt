@@ -1,0 +1,261 @@
+================================================================================
+  CourseCraft AI — how to start everything (from scratch, and day to day)
+================================================================================
+
+The project has 3 apps + infrastructure. All commands run from the REPO ROOT
+(the folder that contains package.json) unless a step says otherwise.
+
+  What                          Where                        Started with
+  ----------------------------  ---------------------------  ------------------------
+  PostgreSQL 16 (+ pgvector)    localhost:5432  (Docker)     pnpm infra:up
+  Redis 7 (job queue)           localhost:6379  (Docker)     pnpm infra:up
+  Ollama (local AI models)      localhost:11434 (native app) brew services start ollama
+  API  (NestJS, apps/api)       http://localhost:4000        pnpm --filter api dev
+  Web  (Next.js, apps/web)      http://localhost:3000        pnpm --filter web dev
+  AI service (FastAPI)          http://localhost:8000        pnpm ai:dev
+
+Start order matters: Docker + Ollama  ->  API  ->  Web  ->  AI service
+(the web app needs the API; course generation and chat need the AI service).
+
+Tip: if "pnpm" is not found, use  npx -y pnpm@12.10.1 <command>
+     or enable it once with:      corepack enable
+
+
+--------------------------------------------------------------------------------
+PART A — ONE-TIME INSTALLS (macOS, once per computer)
+--------------------------------------------------------------------------------
+
+1) Homebrew (if missing):   https://brew.sh
+
+2) Tools:
+     brew install nvm uv ffmpeg ollama
+     brew install --cask docker          # Docker Desktop, then open it once
+     npm i -g pnpm@12                    # or: corepack enable
+
+3) Node 24 (the version is in .nvmrc):
+     nvm install
+     nvm use
+
+4) Python 3.12 is installed automatically by uv in Part B (step 5).
+
+5) Local AI models (free, no API key). Start Ollama, then download the models:
+     brew services start ollama          # runs in the background, port 11434
+     ollama pull nomic-embed-text        # embeddings, ~274 MB
+     ollama pull llama3.1:8b             # notes + chatbot, ~4.9 GB
+     ollama list                         # both should be listed
+
+
+--------------------------------------------------------------------------------
+PART B — FIRST-TIME PROJECT SETUP (once per clone)
+--------------------------------------------------------------------------------
+
+1) Get the code:
+     git clone https://github.com/subhankar2004/CourseCraft_AI.git
+     cd CourseCraft_AI
+
+2) Environment file (ONE .env at the repo root, used by every app):
+     cp .env.example .env
+   Then edit .env and fill in the secrets:
+     JWT_SECRET            ->  output of:  openssl rand -base64 48
+     INTERNAL_API_KEY      ->  output of:  openssl rand -hex 32
+     SEED_ADMIN_PASSWORD   ->  any strong password (demo admin login)
+     SEED_STUDENT_PASSWORD ->  any strong password (demo student login)
+   Leave OPENAI_API_KEY empty (we use Ollama: LLM_PROVIDER=ollama).
+   NEVER commit .env or share it (it is git-ignored).
+
+3) Start Docker Desktop (whale icon in the menu bar), then the databases:
+     pnpm infra:up                       # PostgreSQL + Redis, waits until healthy
+     pnpm infra:ps                       # both should say "(healthy)"
+
+4) Install JavaScript dependencies (also builds packages/shared and the Prisma client):
+     nvm use
+     pnpm install
+
+5) Install the AI service's Python environment (services/ai/.venv):
+     pnpm ai:sync
+
+6) Create the database tables, then load demo data:
+     pnpm --filter api prisma:deploy     # apply all migrations
+     pnpm --filter api prisma:seed       # admin + student accounts, 4 domains,
+                                         # demo course "Database Fundamentals" (safe to re-run)
+
+Setup done. Continue with Part C.
+
+
+--------------------------------------------------------------------------------
+PART C — DAILY START (every time you work on the project)
+--------------------------------------------------------------------------------
+
+0) Open Docker Desktop and make sure Ollama is running:
+     brew services start ollama          # no-op if already running
+
+1) Terminal 1 — databases:
+     pnpm infra:up
+
+2) Terminal 2 — API (also runs the course-generation worker):
+     pnpm --filter api dev               # wait for "API listening on http://localhost:4000/api/v1"
+
+3) Terminal 3 — Web app:
+     pnpm --filter web dev               # open http://localhost:3000
+
+4) Terminal 4 — AI service:
+     pnpm ai:dev                         # http://localhost:8000/docs for its API docs
+
+   Shortcut for steps 2 + 3:  pnpm dev   (runs web + api + shared in one terminal;
+   the AI service still needs its own terminal: pnpm ai:dev)
+
+After a "git pull", run these before starting (only if something changed):
+     pnpm install                        # new JS packages / Prisma client
+     pnpm ai:sync                        # new Python packages
+     pnpm --filter api prisma:deploy     # new database migrations
+
+
+--------------------------------------------------------------------------------
+PART D — CHECK THAT EVERYTHING IS UP
+--------------------------------------------------------------------------------
+
+     curl localhost:4000/api/v1/health   # API   -> "database": "up"
+     curl localhost:8000/health          # AI    -> provider "ollama", "pgvector"
+     curl localhost:11434/api/tags       # Ollama -> lists the two models
+     open http://localhost:3000          # Web   -> footer shows "API online"
+
+
+--------------------------------------------------------------------------------
+PART E — USING THE APP
+--------------------------------------------------------------------------------
+
+Sign in at http://localhost:3000/login with the accounts from .env:
+  Admin:    SEED_ADMIN_EMAIL   / SEED_ADMIN_PASSWORD     (admin@coursecraft.local)
+  Student:  SEED_STUDENT_EMAIL / SEED_STUDENT_PASSWORD   (student@coursecraft.local)
+  (or create a new student at /register)
+
+Admin:
+  /admin/courses        all courses; "Generate course" from YouTube links or a playlist
+  /admin/jobs/<id>      live generation progress (needs the AI service + Ollama)
+  /admin/courses/<id>   review: reorder modules/lessons, edit, publish / unpublish
+  /admin/lessons/<id>   edit a lesson's notes
+  /admin/domains        manage domains
+  A 4-minute video takes about a minute to generate with llama3.1:8b. New courses
+  start as DRAFT: publish them so students can see them.
+
+Student:
+  /domains -> a course -> "Enroll for free" -> split-view lesson (video + notes)
+  /dashboard            continue where you left off, progress, recently completed
+
+The course chatbot (the web chat window comes in issue #42) can be tried with curl.
+Sign in as the student first (saves the session cookie), enroll, then ask.
+<courseId> = a published course's id (it is in the URL of /admin/courses/<id>):
+     curl -c cookies.txt -H 'Content-Type: application/json' \
+       -d '{"email":"student@coursecraft.local","password":"<SEED_STUDENT_PASSWORD>"}' \
+       localhost:4000/api/v1/auth/login
+     curl -b cookies.txt -X POST localhost:4000/api/v1/courses/<courseId>/enroll
+     curl -N -b cookies.txt -H 'Content-Type: application/json' \
+       -d '{"message":"How do CSS variables work?"}' \
+       localhost:4000/api/v1/courses/<courseId>/chat
+   The answer streams as events: session, token..., done (with citations).
+   To ask a follow-up in the same conversation, add "sessionId":"<id from the session event>".
+   Limits: 5 questions per minute, 60 per hour, one at a time (HTTP 429 otherwise).
+   Delete cookies.txt afterwards (it holds your session).
+
+--------------------------------------------------------------------------------
+PART F — USEFUL COMMANDS
+--------------------------------------------------------------------------------
+
+Database
+  pnpm --filter api prisma:studio                    browse/edit data in the browser
+  docker compose exec postgres psql -U coursecraft -d coursecraft   SQL shell
+  docker compose exec redis redis-cli                Redis shell
+  pnpm --filter api prisma:migrate --name <change>   create a migration after editing
+                                                     apps/api/prisma/schema.prisma
+
+Quality checks (the same as CI; run before a pull request)
+  pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
+  pnpm format                                        auto-format JS/TS/Markdown
+  pnpm ai:format                                     auto-format Python
+  pnpm --filter api test     (e2e tests need: pnpm infra:up)
+  pnpm --filter web test
+  pnpm ai:test
+
+Shared contracts (packages/shared)
+  pnpm --filter shared build                         after editing packages/shared
+
+Production-like run (fast, closer to deployment)
+  pnpm build
+  pnpm --filter api start                            API from apps/api/dist
+  pnpm --filter web start                            web from the .next build
+
+Infrastructure
+  pnpm infra:logs                                    follow Docker logs
+  pnpm infra:up:ollama                               Ollama in Docker instead (Linux/Windows;
+                                                     slow on a Mac: no GPU in Docker)
+
+
+--------------------------------------------------------------------------------
+PART G — STOP / RESET
+--------------------------------------------------------------------------------
+
+  Ctrl+C in each terminal                            stop API, web, AI service
+  pnpm infra:down                                    stop Docker services (data is KEPT)
+  brew services stop ollama                          stop Ollama
+
+  pnpm infra:reset                                   !! DELETES all local data (database,
+                                                     generated courses, vectors). After it:
+                                                     pnpm infra:up
+                                                     pnpm --filter api prisma:deploy
+                                                     pnpm --filter api prisma:seed
+
+
+--------------------------------------------------------------------------------
+PART H — TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+"Cannot connect to the Docker daemon"
+    -> open Docker Desktop and wait until it says "running".
+
+"port is already allocated" (5432 / 6379 / 3000 / 4000 / 8000)
+    -> something else uses the port. Find it:  lsof -i tcp:<port>
+       stop it, or for Postgres/Redis:  brew services stop postgresql / redis
+
+API exits at startup listing env problems
+    -> fix .env (e.g. a "change-me" secret left in JWT_SECRET or INTERNAL_API_KEY).
+
+Web shows "API offline" / errors loading data
+    -> the API isn't running (Terminal 2), or NEXT_PUBLIC_API_URL in .env is wrong.
+       After changing any NEXT_PUBLIC_* value, restart the web app.
+
+Generation fails / chatbot errors with "unavailable"
+    -> Ollama not running (brew services start ollama) or a model missing
+       (ollama list; ollama pull llama3.1:8b / nomic-embed-text),
+       or the AI service (Terminal 4) is not running.
+
+Changed something in .env but the AI service still uses the old value
+    -> restart it (Ctrl+C, pnpm ai:dev). Same for the API.
+
+Login refused with "Too many requests" (429)
+    -> 5 logins per minute per IP; wait a minute or restart the API.
+
+Prisma errors after a git pull ("table does not exist", client out of date)
+    -> pnpm install && pnpm --filter api prisma:deploy
+
+"coursecraft_test" database missing (API e2e / AI tests)
+    -> it is only created on an empty volume: pnpm infra:reset && pnpm infra:up
+       (this deletes local data; re-run migrations + seed afterwards)
+
+TypeScript errors about routes after adding a page (web)
+    -> pnpm --filter web exec next typegen   (or just restart pnpm --filter web dev)
+
+
+--------------------------------------------------------------------------------
+PART I — HOW WE WORK (git)
+--------------------------------------------------------------------------------
+
+  One GitHub issue = one branch = one pull request.
+  git checkout main && git pull
+  git checkout -b feat/<issue-number>-<short-name>      e.g. feat/41-chat-api
+  ... work, then run the quality checks (Part F) ...
+  git add -A && git commit -m "feat(api): ..."         Conventional Commits
+  git push -u origin <branch>  ->  open the PR with "Closes #<issue>"  ->  merge
+
+More detail: docs/setup.md (setup), SPEC.md (design), AGENTS.md (rules),
+             docs/PROGRESS.md (history and decisions).
+================================================================================

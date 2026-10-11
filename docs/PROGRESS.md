@@ -1777,6 +1777,64 @@ Also: the mobile switch first had lowercase labels styled with `capitalize`, so 
   - 45 questions on one course is a small sample, and llama3.1:8b varies between runs (follow-up top-1 was 10/12 and 12/12 in two runs). P6 (#43–#45) measures faithfulness and relevance at scale.
   - The demo course's lessons are short (25 lessons, 30 chunks), so passage merging rarely triggers there; unit tests cover it, and long lectures will exercise it.
 
+## Entry 41 — Chat API: sessions, streaming relay and rate limits (Issue #41, PR #92, 2026-10-11)
+
+**What:** the API side of the course chatbot (`apps/api/src/chat/`, SPEC §7.2 steps 1 and 6).
+
+- **`POST /courses/:id/chat {sessionId?, message}`:**
+  1. checks the student may ask;
+  2. saves the question;
+  3. sends it to the AI service with the conversation's last 6 messages;
+  4. relays the answer stream to the browser;
+  5. saves the answer.
+- **`GET /courses/:id/chat/sessions`** lists my conversations; **`GET …/sessions/:sid`** returns one.
+- **Contracts:** `packages/shared/src/chat.ts` (`chatRequestSchema`, `chatStreamEvents`, `chatSessionSchema`, …), for the web drawer in #42.
+
+**Design decisions:**
+
+- **All checks before the stream starts (D128).** In order: the per-user rate limit, then a published course, then enrollment (403 "Enroll in this course…"), then a `sessionId` that belongs to this student _and_ course (anyone else's is 404, so its existence isn't revealed), then the body (Zod).
+  - Only then does the response become `text/event-stream`.
+  - So every error a client can act on is a normal HTTP status, and the AI service is never called for a rejected request (the e2e test checks this).
+  - Inside the stream, the order is `session` (ids for continuing the conversation), `token`…, then `done` (the saved assistant message) or `failed`, with `ping` every 15 s (the job stream's interval, #28).
+  - Nest's `@Sse` only supports GET, so this POST endpoint writes the stream itself.
+- **What is stored (D129).**
+  - The question is saved first, so it survives an AI failure.
+  - The answer is saved only when complete (`content`, `grounded`, and citations `{n, lessonId, chunkIds, startSec, endSec, score}`). A failed or abandoned answer leaves no half message.
+  - Lesson titles are **not** stored. Titles are looked up when a message is sent or read, because admins can rename lessons (#32); #39 noted that the AI's `lessonTitle` is the title at indexing time.
+  - Citations to lessons outside the course (or deleted since) are dropped.
+- **Disconnects stop the model (D130).** When the response closes before it ended, an `AbortController` cancels the AI request. The model stops generating for a student who left, and nothing more is saved.
+- **Per-user limits in Redis (D131).** Each question runs an LLM for seconds, which makes it the API's most expensive endpoint, so unbounded use is a denial-of-service and cost risk [R165].
+  - The existing throttler counts per IP, in memory, with named limits shared by every guarded controller. Chat instead uses fixed-window counters per user in Redis [R164] (5/min, 60/h, `INCR` + `EXPIRE NX` in one transaction) and **one answer at a time**.
+  - The one-at-a-time lock is `SET NX EX 180`, released by a compare-and-delete script, so an expired lock taken by a newer answer is never freed by mistake.
+  - Refusals are 429 with `Retry-After`. Redis keeps the limits correct across API instances (#48) and restarts.
+- **No retry and a longer connect timeout for answers (D132).** `AiClient`'s stream limits went from 30 s with 1 retry to **120 s with no retry**. The AI service condenses and retrieves _before_ replying (#40), and a cold local model can take a while to load; a retry would run the LLM twice for one question. The student can simply ask again.
+
+**Verification:**
+
+- **e2e (8 tests, real HTTP, the AI stream scripted as a fake `AiClient`):** this is the issue's done condition.
+  1. **The full stream:** `session`, `token`s, then `done` with the saved message. Citations show the **current** titles, and another course's lesson is dropped. Both messages are in the database, with `chunkIds` kept. The AI received `{courseId, question, history: []}`.
+  2. **A follow-up in the same conversation** sends the history oldest first. The session list shows the title and 4 messages. After a lesson is renamed, the stored conversation shows the new title.
+  3. **A refusal** is saved with `grounded=false` and no citations.
+  4. **AI failure** before or during the stream gives `failed`, keeping only the question.
+  5. **A student leaving mid-answer** aborts the AI request and frees the slot.
+  6. **Access:** 401 signed out, 403 not enrolled, 404 for a draft course, 400 for an invalid body (blank, too long, unknown field), 404 for someone else's conversation (POST and GET). None of these reached the AI service.
+  7. **A second question while one is streaming** gets 429 "still being answered" with `Retry-After`.
+  8. **The limiter on a fixed clock:** 5 per minute, then 429 with `retryAfterSec 50`, and the next minute is allowed again.
+  - **Mutation checks:**
+    - skipping enrollment failed 1 test;
+    - sending no history 1;
+    - not releasing the lock 3;
+    - not aborting on disconnect 1;
+    - using indexed titles 2.
+- **Real chain** (curl → API → AI service → llama3.1:8b, as the seed student on the demo course):
+  - "How do CSS variables work?" streamed 130 tokens, then a grounded answer citing "CSS Variables in 100 Seconds" (0:00–1:55).
+  - The follow-up "Can JavaScript change it at runtime?" in the same conversation was grounded, with 2 citations.
+  - The session list showed one conversation with 4 messages.
+  - Asking 6 times within a minute gave 200, 200, 200, 429, 429, 429 (5 per minute, counting the 2 earlier questions).
+- **Full checks:** format, lint and typecheck are clean. Tests: API 40 unit + 97 e2e, web 122, shared 88, AI 279.
+- **Also:** `start_project.txt` (the from-scratch run guide, at the repo root) is committed with this PR; its chat example now uses this endpoint.
+- **CI found a race in an existing endpoint.** `POST /jobs/:id/retry` (#30) read the job _after_ queueing it, so with the in-process worker on a fast runner the response could already show the video `PROCESSED` instead of the restarted `TRANSCRIBED`, and the #30 e2e test failed once on CI. The response is now read before the job is queued: the job as restarted. All 97 e2e tests then passed three runs in a row.
+
 ---
 
 ## Decision log
@@ -1912,3 +1970,8 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D125 | 2026-10-11 | Condense follow-ups (only with history) into a standalone question naming its topic; `rag-condense@2` with two few-shot examples from other subjects; fall back to the raw question                | Follow-up top-1 retrieval 4/12 → 10–12/12; no extra call for first questions [R3][R163]                                                                                                                   |
 | D126 | 2026-10-11 | Merge neighbouring/overlapping chunks of one lesson into a passage, removing the chunker's repeated text                                                                                           | No duplicated context; one citation spans the passage; no schema change                                                                                                                                   |
 | D127 | 2026-10-11 | `done` lists `sources` and `citations` (with `chunkIds`); invalid markers removed; code isn't parsed for citations; `rag-answer@3` refuses questions about technologies the excerpts don't mention | Every visible marker resolves; uncited answers still show their basis; caught a SwiftUI follow-up answered with CSS                                                                                       |
+| D128 | 2026-10-11 | Chat checks (rate limit, published course, enrollment, own session, body) all run before the SSE response; events `session`, `token`…, `done`/`failed`, `ping`                                     | Actionable errors keep HTTP status codes; rejected requests never reach the AI service                                                                                                                    |
+| D129 | 2026-10-11 | Save the question first and the answer only when complete; store citations without titles and resolve current lesson titles on read; drop citations outside the course                             | Questions survive AI failures; no half answers; renamed lessons show correctly                                                                                                                            |
+| D130 | 2026-10-11 | A client disconnect aborts the AI request                                                                                                                                                          | The model stops working for a student who left                                                                                                                                                            |
+| D131 | 2026-10-11 | Per-user chat limits in Redis: 5/min, 60/h (fixed windows) and one streaming answer at a time (SET NX lock, compare-and-delete release); 429 + Retry-After                                         | Bounds the most expensive endpoint; correct across instances and restarts [R164][R165]                                                                                                                    |
+| D132 | 2026-10-11 | `AiClient` stream: 120 s connect timeout, no retry                                                                                                                                                 | Condensing and retrieval happen before the AI replies; a retry would run the LLM twice                                                                                                                    |

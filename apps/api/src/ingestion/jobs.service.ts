@@ -84,8 +84,11 @@ export class JobsService {
         data: { status: 'QUEUED', error: null, finishedAt: null },
       });
     });
+    // The job as restarted, read BEFORE it is queued: the in-process worker can start at once,
+    // and the response must not depend on how far it got (a race seen on CI, #41).
+    const restarted = await this.get(id);
     await this.ingestion.enqueue(id, { replace: true });
     await this.events.publish(updated);
-    return this.get(id);
+    return restarted;
   }
 }
