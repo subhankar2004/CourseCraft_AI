@@ -79,3 +79,35 @@ export type LessonOutline = z.infer<typeof lessonOutlineSchema>;
 export type ModuleOutline = z.infer<typeof moduleOutlineSchema>;
 export type CourseDetail = z.infer<typeof courseDetailSchema>;
 export type LessonDetail = z.infer<typeof lessonDetailSchema>;
+
+// ─── Admin (#29) ────────────────────────────────────────────────────────────
+
+export const COURSE_STATUSES = ['DRAFT', 'GENERATING', 'PUBLISHED', 'FAILED'] as const;
+export const courseStatusSchema = z.enum(COURSE_STATUSES);
+
+/** A row of `GET /admin/courses`: every course, whatever its status, with its latest job. */
+export const adminCourseSchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  title: z.string(),
+  status: courseStatusSchema,
+  level: z.string().nullable(),
+  thumbnailUrl: z.string().nullable(),
+  domain: z.object({ id: z.string(), name: z.string(), slug: z.string() }),
+  moduleCount: z.number().int().nonnegative(),
+  lessonCount: z.number().int().nonnegative(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+  latestJob: z
+    .object({
+      id: z.string(),
+      status: z.enum(['QUEUED', 'RUNNING', 'SUCCEEDED', 'FAILED']),
+      stage: z.string().nullable(),
+      progress: z.number().int(),
+      error: z.string().nullable(),
+    })
+    .nullable(),
+});
+
+export type CourseStatus = z.infer<typeof courseStatusSchema>;
+export type AdminCourse = z.infer<typeof adminCourseSchema>;

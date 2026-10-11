@@ -1157,6 +1157,42 @@ Both were then reverted. The new tests also passed on the first run, which is wh
 
 ---
 
+## Entry 29 — Admin area: layout, domains and courses (Issue #29, PR #80, 2026-10-11)
+
+**What:** the admin shell in the web app, plus one API endpoint.
+
+- **`/admin`:** a layout with a sidebar (Courses, Domains, and Generate marked "soon" until #30). `/admin` opens the course list. Access is checked optimistically by `proxy.ts` (non-admins get the 403 page) and authoritatively by the API on every call.
+- **`/admin/courses`:**
+  - **every** course in any status (new `GET /admin/courses`; the public list only shows published ones), with colour-coded status badges (always with the word, never colour alone);
+  - filter tabs with counts, and search over title and domain;
+  - module/lesson counts and relative "updated" times;
+  - for a generating course, a progress bar (`role="progressbar"`) with stage and %, polled every 3 s only while something is generating; for a failed course, the failure reason.
+- **`/admin/domains`:**
+  - a table with published **and** total course counts;
+  - create and edit dialogs (react-hook-form + Zod) that send only the changed fields, with inline field errors and API conflicts such as "A domain named … already exists";
+  - a delete dialog that is disabled while the domain has courses (the API's 409 remains the authority);
+  - toasts on success.
+- **Refreshing the public catalog (D81).** The public pages are cached server-side for hours (`use cache`, #14). After an admin change, a **Server Action** expires exactly the affected cache tags (`domains`, `courses`, the domain's old and new slug) with `updateTag` [R50], so the change shows at once. Server Actions are public endpoints, so the action **re-checks the caller with the API** (admin only) and accepts only known tag shapes.
+- **Unit-tested logic** in `lib/admin/`: filtering and counts, when to poll, minimal PATCH bodies (an empty slug never clears it), the affected cache tags, and relative time formatting.
+
+**Verification:**
+
+- **API e2e:** courses in all four statuses with the newest job, plus 401/403.
+- **Web:** 13 new unit tests (41 total), and the production build prerenders the admin shells.
+- **A real browser run** (headless Chrome driven by `playwright-core` installed outside the repo [R57], until the Playwright suite in #47), against the real API and database. It covered:
+  - sign-in and the `/admin` redirect;
+  - the courses table (the real DRAFT course from #27 and the published seed course) and the Draft filter;
+  - client validation; the duplicate-name 409 shown in the dialog;
+  - create, then rename, then delete through the dialogs, each one checked on the **public** `/domains` page;
+  - the delete blocked for a domain with courses;
+  - the mobile layout.
+
+  The only console error was the intentional 409.
+
+**Problem found: the refresh lagged under `next dev` (D82).** The browser run showed the public page still stale right after a change, and fresh only a request or two later, even though the Server Action returned 200. A rename and a create both reproduced it. Against a **production build** (`next build && next start`) the same run showed every change on the very next request, twice in a row. So it is development-server cache behaviour, not an app bug, and AGENTS.md now notes it. (Two failed steps along the way were my own script's ambiguous locators, not the app.)
+
+---
+
 ## Decision log
 
 Lightweight architecture decision records [R48]. Each one gives the context, the decision, and what follows from it.
@@ -1243,3 +1279,6 @@ Lightweight architecture decision records [R48]. Each one gives the context, the
 | D78 | 2026-10-11 | SSE through **one shared Redis subscriber**; snapshot first, early events held back and stale ones dropped; ping every 15 s; the stream closes when the job ends              | One connection regardless of viewers; a client must never miss an update or see progress go backwards                                                                                                     |
 | D79 | 2026-10-11 | Retry only FAILED jobs, resuming each failed video from its last completed step; all checks before any change                                                                 | Reuses cached transcripts and finished lessons; a half-applied retry would leave a "queued" job that never runs                                                                                           |
 | D80 | 2026-10-11 | Every e2e file that runs a queue worker uses its own `QUEUE_PREFIX` (set before the app module loads)                                                                         | Workers in parallel files otherwise consume each other's jobs, which looked like random failures                                                                                                          |
+| D81 | 2026-10-11 | Admin changes refresh the cached public catalog through a **Server Action** (`updateTag` on exactly the affected tags) that re-checks the caller with the API                 | Read-your-own-writes for the admin without giving up hours-long caching for visitors; Server Actions are public endpoints, so authorisation is checked inside [R50]                                       |
+| D82 | 2026-10-11 | Cache freshness is verified against a **production build**; `next dev` may serve one stale response after `updateTag`                                                         | Measured: production showed changes on the next request (2/2 runs), dev lagged; judging caching on the dev server would chase a non-bug                                                                   |
+| D83 | 2026-10-11 | Admin screens are client components on TanStack Query; polling only while a course is generating                                                                              | Per-user, uncacheable data; no cookie reads in Server Components (AGENTS.md); no needless traffic when idle [R62]                                                                                         |

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDuration, plural } from './format';
+import { formatDuration, formatRelative, plural } from './format';
 
 describe('formatDuration', () => {
   it.each([
@@ -20,5 +20,18 @@ describe('plural', () => {
   it('pluralises', () => {
     expect(plural(1, 'lesson')).toBe('1 lesson');
     expect(plural(4, 'module')).toBe('4 modules');
+  });
+});
+
+describe('formatRelative', () => {
+  const now = new Date('2026-10-11T12:00:00Z');
+  it.each([
+    ['2026-10-11T11:59:40Z', 'just now'],
+    ['2026-10-11T11:55:00Z', '5 minutes ago'],
+    ['2026-10-11T09:00:00Z', '3 hours ago'],
+    ['2026-10-10T12:00:00Z', 'yesterday'],
+    ['2026-09-11T12:00:00Z', 'last month'],
+  ])('%s → %s', (iso, expected) => {
+    expect(formatRelative(iso, now)).toBe(expected);
   });
 });
