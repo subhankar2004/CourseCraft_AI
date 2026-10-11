@@ -467,10 +467,10 @@ Meta: phase=P4 | area=web | type=feat | depends=33,34
 **Goal:** The main learning experience (SPEC §10, Outcome 2).
 **Tasks**
 
-- [ ] `/learn/[courseSlug]/[lessonId]`: resizable split, player on the left (react-youtube), notes on the right
-- [ ] Timestamp chips seek the player; the player resumes from `lastPositionSec`
-- [ ] Saves position periodically (debounced) and on leave
-- [ ] Mobile: tabs (Video / Notes) instead of the split
+- [x] `/learn/[courseSlug]/[lessonId]`: resizable split, player on the left (react-youtube), notes on the right
+- [x] Timestamp chips seek the player; the player resumes from `lastPositionSec`
+- [x] Saves position periodically (debounced) and on leave
+- [x] Mobile: tabs (Video / Notes) instead of the split
 
 **Done when:** Clicking timestamps seeks the video, and reloading resumes from the saved position.
 

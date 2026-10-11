@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #35 (web: split-view lesson page with a synced YouTube player), P4. Render notes with `components/notes/notes-renderer.tsx` and pass `onSeek` to drive the player; `NotesToc` gives the table of contents. Progress API from #33.
+**Next up:** Issue #36 (web: lesson navigation, sidebar tree and completion), P4. The lesson page is `components/learn/lesson-view.tsx`; `useCourseProgress` (`lib/learning/hooks.ts`) already returns every lesson's status for the sidebar ticks, and each save updates that cache (`storeLessonProgress`). `LessonDetail` has `prevLessonId`/`nextLessonId`.
 
 ## How we work: 50 issues → 50 PRs
 
@@ -110,6 +110,8 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - `generateStaticParams` uses uncached build-time fetches and must return at least one param (placeholder when the API is down).
 - `useMe()` reads `GET /auth/session` (always 200), never `/auth/me`. It is **hydration-safe**: it reports `isPending` until the component has hydrated, so session-aware components can live inside late-streamed `<Suspense>` boundaries. Always handle `isPending` (render a skeleton).
 - Component tests: add the `// @vitest-environment jsdom` docblock (the default environment is Node), use Testing Library with plain assertions (jest-dom isn't installed) and `afterEach(cleanup)`.
+- The YouTube player: react-youtube passes the IFrame API's own events, so `event.target` is the **synchronous** `YT.Player` (no promises), and it can report events from a player it already replaced. Use `components/learn/lesson-player.tsx` rather than react-youtube directly.
+- Tests that touch `localStorage` must stub it (`vi.stubGlobal`): Node 25's built-in, incomplete `localStorage` shadows jsdom's.
 - Lesson notes: always render with `NotesRenderer` (no raw HTML; timestamp chips; highlighted code). Code colours are plain CSS in `globals.css`, outside `@layer` (rules inside `@layer components` were dropped from the build).
 - Throttler decorators must name the throttler: `@SkipThrottle({ auth: true })`. A bare `@SkipThrottle()` only skips one called `default`.
 - Client components that read the URL (`usePathname`, `useSearchParams`, `useParams`) and render in a layout must sit inside `<Suspense>` (fallback: the same UI without the URL-dependent part). Routes with a dynamic param that isn't prerendered (e.g. `/admin/jobs/[id]`) suspend on them under Cache Components; see the site header and the admin sidebar.
