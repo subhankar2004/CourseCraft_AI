@@ -9,7 +9,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronRightIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { NotesRenderer } from '@/components/notes/notes-renderer';
@@ -29,7 +29,8 @@ import {
   useLesson,
 } from '@/lib/learning/hooks';
 import { courseLessons } from '@/lib/learning/navigation';
-import { createPositionSaver, resumePosition } from '@/lib/learning/playback';
+import { createPositionSaver, linkedTime, resumePosition } from '@/lib/learning/playback';
+import { CourseChat } from '@/components/chat/course-chat';
 import { LessonNav, UpNext } from './lesson-nav';
 import { type LessonPlayerHandle, LessonPlayer } from './lesson-player';
 import { type SplitPane, SplitView } from './split-view';
@@ -50,6 +51,7 @@ function announceCompletion(result: LessonProgress, before: ProgressStatus | und
 /** `/learn/[courseSlug]/[lessonId]`: loads the lesson and where the learner left off. */
 export function LessonView({ courseSlug, lessonId }: { courseSlug: string; lessonId: string }) {
   const router = useRouter();
+  const linked = useSearchParams().get('t');
   const lesson = useLesson(lessonId);
   const progress = useCourseProgress(lesson.data?.course.id);
   const canonicalSlug = lesson.data?.course.slug;
@@ -83,6 +85,7 @@ export function LessonView({ courseSlug, lessonId }: { courseSlug: string; lesso
       key={lesson.data.id}
       lesson={lesson.data}
       savedPositionSec={saved?.lastPositionSec ?? 0}
+      linkedSec={linkedTime(linked, lesson.data.video.durationSec)}
       // Admins previewing an unpublished course: the API keeps no progress for it.
       preview={isNotFound(progress.error)}
     />
@@ -92,17 +95,23 @@ export function LessonView({ courseSlug, lessonId }: { courseSlug: string; lesso
 function LessonStudy({
   lesson,
   savedPositionSec,
+  linkedSec,
   preview,
 }: {
   lesson: LessonDetail;
   savedPositionSec: number;
+  /** A `?t=` link (e.g. a chat citation): start there, and seek when it changes. */
+  linkedSec: number | null;
   preview: boolean;
 }) {
   const queryClient = useQueryClient();
   const player = useRef<LessonPlayerHandle>(null);
   const [pane, setPane] = useState<SplitPane>('video');
   const [saveFailed, setSaveFailed] = useState(false);
-  const [startSec] = useState(() => resumePosition(savedPositionSec, lesson.video.durationSec));
+  const [startSec] = useState(
+    () => linkedSec ?? resumePosition(savedPositionSec, lesson.video.durationSec),
+  );
+  const handledLink = useRef(linkedSec);
   const [saver] = useState(() =>
     createPositionSaver((seconds, keepalive) => {
       saveLessonPosition(lesson.id, seconds, keepalive).then(
@@ -171,6 +180,15 @@ function LessonStudy({
       player.current?.seek(seconds);
     });
   };
+
+  // A new `?t=` link to this lesson (e.g. a citation opened from the course page in this tab)
+  // seeks the player that is already here; the first one was the start position.
+  useEffect(() => {
+    if (linkedSec !== null && linkedSec !== handledLink.current) {
+      handledLink.current = linkedSec;
+      seek(linkedSec);
+    }
+  });
 
   const video = (
     <div className="grid gap-4 p-4 lg:p-6">
@@ -271,7 +289,23 @@ function LessonStudy({
     </div>
   );
 
-  return <SplitView video={video} notes={notes} mobilePane={pane} onMobilePaneChange={setPane} />;
+  return (
+    <>
+      <SplitView video={video} notes={notes} mobilePane={pane} onMobilePaneChange={setPane} />
+      {!preview && (
+        <CourseChat
+          courseId={lesson.course.id}
+          courseSlug={lesson.course.slug}
+          // A citation of this lesson seeks right here (repeat clicks work; no reload).
+          onCite={(citation) => {
+            if (citation.lessonId !== lesson.id) return false;
+            seek(Math.floor(citation.seekSec));
+            return true;
+          }}
+        />
+      )}
+    </>
+  );
 }
 
 function LessonSkeleton() {

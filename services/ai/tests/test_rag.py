@@ -238,6 +238,7 @@ class TestPassages:
         assert (passage.start_sec, passage.end_sec) == (0, 230)
         assert passage.chunk_ids == ("joins-0", "joins-1")
         assert passage.score == 0.9
+        assert passage.seek_sec == 100  # the better-matching second chunk, not the span start
 
     def test_distant_chunks_and_other_lessons_stay_separate_best_first(self) -> None:
         hits = [
@@ -260,7 +261,7 @@ class TestPassages:
         done = events(harness.ask("How does a join work?").text)[-1][1]
         first = done["citations"][0]
         assert first["chunkIds"] == ["l-joins-0", "l-joins-1"] and first["chunkId"] == "l-joins-0"
-        assert (first["startSec"], first["endSec"]) == (0.0, 210.0)
+        assert (first["startSec"], first["endSec"], first["seekSec"]) == (0.0, 210.0, 0.0)
         assert len(done["sources"]) == 1  # one passage, not two copies of the shared text
         prompt = harness.model.prompts[0]
         assert prompt.count(shared) == 1
@@ -349,7 +350,7 @@ class TestFailures:
 
 
 def hit(n: int) -> Source:
-    return Source(n, Passage("l", "L", "y", 0, 1, "t", (f"c-{n}",), 0.9))
+    return Source(n, Passage("l", "L", "y", 0, 1, "t", (f"c-{n}",), 0.9, 0))
 
 
 class TestTrailingSentinel:

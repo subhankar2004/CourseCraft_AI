@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { CatalogUnavailable } from '@/components/catalog/domain-cards';
+import { CourseChatLauncher } from '@/components/chat/course-chat-launcher';
 import { CourseOutline } from '@/components/course/course-outline';
 import { EnrollButton } from '@/components/course/enroll-button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -155,6 +156,7 @@ async function CourseContent({ params }: Pick<PageProps<'/courses/[slug]'>, 'par
           <CourseOutline courseSlug={course.slug} modules={course.modules} />
         </div>
       </section>
+      <CourseChatLauncher courseId={course.id} courseSlug={course.slug} />
     </>
   );
 }

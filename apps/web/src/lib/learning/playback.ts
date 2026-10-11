@@ -15,6 +15,17 @@ export function resumePosition(savedSec: number, durationSec: number): number {
   return Math.floor(savedSec);
 }
 
+/**
+ * A `?t=` deep link (a chat citation, #42): whole seconds within the video, or null when absent
+ * or unusable (then the saved position is used).
+ */
+export function linkedTime(value: string | null, durationSec: number): number | null {
+  if (value === null || !/^\d{1,6}$/.test(value)) return null;
+  const seconds = Number(value);
+  if (durationSec > 0 && seconds >= durationSec) return Math.max(Math.floor(durationSec) - 1, 0);
+  return seconds;
+}
+
 export interface PositionSaverOptions {
   /** At most one save per interval while the video plays. */
   intervalMs?: number;

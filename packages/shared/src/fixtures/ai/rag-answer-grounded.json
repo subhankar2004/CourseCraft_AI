@@ -476,139 +476,7 @@
     {
       "event": "token",
       "data": {
-        "text": " You"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " can"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " make"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " multiple"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " commits"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": ","
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " and"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " each"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " one"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " has"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " its"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " own"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " unique"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " ID"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": ","
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " linked"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " to"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " its"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " parent"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "."
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " ["
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "1"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "]\n\n"
+        "text": " \n\n"
       }
     },
     {
@@ -626,54 +494,6 @@
     {
       "event": "token",
       "data": {
-        "text": " covers"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " the"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " basics"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " of"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " commits"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": ","
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " but"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " it"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
         "text": " doesn"
       }
     },
@@ -686,37 +506,19 @@
     {
       "event": "token",
       "data": {
-        "text": " go"
+        "text": " cover"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " into"
+        "text": " what"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " advanced"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " topics"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " like"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " how"
+        "text": " happens"
       }
     },
     {
@@ -728,7 +530,25 @@
     {
       "event": "token",
       "data": {
-        "text": " create"
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " changed"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " files"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " after"
       }
     },
     {
@@ -746,61 +566,13 @@
     {
       "event": "token",
       "data": {
-        "text": " with"
+        "text": " is"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " a"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " specific"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " message"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " or"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " how"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " to"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " revert"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " a"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " commit"
+        "text": " created"
       }
     },
     {
@@ -813,7 +585,7 @@
       "event": "done",
       "data": {
         "grounded": true,
-        "answer": "A commit in Git is a snapshot of the current state of the files in the repository. It has a unique ID and is linked to its parent, allowing you to travel back in time to a previous version of the files. [1] When you create a commit, you're taking a snapshot of the current state of the files, and the commit has a unique ID. [1] You can make multiple commits, and each one has its own unique ID, linked to its parent. [1]\n\nThe course covers the basics of commits, but it doesn't go into advanced topics like how to create a commit with a specific message or how to revert a commit.",
+        "answer": "A commit in Git is a snapshot of the current state of the files in the repository. It has a unique ID and is linked to its parent, allowing you to travel back in time to a previous version of the files. [1] When you create a commit, you're taking a snapshot of the current state of the files, and the commit has a unique ID. [1] \n\nThe course doesn't cover what happens to the changed files after a commit is created.",
         "citations": [
           {
             "n": 1,
@@ -824,6 +596,7 @@
             "youtubeId": "hwP7WQkmECE",
             "startSec": 0.0,
             "endSec": 117.079,
+            "seekSec": 0.0,
             "score": 0.716944
           }
         ],
@@ -837,6 +610,7 @@
             "youtubeId": "hwP7WQkmECE",
             "startSec": 0.0,
             "endSec": 117.079,
+            "seekSec": 0.0,
             "score": 0.716944
           },
           {
@@ -848,6 +622,7 @@
             "youtubeId": "scEDHsr3APg",
             "startSec": 0.0,
             "endSec": 115.25,
+            "seekSec": 0.0,
             "score": 0.654649
           },
           {
@@ -859,6 +634,7 @@
             "youtubeId": "8lGpZkjnkt4",
             "startSec": 0.0,
             "endSec": 111.44,
+            "seekSec": 0.0,
             "score": 0.630236
           }
         ],
@@ -872,7 +648,7 @@
         "usage": {
           "llmCalls": 1,
           "inputTokens": 1868,
-          "outputTokens": 135
+          "outputTokens": 97
         }
       }
     }

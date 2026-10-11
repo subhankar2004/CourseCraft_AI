@@ -30,6 +30,8 @@ interface StoredCitation {
   chunkIds: string[];
   startSec: number;
   endSec: number;
+  /** Absent in messages saved before #42: the span's start is used. */
+  seekSec?: number;
   score: number;
 }
 
@@ -228,6 +230,7 @@ export class ChatService {
       chunkIds: c.chunkIds,
       startSec: c.startSec,
       endSec: c.endSec,
+      seekSec: c.seekSec,
       score: c.score,
     }));
     const row = await this.prisma.chatMessage.create({
@@ -268,7 +271,16 @@ function toMessage(row: MessageRow, titles: Map<string, string>): ChatMessage {
     const lessonTitle = titles.get(c.lessonId);
     return lessonTitle === undefined
       ? []
-      : [{ n: c.n, lessonId: c.lessonId, lessonTitle, startSec: c.startSec, endSec: c.endSec }];
+      : [
+          {
+            n: c.n,
+            lessonId: c.lessonId,
+            lessonTitle,
+            startSec: c.startSec,
+            endSec: c.endSec,
+            seekSec: c.seekSec ?? c.startSec,
+          },
+        ];
   });
   return {
     id: row.id,

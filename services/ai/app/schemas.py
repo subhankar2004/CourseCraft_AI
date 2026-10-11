@@ -329,6 +329,8 @@ class RagCitation(CamelModel):
     youtube_id: str
     start_sec: float
     end_sec: float
+    #: Where the best-matching part starts: the moment to open the lesson at.
+    seek_sec: float
     score: float
 
 

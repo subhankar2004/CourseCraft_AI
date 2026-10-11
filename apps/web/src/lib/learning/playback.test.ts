@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createPositionSaver, resumePosition } from './playback';
+import { createPositionSaver, linkedTime, resumePosition } from './playback';
 import { parseStoredSplit, splitFromKey, splitFromPointer } from './split';
 
 describe('resumePosition', () => {
@@ -13,6 +13,22 @@ describe('resumePosition', () => {
     [589.9, 0, 589], // unknown duration
   ])('saved %s of %s s → %s', (saved, duration, expected) => {
     expect(resumePosition(saved, duration)).toBe(expected);
+  });
+});
+
+describe('linkedTime', () => {
+  it.each([
+    [null, 600, null],
+    ['', 600, null],
+    ['abc', 600, null],
+    ['-5', 600, null],
+    ['12.5', 600, null],
+    ['181', 600, 181],
+    ['0', 600, 0],
+    ['900', 600, 599], // past the end: the last second
+    ['181', 0, 181], // unknown duration
+  ])('t=%s of %s s → %s', (value, duration, expected) => {
+    expect(linkedTime(value, duration)).toBe(expected);
   });
 });
 

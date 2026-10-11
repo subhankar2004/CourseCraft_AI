@@ -199,6 +199,8 @@ export const ragCitationSchema = z.object({
   youtubeId: z.string(),
   startSec: z.number(),
   endSec: z.number(),
+  /** Where the best-matching part starts: the moment to open the lesson at (#42). */
+  seekSec: z.number(),
   score: z.number(),
 });
 

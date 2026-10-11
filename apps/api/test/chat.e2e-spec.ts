@@ -6,11 +6,12 @@ import {
   chatStreamEvents,
   type RagAnswerRequest,
   type RagCitation,
+  parseSse,
+  type SseEvent,
 } from '@coursecraft/shared';
 import request from 'supertest';
 import { AiServiceError } from '../src/ai/ai-client.errors.js';
 import { AiClient } from '../src/ai/ai-client.service.js';
-import { parseSse, type SseEvent } from '../src/ai/sse.js';
 import { AppModule } from '../src/app.module.js';
 import { configureApp } from '../src/app.setup.js';
 import { CHAT_LIMITS, ChatRateLimiter } from '../src/chat/chat-rate-limiter.js';
@@ -53,6 +54,7 @@ const citation = (n: number, lessonId: string, startSec: number): RagCitation =>
   youtubeId: 'yt',
   startSec,
   endSec: startSec + 90,
+  seekSec: startSec + 30,
   score: 0.81,
 });
 
@@ -230,8 +232,15 @@ describe('Course chat API (e2e, AI stream faked)', () => {
       content: 'A join combines rows [1]. Indexes [2]. Elsewhere [3].',
       grounded: true,
       citations: [
-        { n: 1, lessonId: joins, lessonTitle: 'Joins', startSec: 30, endSec: 120 },
-        { n: 2, lessonId: indexes, lessonTitle: 'Indexes', startSec: 120, endSec: 210 },
+        { n: 1, lessonId: joins, lessonTitle: 'Joins', startSec: 30, endSec: 120, seekSec: 60 },
+        {
+          n: 2,
+          lessonId: indexes,
+          lessonTitle: 'Indexes',
+          startSec: 120,
+          endSec: 210,
+          seekSec: 150,
+        },
       ],
     });
 

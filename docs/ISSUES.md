@@ -558,11 +558,11 @@ Meta: phase=P5 | area=web | type=feat | depends=35,41
 **Goal:** Students can ask questions while learning.
 **Tasks**
 
-- [ ] Floating "Ask this course" button → Sheet drawer on lesson and course pages
-- [ ] Streams tokens with a typing indicator; Markdown answers; distinct style for refusals
-- [ ] Citation chips "Lesson title · mm:ss" deep-link to `/learn/...?t=seconds` (the player seeks on load)
-- [ ] Session history list; new chat button
-- [ ] Mark P5 done in AGENTS.md
+- [x] Floating "Ask this course" button → Sheet drawer on lesson and course pages
+- [x] Streams tokens with a typing indicator; Markdown answers; distinct style for refusals
+- [x] Citation chips "Lesson title · mm:ss" deep-link to `/learn/...?t=seconds` (the player seeks on load)
+- [x] Session history list; new chat button
+- [x] Mark P5 done in AGENTS.md
 
 **Done when:** Asking a question in the browser gives a cited answer, and clicking a citation jumps to the right moment.
 

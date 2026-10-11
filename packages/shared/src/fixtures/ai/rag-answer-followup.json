@@ -17,55 +17,7 @@
     {
       "event": "token",
       "data": {
-        "text": "The"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " excerpt"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " doesn"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "'t"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " provide"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " an"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " example"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " of"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " Array"
+        "text": "Array"
       }
     },
     {
@@ -77,193 +29,31 @@
     {
       "event": "token",
       "data": {
-        "text": " returning"
+        "text": " can"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " a"
+        "text": " be"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " new"
+        "text": " used"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " array"
+        "text": " to"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": "."
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " It"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " only"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " describes"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " what"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " Array"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": ".map"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " does"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": ","
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " but"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " doesn"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "'t"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " show"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " a"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " concrete"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " example"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "."
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " \n\n"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "However"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": ","
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " it"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " does"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " mention"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " that"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " Array"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": ".map"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " \""
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "create"
+        "text": " create"
       }
     },
     {
@@ -329,19 +119,19 @@
     {
       "event": "token",
       "data": {
-        "text": " in"
+        "text": " of"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " a"
+        "text": " the"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " different"
+        "text": " original"
       }
     },
     {
@@ -353,55 +143,13 @@
     {
       "event": "token",
       "data": {
-        "text": "\""
+        "text": "."
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " ["
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "1"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "]."
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " \n\n"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": "It"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " also"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " gives"
-      }
-    },
-    {
-      "event": "token",
-      "data": {
-        "text": " an"
+        "text": " For"
       }
     },
     {
@@ -413,25 +161,79 @@
     {
       "event": "token",
       "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " if"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " we"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " have"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " an"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
         "text": " of"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " using"
+        "text": " squares"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " Array"
+        "text": ","
       }
     },
     {
       "event": "token",
       "data": {
-        "text": ".map"
+        "text": " we"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " can"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " use"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " map"
       }
     },
     {
@@ -444,6 +246,96 @@
       "event": "token",
       "data": {
         "text": " convert"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " it"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " new"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " circles"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " This"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " is"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " shown"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " in"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " code"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " where"
       }
     },
     {
@@ -473,13 +365,31 @@
     {
       "event": "token",
       "data": {
+        "text": " is"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " mapped"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
         "text": " to"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " an"
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " new"
       }
     },
     {
@@ -503,13 +413,151 @@
     {
       "event": "token",
       "data": {
+        "text": " that"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " only"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " contain"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " user"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " names"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ["
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "1"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "].\n\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "The"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " function"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " passed"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " map"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " is"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " called"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " on"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " every"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " element"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " in"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " original"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
         "text": ","
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " but"
+        "text": " and"
       }
     },
     {
@@ -521,31 +569,151 @@
     {
       "event": "token",
       "data": {
-        "text": " doesn"
+        "text": "'s"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": "'t"
+        "text": " responsible"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " explicitly"
+        "text": " for"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " show"
+        "text": " computing"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " new"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " value"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " and"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " returning"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " it"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " This"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " is"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " demonstrated"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " in"
       }
     },
     {
       "event": "token",
       "data": {
         "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " example"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " where"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " user"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " names"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " are"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " mapped"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
       }
     },
     {
@@ -563,32 +731,506 @@
     {
       "event": "token",
       "data": {
-        "text": " being"
+        "text": " of"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " returned"
+        "text": " strings"
       }
     },
     {
       "event": "token",
       "data": {
-        "text": "."
+        "text": " ["
       }
     },
     {
       "event": "token",
       "data": {
-        "text": " \n\n"
+        "text": "1"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "].\n\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "Here"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'s"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " an"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " example"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " how"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " this"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " might"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " look"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " in"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " code"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ":\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "```"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "javascript"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "const"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " users"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ="
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " [{"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " name"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ":"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " '"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "John"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " },"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " {"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " name"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ":"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " '"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "Jane"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " },"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " {"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " name"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ":"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " '"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "Bob"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " }];\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "const"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " user"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "Names"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ="
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " users"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ".map"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "(user"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " =>"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " user"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ".name"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ");\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "``"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "`\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "This"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " would"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " create"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " new"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " array"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " `"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "user"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "Names"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "`"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " containing"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " strings"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " '"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "John"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "',"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " '"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "Jane"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "',"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " and"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " '"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "Bob"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ["
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "1"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "]."
       }
     },
     {
       "event": "done",
       "data": {
         "grounded": true,
-        "answer": "The excerpt doesn't provide an example of Array.map returning a new array. It only describes what Array.map does, but doesn't show a concrete example. \n\nHowever, it does mention that Array.map \"create a new array by calling a function on every element in a different array\" [1]. \n\nIt also gives an example of using Array.map to convert an array of objects to an array of strings, but it doesn't explicitly show the new array being returned.",
+        "answer": "Array.map can be used to create a new array by calling a function on every element of the original array. For example, if we have an array of squares, we can use map to convert it to a new array of circles. This is shown in the code where an array of objects is mapped to a new array of strings that only contain the user names [1].\n\nThe function passed to map is called on every element in the original array, and it's responsible for computing a new value and returning it. This is demonstrated in the example where the user names are mapped to a new array of strings [1].\n\nHere's an example of how this might look in code:\n```javascript\nconst users = [{ name: 'John' }, { name: 'Jane' }, { name: 'Bob' }];\nconst userNames = users.map(user => user.name);\n```\nThis would create a new array `userNames` containing the strings 'John', 'Jane', and 'Bob' [1].",
         "citations": [
           {
             "n": 1,
@@ -599,7 +1241,8 @@
             "youtubeId": "DC471a9qrU4",
             "startSec": 0.05,
             "endSec": 98.65,
-            "score": 0.881399
+            "seekSec": 0.05,
+            "score": 0.849034
           }
         ],
         "sources": [
@@ -612,7 +1255,8 @@
             "youtubeId": "DC471a9qrU4",
             "startSec": 0.05,
             "endSec": 98.65,
-            "score": 0.881399
+            "seekSec": 0.05,
+            "score": 0.849034
           },
           {
             "n": 2,
@@ -623,25 +1267,36 @@
             "youtubeId": "tVCYa_bnITg",
             "startSec": 0.03,
             "endSec": 101.239,
-            "score": 0.663338
+            "seekSec": 0.03,
+            "score": 0.640531
           },
           {
             "n": 3,
-            "chunkId": "188529cb-f27b-45f0-a594-758ac1c37296-1",
-            "chunkIds": [
-              "188529cb-f27b-45f0-a594-758ac1c37296-1",
-              "188529cb-f27b-45f0-a594-758ac1c37296-2"
-            ],
+            "chunkId": "42aa15ba-68fc-4a76-a400-a92376d010f1-1",
+            "chunkIds": ["42aa15ba-68fc-4a76-a400-a92376d010f1-1"],
+            "lessonId": "42aa15ba-68fc-4a76-a400-a92376d010f1",
+            "lessonTitle": "Graph Search Algorithms in 100 Seconds - And Beyond with JS",
+            "youtubeId": "cWNEl4HE2OE",
+            "startSec": 181.47,
+            "endSec": 379.54,
+            "seekSec": 181.47,
+            "score": 0.628631
+          },
+          {
+            "n": 4,
+            "chunkId": "188529cb-f27b-45f0-a594-758ac1c37296-2",
+            "chunkIds": ["188529cb-f27b-45f0-a594-758ac1c37296-2"],
             "lessonId": "188529cb-f27b-45f0-a594-758ac1c37296",
             "lessonTitle": "What is `this` in JavaScript?",
             "youtubeId": "YOlr79NaAtQ",
-            "startSec": 179.61,
+            "startSec": 352.98,
             "endSec": 399.129,
-            "score": 0.627676
+            "seekSec": 352.98,
+            "score": 0.610567
           }
         ],
-        "standaloneQuestion": "Can you show an example of how Array.map returns a new array, made by calling a function on every element of the original array?",
-        "bestScore": 0.881399,
+        "standaloneQuestion": "Can you show an example of using Array.map to create a new array?",
+        "bestScore": 0.849034,
         "refusal": null,
         "minScore": 0.6,
         "promptIds": ["rag-condense@2", "rag-answer@3", "rag-question@2"],
@@ -649,8 +1304,8 @@
         "embeddingModel": "nomic-embed-text",
         "usage": {
           "llmCalls": 2,
-          "inputTokens": 2387,
-          "outputTokens": 128
+          "inputTokens": 2509,
+          "outputTokens": 219
         }
       }
     }
