@@ -15,6 +15,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProgressBar } from './progress-bar';
 import { useCourseOutline, useCourseProgress } from '@/lib/learning/hooks';
 import { courseLessons, statusesOf } from '@/lib/learning/navigation';
 import { cn } from '@/lib/utils';
@@ -156,19 +157,7 @@ function ProgressSummary({
 }: Record<'completed' | 'total' | 'percent', number>) {
   return (
     <div className="grid gap-1">
-      <div
-        role="progressbar"
-        aria-label="Course progress"
-        aria-valuenow={percent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        className="h-1.5 overflow-hidden rounded-full bg-muted"
-      >
-        <div
-          className="h-full bg-emerald-600 transition-[width]"
-          style={{ width: `${percent}%` }}
-        />
-      </div>
+      <ProgressBar percent={percent} label="Course progress" />
       <p className="text-xs text-muted-foreground">
         {completed} of {total} lessons complete · {percent}%
       </p>

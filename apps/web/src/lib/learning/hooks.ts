@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  completedLessonSchema,
   courseDetailSchema,
   enrollmentSchema,
   type LessonProgress,
@@ -8,6 +9,7 @@ import {
   lessonProgressSchema,
   type MyCourseProgress,
   myCourseProgressSchema,
+  myCourseSchema,
   nextLessonSchema,
   type ProgressStatus,
 } from '@coursecraft/shared';
@@ -64,6 +66,25 @@ export function saveLessonPosition(
     json: { lastPositionSec },
     keepalive,
     schema: lessonProgressSchema,
+  });
+}
+
+/** The dashboard: enrolled courses, latest activity first. Fresh on every visit. */
+export function useMyCourses() {
+  return useQuery({
+    queryKey: ['learning', 'my-courses'],
+    queryFn: () => api('me/courses', { schema: myCourseSchema.array() }),
+    staleTime: 0,
+  });
+}
+
+/** The dashboard: lessons completed most recently. */
+export function useCompletedLessons(limit = 5) {
+  return useQuery({
+    queryKey: ['learning', 'completed', limit],
+    queryFn: () =>
+      api(`me/completed-lessons?limit=${limit}`, { schema: completedLessonSchema.array() }),
+    staleTime: 0,
   });
 }
 
