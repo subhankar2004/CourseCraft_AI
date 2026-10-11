@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #39 (AI: RAG retrieval, grounding gate and streaming answers), the start of P5. Retrieval is per course over `vector_store` chunks (with `startSec/endSec`); keep the grounding gate (`RAG_MIN_SCORE`) and the answer-only-from-context prompt (see the AI pipeline rules below).
+**Next up:** Issue #40 (AI: follow-up condensation and citation quality). `POST /rag/answer` (#39, `app/rag/answer.py`) answers from one course with a two-stage gate (score ≥ `RAG_MIN_SCORE` = 0.60, then the model's `NOT_IN_COURSE`); retrieval still uses the raw question, and llama3.1:8b cites in 12–15 of 15 in-scope answers per run (docs/PROGRESS.md entry 39 has the calibration set).
 
 ## How we work: 50 issues → 50 PRs
 
@@ -143,6 +143,7 @@ uv --directory services/ai run pytest -m network   # opt-in live-API tests
 - New embedding models must be added to `app/generation/embedding_models.py` (dimension + index suffix).
 - Prompts: `load_prompt("name").render(...)`; record `prompt.id` (`name@version`) with generated content and bump `version` on any wording change.
 - **Never pass user-supplied URLs to yt-dlp or any fetcher.** Parse them with `app.ingestion.youtube_urls.parse_youtube_url()` and build canonical URLs from the validated ids; keep yt-dlp's `allowed_extractors` restricted to YouTube.
+- RAG thresholds are per embedding model: when changing `EMBED_MODEL`, re-run the #39 calibration (in-scope vs off-scope best scores) before trusting `RAG_MIN_SCORE`. Prompt changes to `rag-answer`/`rag-question` must be re-checked on real questions (refusals AND citation rate), not only unit tests.
 - Chunks must keep `startSec/endSec`. Citations and timestamp seeking depend on it.
 - The RAG answer path must keep the **grounding gate** (`RAG_MIN_SCORE`) and the "answer only from context" system prompt. Do not weaken these to make a demo look better. They are the core claim of the project.
 - Use real YouTube calls only in tests marked `@pytest.mark.network`. Default unit tests use the fixtures in `services/ai/tests/fixtures/` (`tests/fixture_data.py` loads them; `pnpm ai:fixtures` re-records them). New pipeline stages extend `tests/test_ingestion_pipeline.py`, which replays the outside world and runs the real code.

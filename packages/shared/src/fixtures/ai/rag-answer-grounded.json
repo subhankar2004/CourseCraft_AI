@@ -1,0 +1,639 @@
+{
+  "request": {
+    "courseId": "cmv3cvhv80000fj3hulmpy4ev",
+    "question": "What is a commit in Git?",
+    "history": []
+  },
+  "events": [
+    {
+      "event": "token",
+      "data": {
+        "text": "A"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " commit"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " in"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " Git"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " is"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " snapshot"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " current"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " state"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " files"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " in"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " repository"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " It"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " has"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " unique"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ID"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " and"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " is"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " linked"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " its"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " parent"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " which"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " allows"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " you"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " travel"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " back"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " in"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " time"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " previous"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " version"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " files"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ["
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "1"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "]"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " When"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " you"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " make"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " commit"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " you"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'re"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " creating"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " new"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " snapshot"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " files"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": ","
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " and"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " head"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " of"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " repository"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " moves"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " forward"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " point"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " the"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " most"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " recent"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " commit"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " ["
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "1"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "]\n\n"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "The"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " course"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " doesn"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "'t"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " cover"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " what"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " triggers"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " commit"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " or"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " how"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " to"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " undo"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " a"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": " commit"
+      }
+    },
+    {
+      "event": "token",
+      "data": {
+        "text": "."
+      }
+    },
+    {
+      "event": "done",
+      "data": {
+        "grounded": true,
+        "answer": "A commit in Git is a snapshot of the current state of the files in the repository. It has a unique ID and is linked to its parent, which allows you to travel back in time to a previous version of the files. [1] When you make a commit, you're creating a new snapshot of the files, and the head of the repository moves forward to point to the most recent commit. [1]\n\nThe course doesn't cover what triggers a commit or how to undo a commit.",
+        "citations": [
+          {
+            "n": 1,
+            "chunkId": "7fbe83ca-4be0-4b14-9554-2c0a1462e428-0",
+            "lessonId": "7fbe83ca-4be0-4b14-9554-2c0a1462e428",
+            "lessonTitle": "Git Explained in 100 Seconds",
+            "youtubeId": "hwP7WQkmECE",
+            "startSec": 0.0,
+            "endSec": 117.079,
+            "score": 0.716944
+          }
+        ],
+        "bestScore": 0.716944,
+        "refusal": null,
+        "minScore": 0.6,
+        "promptIds": ["rag-answer@2", "rag-question@2"],
+        "chatModel": "llama3.1:8b",
+        "embeddingModel": "nomic-embed-text",
+        "usage": {
+          "llmCalls": 1,
+          "inputTokens": 1839,
+          "outputTokens": 101
+        }
+      }
+    }
+  ]
+}

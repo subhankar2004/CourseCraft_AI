@@ -7,6 +7,8 @@ import {
   ingestTranscriptResponseSchema,
   processLessonRequestSchema,
   processLessonResponseSchema,
+  ragAnswerRequestSchema,
+  ragStreamEvents,
   structureRequestSchema,
   structureResponseSchema,
   vectorSearchResponseSchema,
@@ -20,6 +22,8 @@ import vectorSearch from './fixtures/ai/vector-search.json' with { type: 'json' 
 import vectorDeleteLesson from './fixtures/ai/vector-delete-lesson.json' with { type: 'json' };
 import vectorDeleteCourse from './fixtures/ai/vector-delete-course.json' with { type: 'json' };
 import error422 from './fixtures/ai/error-422.json' with { type: 'json' };
+import ragGrounded from './fixtures/ai/rag-answer-grounded.json' with { type: 'json' };
+import ragRefused from './fixtures/ai/rag-answer-refused.json' with { type: 'json' };
 
 /** Real responses captured from the running AI service (#26), trimmed to a few items. */
 const FIXTURES: Record<string, unknown> = {
@@ -95,5 +99,42 @@ describe('AI service requests', () => {
         lessons: [{ ref: 'l1', title: 'Intro' }],
       }).success,
     ).toBe(true);
+  });
+});
+
+describe('RAG answer streams (captured from the real service, #39)', () => {
+  type Stream = { request: unknown; events: { event: string; data: unknown }[] };
+  const parse = (stream: Stream) =>
+    stream.events.map(({ event, data }) => {
+      expect(Object.keys(ragStreamEvents)).toContain(event);
+      return { event, data: ragStreamEvents[event as keyof typeof ragStreamEvents].parse(data) };
+    });
+
+  it('a grounded answer streams tokens, then done with citations it actually uses', () => {
+    expect(ragAnswerRequestSchema.safeParse(ragGrounded.request).success).toBe(true);
+    const events = parse(ragGrounded as Stream);
+    const done = ragStreamEvents.done.parse(events.at(-1)!.data);
+    expect(events.slice(0, -1).every((e) => e.event === 'token')).toBe(true);
+    const streamed = events
+      .slice(0, -1)
+      .map((e) => ragStreamEvents.token.parse(e.data).text)
+      .join('');
+    expect(streamed.trim()).toBe(done.answer);
+    expect(done.grounded).toBe(true);
+    expect(done.citations.length).toBeGreaterThan(0);
+    for (const citation of done.citations) {
+      expect(done.answer).toContain(`[${citation.n}]`);
+      expect(citation.endSec).toBeGreaterThan(citation.startSec);
+    }
+    expect(done.bestScore).toBeGreaterThanOrEqual(done.minScore);
+  });
+
+  it('an off-scope question is refused without calling the model', () => {
+    const events = parse(ragRefused as Stream);
+    expect(events.map((e) => e.event)).toEqual(['token', 'done']);
+    const done = ragStreamEvents.done.parse(events[1]!.data);
+    expect(done).toMatchObject({ grounded: false, refusal: 'low_score', citations: [] });
+    expect(done.usage.llmCalls).toBe(0);
+    expect(done.bestScore!).toBeLessThan(done.minScore);
   });
 });

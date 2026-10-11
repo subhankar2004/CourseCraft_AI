@@ -287,3 +287,67 @@ class StructureResponse(CamelModel):
     prompt_id: str
     chat_model: str
     usage: UsageOut
+
+
+# ─── RAG chat (#39) ─────────────────────────────────────────────────────────
+
+
+class ChatTurn(CamelModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=8_000)
+
+
+class RagAnswerRequest(CamelModel):
+    course_id: str = Field(pattern=ID_PATTERN)
+    question: str = Field(min_length=1, max_length=2_000)
+    #: Earlier turns, oldest first (the API sends the last few messages).
+    history: list[ChatTurn] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode="after")
+    def _question_has_text(self) -> "RagAnswerRequest":
+        if not self.question.strip():
+            raise ValueError("question must not be blank")
+        return self
+
+
+class RagTokenEvent(CamelModel):
+    """SSE `token`: the next piece of the answer."""
+
+    text: str
+
+
+class RagCitation(CamelModel):
+    """A chunk the answer cites as [n]: enough to deep-link into the lesson at that time."""
+
+    n: int
+    chunk_id: str
+    lesson_id: str
+    lesson_title: str
+    youtube_id: str
+    start_sec: float
+    end_sec: float
+    score: float
+
+
+class RagDoneEvent(CamelModel):
+    """SSE `done`: the whole answer with its citations, last event of a stream."""
+
+    grounded: bool
+    answer: str
+    citations: list[RagCitation]
+    #: Best retrieval similarity (null when the course has no chunks).
+    best_score: float | None
+    #: Why the answer is the fixed refusal: no chunks, below RAG_MIN_SCORE, or the model found
+    #: the excerpts don't answer it. Null when grounded.
+    refusal: Literal["not_indexed", "low_score", "not_in_context"] | None
+    min_score: float
+    prompt_ids: list[str]
+    chat_model: str
+    embedding_model: str
+    usage: "UsageOut"
+
+
+class RagFailedEvent(CamelModel):
+    """SSE `failed`: the model failed mid-answer (the HTTP status was already sent)."""
+
+    message: str

@@ -71,7 +71,10 @@ class Settings(BaseSettings):
     notes_map_tokens: Annotated[int, Field(ge=500, le=30000)] = 2500
     notes_reduce_tokens: Annotated[int, Field(ge=1000, le=60000)] = 5000
     rag_top_k: Annotated[int, Field(ge=1, le=50)] = 6
-    rag_min_score: Annotated[float, Field(ge=0, le=1)] = 0.35
+    # Grounding gate: best cosine similarity a question needs before the LLM is asked. Calibrated
+    # for nomic-embed-text on a real course (#39): in-scope 0.60-0.85, off-scope 0.45-0.64.
+    # Re-calibrate when changing the embedding model (scores aren't comparable across models).
+    rag_min_score: Annotated[float, Field(ge=0, le=1)] = 0.6
     cli_max: Annotated[float, Field(ge=0, le=100)] = 60
     # Shared with the API: the most videos one course can be generated from.
     max_videos_per_course: Annotated[int, Field(ge=1, le=200)] = 25
