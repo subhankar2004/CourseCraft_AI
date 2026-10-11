@@ -167,6 +167,62 @@ export const deleteVectorsResponseSchema = z.object({
   deleted: z.number().int(),
 });
 
+// ─── RAG chat (#39) ─────────────────────────────────────────────────────────
+
+export const chatTurnSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string().min(1).max(8000),
+});
+
+/** `POST /rag/answer`: answered as Server-Sent Events (`token`…, then `done` or `failed`). */
+export const ragAnswerRequestSchema = z.strictObject({
+  courseId: aiIdSchema,
+  question: z.string().trim().min(1).max(2000),
+  /** Earlier turns, oldest first. */
+  history: z.array(chatTurnSchema).max(20).default([]),
+});
+
+export const ragTokenEventSchema = z.object({ text: z.string() });
+
+/** A chunk the answer cites as [n]: lesson + time range for a deep link into the split view. */
+export const ragCitationSchema = z.object({
+  n: z.number().int().positive(),
+  chunkId: z.string(),
+  lessonId: z.string(),
+  /** The title when the lesson was indexed; show the API's current title instead. */
+  lessonTitle: z.string(),
+  youtubeId: z.string(),
+  startSec: z.number(),
+  endSec: z.number(),
+  score: z.number(),
+});
+
+export const ragRefusalSchema = z.enum(['not_indexed', 'low_score', 'not_in_context']);
+
+export const ragDoneEventSchema = z.object({
+  grounded: z.boolean(),
+  answer: z.string(),
+  citations: z.array(ragCitationSchema),
+  /** Best retrieval similarity; null when the course has no chunks. */
+  bestScore: z.number().nullable(),
+  /** Why the answer is the fixed refusal; null when grounded. */
+  refusal: ragRefusalSchema.nullable(),
+  minScore: z.number(),
+  promptIds: z.array(z.string()),
+  chatModel: z.string(),
+  embeddingModel: z.string(),
+  usage: usageSchema,
+});
+
+export const ragFailedEventSchema = z.object({ message: z.string() });
+
+/** The SSE event names of `POST /rag/answer` and their payloads. */
+export const ragStreamEvents = {
+  token: ragTokenEventSchema,
+  done: ragDoneEventSchema,
+  failed: ragFailedEventSchema,
+} as const;
+
 export type IngestMetadataRequest = z.infer<typeof ingestMetadataRequestSchema>;
 export type IngestMetadataResponse = z.infer<typeof ingestMetadataResponseSchema>;
 export type VideoMetadata = z.infer<typeof videoMetadataSchema>;
@@ -180,3 +236,8 @@ export type StructureResponse = z.infer<typeof structureResponseSchema>;
 export type VectorSearchRequest = z.infer<typeof vectorSearchRequestSchema>;
 export type VectorSearchResponse = z.infer<typeof vectorSearchResponseSchema>;
 export type DeleteVectorsResponse = z.infer<typeof deleteVectorsResponseSchema>;
+export type ChatTurn = z.infer<typeof chatTurnSchema>;
+export type RagAnswerRequest = z.input<typeof ragAnswerRequestSchema>;
+export type RagCitation = z.infer<typeof ragCitationSchema>;
+export type RagRefusal = z.infer<typeof ragRefusalSchema>;
+export type RagDoneEvent = z.infer<typeof ragDoneEventSchema>;

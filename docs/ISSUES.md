@@ -520,11 +520,11 @@ Meta: phase=P5 | area=ai | type=feat | depends=21
 **Goal:** SPEC §7.2 steps 2–5 (Outcome 3).
 **Tasks**
 
-- [ ] `POST /rag/answer {courseId, question, history[]}`: embed → query namespace `courseId` top-k `RAG_TOP_K`
-- [ ] **Grounding gate**: best score < `RAG_MIN_SCORE` → fixed refusal message, `grounded=false`, no LLM call
-- [ ] Grounded system prompt (answer only from the context, say when it's insufficient, cite as [n])
-- [ ] SSE stream: `token` events, then a final `done` event with citations `{lessonId, chunkId, startSec, endSec, score}` and `grounded`
-- [ ] Tests: in-scope answer has citations; off-scope question is refused without calling the LLM
+- [x] `POST /rag/answer {courseId, question, history[]}`: embed → query namespace `courseId` top-k `RAG_TOP_K`
+- [x] **Grounding gate**: best score < `RAG_MIN_SCORE` → fixed refusal message, `grounded=false`, no LLM call
+- [x] Grounded system prompt (answer only from the context, say when it's insufficient, cite as [n])
+- [x] SSE stream: `token` events, then a final `done` event with citations `{lessonId, chunkId, startSec, endSec, score}` and `grounded`
+- [x] Tests: in-scope answer has citations; off-scope question is refused without calling the LLM
 
 **Done when:** Asking questions with `curl` against a real generated course behaves correctly.
 

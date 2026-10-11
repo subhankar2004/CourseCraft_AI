@@ -4,14 +4,14 @@ import math
 import re
 import threading
 import zlib
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from typing import Any
 
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage
-from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.messages import AIMessage, AIMessageChunk, BaseMessage
+from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
 from pydantic import Field
 
 from app.generation.embedding_models import EmbeddingModelInfo
@@ -175,3 +175,44 @@ class ScriptedChatModel(BaseChatModel):
             self.prompts.append(prompt)
         text = self.reply(prompt)
         return ChatResult(generations=[ChatGeneration(message=AIMessage(content=text))])
+
+
+class StreamingChatModel(BaseChatModel):
+    """Streams a scripted reply word by word (like a real provider), optionally failing with a
+    connection error after `fail_after` words. Records every prompt."""
+
+    reply: Callable[[str], str]
+    fail_after: int | None = None
+    prompts: list[str] = Field(default_factory=list)
+
+    @property
+    def _llm_type(self) -> str:
+        return "streaming-scripted"
+
+    def _record(self, messages: list[BaseMessage]) -> str:
+        prompt = "\n".join(f"{m.type}: {m.content}" for m in messages)
+        self.prompts.append(prompt)
+        return self.reply(prompt)
+
+    def _generate(
+        self,
+        messages: list[BaseMessage],
+        stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
+        **kwargs: Any,
+    ) -> ChatResult:
+        text = self._record(messages)
+        return ChatResult(generations=[ChatGeneration(message=AIMessage(content=text))])
+
+    def _stream(
+        self,
+        messages: list[BaseMessage],
+        stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
+        **kwargs: Any,
+    ) -> Iterator[ChatGenerationChunk]:
+        words = re.findall(r"\S+\s*", self._record(messages))
+        for position, word in enumerate(words):
+            if self.fail_after is not None and position == self.fail_after:
+                raise ConnectionError("Failed to connect to Ollama")
+            yield ChatGenerationChunk(message=AIMessageChunk(content=word))

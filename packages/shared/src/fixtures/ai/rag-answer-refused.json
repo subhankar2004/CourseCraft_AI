@@ -1,0 +1,34 @@
+{
+  "request": {
+    "courseId": "cmv3cvhv80000fj3hulmpy4ev",
+    "question": "Who won the 2018 FIFA World Cup?",
+    "history": []
+  },
+  "events": [
+    {
+      "event": "token",
+      "data": {
+        "text": "This isn't covered in this course's lessons, so I can't answer it from the course. Try rephrasing your question, or ask about a topic from one of the lessons."
+      }
+    },
+    {
+      "event": "done",
+      "data": {
+        "grounded": false,
+        "answer": "This isn't covered in this course's lessons, so I can't answer it from the course. Try rephrasing your question, or ask about a topic from one of the lessons.",
+        "citations": [],
+        "bestScore": 0.449646,
+        "refusal": "low_score",
+        "minScore": 0.6,
+        "promptIds": ["rag-answer@2", "rag-question@2"],
+        "chatModel": "llama3.1:8b",
+        "embeddingModel": "nomic-embed-text",
+        "usage": {
+          "llmCalls": 0,
+          "inputTokens": 0,
+          "outputTokens": 0
+        }
+      }
+    }
+  ]
+}
