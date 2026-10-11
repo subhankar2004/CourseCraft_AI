@@ -414,8 +414,8 @@ Meta: phase=P3 | area=api,web | type=feat | depends=28,30
 **Goal:** Human review before a course is published.
 **Tasks**
 
-- [ ] API: `PATCH /courses/:id` (title, description, level, domain), reorder modules and lessons (transactional reindex), rename modules, `POST /courses/:id/publish|unpublish`, `DELETE /courses/:id` (also deletes its vectors)
-- [ ] Web `/admin/courses/[id]`: outline with drag-and-drop reordering (dnd-kit), inline renaming, lesson preview, Publish button
+- [x] API: `PATCH /courses/:id` (title, description, level, domain), reorder modules and lessons (transactional reindex), rename modules, `POST /courses/:id/publish|unpublish`, `DELETE /courses/:id` (also deletes its vectors)
+- [x] Web `/admin/courses/[id]`: outline with drag-and-drop reordering (dnd-kit), inline renaming, lesson preview, Publish button
 
 **Done when:** The generated course can be reordered and published, and it then appears in the public catalog.
 

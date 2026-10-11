@@ -6,9 +6,25 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const ITEMS = [
-  { href: '/admin/courses', label: 'Courses', icon: BookOpenIcon, exact: true },
-  { href: '/admin/courses/new', label: 'Generate', icon: SparklesIcon, exact: true },
-  { href: '/admin/domains', label: 'Domains', icon: FolderTreeIcon, exact: false },
+  // Courses covers the list and each review page, but not Generate (its own item).
+  {
+    href: '/admin/courses',
+    label: 'Courses',
+    icon: BookOpenIcon,
+    active: (p: string) => p.startsWith('/admin/courses') && p !== '/admin/courses/new',
+  },
+  {
+    href: '/admin/courses/new',
+    label: 'Generate',
+    icon: SparklesIcon,
+    active: (p: string) => p === '/admin/courses/new' || p.startsWith('/admin/jobs/'),
+  },
+  {
+    href: '/admin/domains',
+    label: 'Domains',
+    icon: FolderTreeIcon,
+    active: (p: string) => p.startsWith('/admin/domains'),
+  },
 ] as const;
 
 /**
@@ -28,10 +44,8 @@ export function AdminSidebarLinks({ pathname }: { pathname: string | null }) {
         Admin
       </p>
       <ul className="flex gap-1 overflow-x-auto md:flex-col">
-        {ITEMS.map(({ href, label, icon: Icon, exact }) => {
-          // "Courses" must not light up on /admin/courses/new, which has its own item.
-          const active =
-            pathname !== null && (pathname === href || (!exact && pathname.startsWith(`${href}/`)));
+        {ITEMS.map(({ href, label, icon: Icon, active: isActive }) => {
+          const active = pathname !== null && isActive(pathname);
           return (
             <li key={href}>
               <Link

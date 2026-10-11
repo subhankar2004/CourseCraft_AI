@@ -119,13 +119,9 @@ function CourseRow({ course }: { course: AdminCourse }) {
   return (
     <tr className="align-top">
       <td className="max-w-80 px-3 py-3">
-        {course.status === 'PUBLISHED' ? (
-          <Link href={`/courses/${course.slug}`} className="font-medium hover:underline">
-            {course.title}
-          </Link>
-        ) : (
-          <span className="font-medium">{course.title}</span>
-        )}
+        <Link href={`/admin/courses/${course.id}`} className="font-medium hover:underline">
+          {course.title}
+        </Link>
         {course.level && <p className="text-xs text-muted-foreground">{course.level}</p>}
       </td>
       <td className="px-3 py-3 whitespace-nowrap">{course.domain.name}</td>

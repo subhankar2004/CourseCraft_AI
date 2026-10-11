@@ -7,6 +7,7 @@ import { applyApiError } from '@/components/forms/form-errors';
 import { FormField } from '@/components/forms/form-field';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -18,9 +19,6 @@ import {
 import { useDomains, useGenerateCourse } from '@/lib/admin/hooks';
 import { plural } from '@/lib/format';
 import { cn } from '@/lib/utils';
-
-const SELECT_CLASS =
-  'h-8 w-full rounded-lg border border-input bg-transparent px-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm dark:bg-input/30';
 
 export function GenerateForm() {
   const router = useRouter();
@@ -72,9 +70,8 @@ export function GenerateForm() {
         {domains.isPending ? (
           <Skeleton className="h-8 w-full" />
         ) : (
-          <select
+          <NativeSelect
             id="domainId"
-            className={SELECT_CLASS}
             aria-invalid={Boolean(errors.domainId)}
             aria-describedby={errors.domainId ? 'domainId-error' : undefined}
             {...register('domainId')}
@@ -85,7 +82,7 @@ export function GenerateForm() {
                 {domain.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         )}
         {errors.domainId && (
           <p id="domainId-error" className="text-sm text-destructive">
