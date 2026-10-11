@@ -1833,6 +1833,7 @@ Also: the mobile switch first had lowercase labels styled with `capitalize`, so 
   - Asking 6 times within a minute gave 200, 200, 200, 429, 429, 429 (5 per minute, counting the 2 earlier questions).
 - **Full checks:** format, lint and typecheck are clean. Tests: API 40 unit + 97 e2e, web 122, shared 88, AI 279.
 - **Also:** `start_project.txt` (the from-scratch run guide, at the repo root) is committed with this PR; its chat example now uses this endpoint.
+- **CI found a race in an existing endpoint.** `POST /jobs/:id/retry` (#30) read the job _after_ queueing it, so with the in-process worker on a fast runner the response could already show the video `PROCESSED` instead of the restarted `TRANSCRIBED`, and the #30 e2e test failed once on CI. The response is now read before the job is queued: the job as restarted. All 97 e2e tests then passed three runs in a row.
 
 ---
 
