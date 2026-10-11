@@ -546,9 +546,9 @@ Meta: phase=P5 | area=api | type=feat | depends=26,33,39
 **Goal:** SPEC §7.2 steps 1 and 6.
 **Tasks**
 
-- [ ] `POST /courses/:id/chat {sessionId?, message}`: checks enrollment, loads history, proxies the AI SSE stream to the client
-- [ ] Saves both user and assistant messages with citations and `grounded`
-- [ ] `GET /courses/:id/chat/sessions`, `GET .../sessions/:sid`; per-user rate limit
+- [x] `POST /courses/:id/chat {sessionId?, message}`: checks enrollment, loads history, proxies the AI SSE stream to the client
+- [x] Saves both user and assistant messages with citations and `grounded`
+- [x] `GET /courses/:id/chat/sessions`, `GET .../sessions/:sid`; per-user rate limit
 
 **Done when:** An E2E test with a mocked AI stream passes.
 

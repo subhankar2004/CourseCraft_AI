@@ -17,6 +17,7 @@ import {
   type IngestTranscriptResponse,
   type ProcessLessonRequest,
   type ProcessLessonResponse,
+  type RagAnswerRequest,
   type StructureRequest,
   type StructureResponse,
   type VectorSearchRequest,
@@ -36,7 +37,10 @@ export const ENDPOINTS = {
   processLesson: { timeoutMs: 30 * 60_000, retries: 1, retryTimeouts: false },
   processStructure: { timeoutMs: 5 * 60_000, retries: 2, retryTimeouts: true },
   vectors: { timeoutMs: 30_000, retries: 2, retryTimeouts: true },
-  stream: { timeoutMs: 30_000, retries: 1, retryTimeouts: true },
+  // Chat answers: the AI service condenses the question and retrieves BEFORE it replies, and a
+  // cold local model can take a while to load. Never retried: a retry would run the LLM twice
+  // (the student can simply ask again).
+  stream: { timeoutMs: 120_000, retries: 0, retryTimeouts: false },
 } as const;
 export type EndpointName = keyof typeof ENDPOINTS;
 type Limits = { timeoutMs: number; retries: number; retryTimeouts: boolean };
@@ -205,6 +209,14 @@ export class AiClient {
       { endpoint: 'vectors', method: 'DELETE', path, schema: deleteVectorsResponseSchema },
       options,
     );
+  }
+
+  /**
+   * `POST /rag/answer` (#39-#40): the course chatbot's answer as SSE events (`token`..., then
+   * `done` or `failed`). Payloads are validated by the caller with `ragStreamEvents`.
+   */
+  ragAnswer(body: RagAnswerRequest, options?: CallOptions): AsyncGenerator<SseEvent> {
+    return this.stream('/rag/answer', body, options);
   }
 
   /**

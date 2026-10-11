@@ -3,6 +3,7 @@
 export * from './ai.js';
 export * from './anchors.js';
 export * from './auth.js';
+export * from './chat.js';
 export * from './course.js';
 export * from './domain.js';
 export * from './error.js';

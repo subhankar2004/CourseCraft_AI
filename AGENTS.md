@@ -31,7 +31,7 @@ Track progress here. Update this section at the end of every working session.
 - [ ] P6 Evaluation — faithfulness / relevance / cognitive load runs
 - [ ] P7 Deploy & report
 
-**Next up:** Issue #41 (API: chat sessions, SSE proxy and rate limiting). The AI side is done: `POST /rag/answer` (#39–#40) condenses follow-ups, gates at `RAG_MIN_SCORE` 0.60, and streams `token`… then `done {answer, citations, sources, standaloneQuestion, …}` or `failed` (contracts: `ragStreamEvents` in `packages/shared`; fixtures in `fixtures/ai/rag-answer-*.json`). Show the API's current lesson titles, not `lessonTitle` from citations.
+**Next up:** Issue #42 (web: course chat drawer with streaming and citations), the last P5 issue. The API is `POST /courses/:id/chat` (SSE over POST: read it with `fetch` + a stream reader, not `EventSource`) and `GET /courses/:id/chat/sessions[/:sid]`; contracts `chatRequestSchema`, `chatStreamEvents`, `chatSessionSchema` in `packages/shared/src/chat.ts`. Handle 403 (not enrolled), 429 (`Retry-After`) and `failed`.
 
 ## How we work: 50 issues → 50 PRs
 
